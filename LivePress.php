@@ -1,11 +1,15 @@
 <?php
 /*
 Plugin Name: Live+Press
-Version: 2.0.2
-Plugin URI: http://www.digsite.net/livepress/
-Description: Live Press is a Live Journal compatibility plugin for Word Press. Features include support for Live Journal Tags, Moods, Music, User Pictures, Posting to a Live Journal account and Editing Entries on Live Journal (if they have been posted with Live Press). Version 2.0 is an update of Version 1.99.9 what is an updated version of Unteins' LivePress 1.5.2 and 1.99 (my initial 'fixes' were incorporated into the latter version). The original plugin can be found here: http://somuchgeek.com/code/livepress/
-Author: Unteins (Jason Goldsmith), with compatibility fixes by CreepiGurl, and additional fixes and enhancements for Wordpress 2.5.x by Digsite (Tania Morell)
-Author URI: http://somuchgeek.com
+Version: 2.0.3
+Plugin URI: http://code.google.com/p/livepress/
+
+Livepress is a plugin for wordpress which allows the user to automatically crosspost journal entries to a LiveJournal? account.
+
+This fork of the plugin is licensed under GPLv3. All contributions and suggestions are welcome. 
+
+
+Author URI: http://digsite.net/livepress
 */
 
 //require_once(ABSPATH . '/wp-includes/pluggable-functions.php');

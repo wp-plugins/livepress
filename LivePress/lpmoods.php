@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.0.2
+//Live+Press_2.0.3
 
 $ljmoods = $unt_livepress_options['moods']['file'];
 $ljmoods = file($ljmoods, 1);
