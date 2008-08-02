@@ -1,5 +1,5 @@
 === Live+Press 2.0.2 ===
-Contributors: unteins, creepigurl, digsite
+Contributors: previous (unteins, creepigurl), current (digsite)
 Tags: crossposting, livejournal, livepress
 Requires at least: 2.2
 Tested up to: 2.6
