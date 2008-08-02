@@ -1,10 +1,11 @@
 === Live+Press 2.0.2 ===
-Contributors: previous (unteins, creepigurl), current (digsite)
+Contributors: digsite
+Previous Contributors: unteins, creepigurl
 Tags: crossposting, livejournal, livepress
 Requires at least: 2.2
 Tested up to: 2.6
 Stable tag: 2.0.2
-Donate link: n/a
+Donate link: none
 
 LiveJournal Crosspost Plugin for WordPress
 
@@ -82,4 +83,3 @@ Version 1.99
 Version 1.5.2
 Version 1.5.1.3
 Version 1.2.0
-
