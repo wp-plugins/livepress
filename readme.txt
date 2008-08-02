@@ -3,7 +3,7 @@ Contributors: unteins, creepigurl, digsite
 Tags: crossposting, livejournal, livepress
 Requires at least: 2.2
 Tested up to: 2.6
-Stable tag: n/a
+Stable tag: 2.0.2
 Donate link: n/a
 
 LiveJournal Crosspost Plugin for WordPress
