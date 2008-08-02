@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.0.2
+//Live+Press_2.0.3
 
 require_once(dirname(__FILE__) . '/../../../../wp-admin/includes/post.php');
 
@@ -160,7 +160,7 @@ function user_journals($lj_meta) {
 	foreach ($journals as $key => $value){
 		$username = $key;
 		$lj_userjournals = $value['data']['userjournals'];
-		$lj_userjournals = array_combine(array_values($lj_userjournals), $lj_userjournals);
+		//$lj_userjournals = array_combine(array_values($lj_userjournals), $lj_userjournals);
 
 		$text .= '<select id="' . $username . '_userjournals" name="' . $username . '_userjournals" class="LJExtras_userjournals" style="display:none;">';
 		$text .= '<option value="">(default)</option>';
