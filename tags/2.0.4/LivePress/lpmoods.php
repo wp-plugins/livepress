@@ -88,7 +88,7 @@ function get_mood($num) {
 
 
 function LJ_Moods_Style() {
-	echo '<link rel="stylesheet" href="wp-content/plugins/LivePress_2.0/LivePress/LivePress.css" type="text/css" />';
+	echo '<link rel="stylesheet" href="wp-content/plugins/livepress/LivePress/LivePress.css" type="text/css" />';
 }
 
 if( $unt_livepress_options['general']['usemoods'])

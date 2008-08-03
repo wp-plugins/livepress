@@ -3,9 +3,9 @@
 Plugin Name: Live+Press
 Version: 2.0.4
 Plugin URI: http://code.google.com/p/livepress/
-Description: Live+Press makes it possible for Wordpress blog posts to be automatically crossposted to a LiveJournal user blog.  This fork of the plugin is licensed under GPLv3. All contributions and suggestions are welcome.  More plugin details can be found at the plugin home page on google code.
+Description: Live+Press allows Wordpress posts to be automatically crossposted to a LiveJournal user blogs. This fork of the plugin is licensed under GPLv3. All contributions and suggestions are welcome.  More plugin details and help can be found at the plugin home page on google code.
 Author URI: http://digsite.net/livepress
-Author: digsite
+Author: <a href="http://digsite.net">Tania Morell (aka digsite)</a>, Originally written by <a href="http://jason.goldsmith.us/">Jason Goldsmith</a>
 */
 
 //require_once(ABSPATH . '/wp-includes/pluggable-functions.php');
@@ -14,7 +14,7 @@ require_once(ABSPATH . '/wp-includes/class-IXR.php');
 // Add LivePress Styles
 function LivePress_Style($postID)
 {
-    echo '<link rel="stylesheet" href="wp-content/plugins/LivePress_2.0/LivePress/LivePress.css" type="text/css" />';
+    echo '<link rel="stylesheet" href="wp-content/plugins/livepress/LivePress/LivePress.css" type="text/css" />';
 }
 
 $unt_lp_clientid = 'WordPress-LivePress/1.99.9';

@@ -32,7 +32,7 @@ function add_music ($text)
 }
 
 function LJ_Music_Style() {
-	echo '<link rel="stylesheet" href="wp-content/plugins/LivePress_2.0/LivePress/LivePress.css" type="text/css" />';
+	echo '<link rel="stylesheet" href="wp-content/plugins/livepress/LivePress/LivePress.css" type="text/css" />';
 }
 
 
