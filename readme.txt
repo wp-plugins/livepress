@@ -18,6 +18,7 @@ Livepress is a plugin for wordpress which allows the user to automatically cross
 This fork of the plugin is licensed under GPLv3. All contributions and suggestions are welcome.
 
 Originally written by <a href="http://jason.goldsmith.us/>Jason Goldsmith (aka, "unteins")</a>
+
 Please report bugs to the <a href="http://groups.google.com/group/livepressplugin">Support Forum</a>
 
 
