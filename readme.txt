@@ -41,8 +41,8 @@ Using FTP
 
     * download the plugin to your local computer
     * Extract the plugin archive
-    * ftp the entire LivePress_2.0 directory to your wordpress plugin directory
-    * ftp LivePress_2.0/class-IXR.php to your wordpress wp-includes/ directory
+    * ftp the entire livepress/ directory to your wordpress plugin directory
+    * ftp livepress/class-IXR.php to your wordpress wp-includes/ directory
     * Go to your plugins admin page and activate the LivePress plugin
     * Go To the Settings -> LivePress to configure your plugin on the admin page 
 
@@ -54,8 +54,8 @@ Using shell access
     * untar the files
     * tar -xvzf livepress_2.x.x.tar.gz
     * If you ran this as root, you may need to fix file ownerships
-    * chown -R <wpuser> LivePress_2.0
-    * copy ./LivePress_2.0/class-IXR.php to ../../wp-includes/
+    * chown -R <wpuser> livepress
+    * copy ./livepress/class-IXR.php to ../../wp-includes/
     * again, check file ownership
     * Go to your plugins admin page and activate the LivePress plugin
     * Go To the Settings -> LivePress to configure your plugin on the admin page 
