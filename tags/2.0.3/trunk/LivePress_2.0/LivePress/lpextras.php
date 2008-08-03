@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.0.3
+//Live+Press_2.0.4
 
 require_once(dirname(__FILE__) . '/../../../../wp-admin/includes/post.php');
 
@@ -111,14 +111,17 @@ function user_pics($lj_meta){
 	$text .= '<select id="ljuserpics" name="ljuserpics" class="LJExtras_userpics"></select>';
 
 	foreach ($journals as $key => $value){
-		$username = $key;
-		$lj_pics = $value['data']['pickws'];
-		$lj_pics = array_combine(array_values($lj_pics), $lj_pics);
+	    $username = $key;
+	    $lj_picz = $value['data']['pickws'];
+	    if (count($lj_picz) <= 0) {
+		$lj_picz = array("0"=>"(no pics)");
+	    }
+	    $lj_pics = array_combine(array_values($lj_picz), $lj_picz);
 
-		$text .= '<select id="' . $username . '_userpics" name="' . $username . '_userpics" class="LJExtras_userpics" style="display:none;">';
-		$text .= '<option value="">(default)</option>';
-		$text .= array_to_options($lj_pics, $lj_meta['unt_lj_userpic']['value']);
-		$text .= '</select> ' . "\n";
+	    $text .= '<select id="' . $username . '_userpics" name="' . $username . '_userpics" class="LJExtras_userpics" style="display:none;">';
+	    $text .= '<option value="">(default)</option>';
+	    $text .= array_to_options($lj_pics, $lj_meta['unt_lj_userpic']['value']);
+	    $text .= '</select> ' . "\n";
 	}
 	return $text;
 }
@@ -158,14 +161,16 @@ function user_journals($lj_meta) {
 	global $unt_livepress_options, $journals;
 	$text .= '<select id="ljuserjournals" name="ljuserjournals" class="LJExtras_userjournals"></select>';
 	foreach ($journals as $key => $value){
-		$username = $key;
-		$lj_userjournals = $value['data']['userjournals'];
-		//$lj_userjournals = array_combine(array_values($lj_userjournals), $lj_userjournals);
-
-		$text .= '<select id="' . $username . '_userjournals" name="' . $username . '_userjournals" class="LJExtras_userjournals" style="display:none;">';
-		$text .= '<option value="">(default)</option>';
-		$text .= array_to_options($lj_userjournals, $lj_meta['unt_lj_journal']['value']);
-		$text .= '</select> ' . "\n";
+	    $username = $key;
+	    $lj_userjournals = $value['data']['userjournals'];
+	    if (count($lj_userjournals) <= 0) {
+		$lj_userjournals = array("0"=>"(no journals)");
+	    }
+	    $lj_userjournals = array_combine(array_values($lj_userjournals), $lj_userjournals);
+	    $text .= '<select id="' . $username . '_userjournals" name="' . $username . '_userjournals" class="LJExtras_userjournals" style="display:none;">';
+	    $text .= '<option value="">(default)</option>';
+	    //$text .= array_to_options($lj_userjournals, $lj_meta['unt_lj_journal']['value']);
+	    $text .= '</select> ' . "\n";
 	}
 	return $text;
 }
@@ -496,10 +501,8 @@ function init_LJ_Extras_GUI()
 
 if (strpos($_SERVER['PHP_SELF'],'wp-admin/post-new.php') || strpos($_SERVER['PHP_SELF'],'wp-admin/post.php') || strpos($_SERVER['PHP_SELF'],'wp-admin/bookmarklet.php'))
 { 
-
     get_LJ_login_data();
-
-	//add_action('admin_head', 'LJ_Extras_Style');
+    //add_action('admin_head', 'LJ_Extras_Style');
     add_action('admin_head', 'journal_Switcher');
     //add_action('admin_footer', 'build_LJ_Extras_GUI');
     //add_action('admin_footer', 'place_LJ_Extras_GUI');
@@ -509,5 +512,4 @@ if (strpos($_SERVER['PHP_SELF'],'wp-admin/post-new.php') || strpos($_SERVER['PHP
     add_action('simple_edit_form', 'build_LJ_Extras_GUI');
     add_action('edit_form_advanced', 'build_LJ_Extras_GUI');
 }
-
 ?>

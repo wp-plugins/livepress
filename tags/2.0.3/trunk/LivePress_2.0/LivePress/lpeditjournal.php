@@ -135,7 +135,7 @@ function saveJournal()
 <br />
 <?php
 global $wpdb;
-$users = $wpdb->get_results("SELECT user_login FROM wp_users WHERE user_status = 0 ORDER BY user_login");
+$users = $wpdb->get_results("SELECT user_login FROM ". $wpdb->prefix . "users WHERE user_status = 0 ORDER BY user_login");
 ?>
 <fieldset class="options">
 <?php

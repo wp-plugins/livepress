@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.0.3
+//Live+Press_2.0.4
 
 
 require_once("lpextras.php");
