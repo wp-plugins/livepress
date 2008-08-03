@@ -4,7 +4,7 @@ Previous Contributors: unteins, creepigurl
 Tags: crossposting, livejournal, livepress
 Requires at least: 2.3
 Tested up to: 2.6
-Stable tag: 2.0.3
+Stable tag: 2.0.4
 Donate link: none
 
 LiveJournal Crosspost Plugin for WordPress
@@ -13,7 +13,7 @@ LiveJournal Crosspost Plugin for WordPress
 
 == Description ==
 
-Livepress is a plugin for wordpress which allows the user to automatically crosspost journal entries to a LiveJournal? account.
+Livepress is a plugin for wordpress which allows the user to automatically crosspost journal entries to a LiveJournal account.
 
 This fork of the plugin is licensed under GPLv3. All contributions and suggestions are welcome.
 
@@ -22,7 +22,7 @@ Please report bugs under "Issues" section.
 
 == Features ==
 
-Current version features list: (2.0.3)
+Current version features list: (2.0.4)
 
     * (Tested with Wordpress 2.5.1 and 2.6)
     * cross posting full posts or exerpts with lj_cuts tags
@@ -41,24 +41,24 @@ Using FTP
 
     * download the plugin to your local computer
     * Extract the plugin archive
-    * ftp the entire LivePress_2?.0 directory to your wordpress plugin directory
+    * ftp the entire LivePress_2.0 directory to your wordpress plugin directory
     * ftp LivePress_2.0/class-IXR.php to your wordpress wp-includes/ directory
-    * Go to your plugins admin page and activate the LivePress? plugin
-    * Go To the Settings -> LivePress? to configure your plugin on the admin page 
+    * Go to your plugins admin page and activate the LivePress plugin
+    * Go To the Settings -> LivePress to configure your plugin on the admin page 
 
 Using shell access
 
     * cd to your wp-contents/plugins directory of your wordpress installation
     * download the plugin archive directly
-    * wget http://livepress.googlecode.com/files/livepress_2.0.3.tar.gz
+    * wget http://livepress.googlecode.com/files/livepress_2.x.x.tar.gz
     * untar the files
-    * tar -xvzf livepress_2.0.3.tar.gz
+    * tar -xvzf livepress_2.x.x.tar.gz
     * If you ran this as root, you may need to fix file ownerships
     * chown -R <wpuser> LivePress_2.0
-    * copy ./LivePress_2?.0/class-IXR.php to ../../wp-includes/
+    * copy ./LivePress_2.0/class-IXR.php to ../../wp-includes/
     * again, check file ownership
-    * Go to your plugins admin page and activate the LivePress? plugin
-    * Go To the Settings -> LivePress? to configure your plugin on the admin page 
+    * Go to your plugins admin page and activate the LivePress plugin
+    * Go To the Settings -> LivePress to configure your plugin on the admin page 
 
 
 == Frequently Asked Questions ==
@@ -73,9 +73,10 @@ For a Screenshots visit: http://code.google.com/p/livepress/
 
 == Releases ==
 Current version
-Version 2.0.3
+Version 2.0.4
 
 Older Versions
+Version 2.0.3
 Version 2.0.2
 Version 2.0.1
 Version 2.0
