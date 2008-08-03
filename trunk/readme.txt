@@ -1,5 +1,5 @@
 === Live+Press ===
-Contributors: digsite
+Contributors: Tania Morell (digsite)
 Previous Contributors: unteins, creepigurl
 Tags: crossposting, livejournal, livepress
 Requires at least: 2.3
