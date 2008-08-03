@@ -76,7 +76,7 @@ function unt_livepress_admin_display()
         function journalEditor(querystring) 
         {
 
-        var editor = window.open(\"../wp-content/plugins/LivePress_2.0/LivePress/lpeditjournal.php\" + querystring, \"Edit Journal\", \"width=800,height=600\");
+        var editor = window.open(\"../wp-content/plugins/livepress/LivePress/lpeditjournal.php\" + querystring, \"Edit Journal\", \"width=800,height=600\");
 
         }
         
