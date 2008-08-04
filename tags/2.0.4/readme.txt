@@ -7,9 +7,9 @@ Tested up to: 2.6
 Stable tag: 2.0.4
 Donate link: none
 
-LiveJournal Crosspost Plugin for WordPress
 
--------------------------------------------------------
+Crosspost blog entries to LiveJournal automatically or on a post by post basis. Crosspostable options include user pic, current music, current mood, security "friends" group, with ability to disable comments on LJ side, and insert a linkback to original wordpress post.
+
 
 == Description ==
 
