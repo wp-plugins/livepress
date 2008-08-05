@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.0.4
+//Live+Press_2.0.5
 
 require_once(dirname(__FILE__) . '/../../../../wp-admin/includes/post.php');
 
@@ -77,15 +77,18 @@ function checkbit($number, $bit) {
 function get_LJ_login_data()
 {
 	global $unt_livepress_options, $unt_lp_clientid, $user_login, $journals;
-	     //get_currentuserinfo();
+	 //get_currentuserinfo();
+	if (isset($journals)) {
 	foreach (array_keys($journals) as $name){
 		//if (strpos($journals[$name]['allowlist'], $user_login) === False)
 		//{
 			//unset($journals[$name]);
 		//}	
 	}
+	}
 	require_once(ABSPATH . '/wp-includes/class-IXR.php');
 
+	if (isset($journals)) {
 	foreach(array_keys($journals) as $name) {
 		$msg_array = array();
 		$msg_array['username'] = utf8_encode($name);
@@ -101,6 +104,7 @@ function get_LJ_login_data()
 			return false;
 		}
 		$journals[$name]['data'] = $client->getResponse();
+	}
 	}
 }
 
@@ -382,8 +386,8 @@ function build_LJ_Extras_GUI()
         }
         echo '/>';
 		echo '<br /> ';
-    if($unt_lp_settings['general']['usemusic'])
-    {
+	if($unt_lp_settings['general']['usemusic'])
+	{
 		echo  $unt_lp_music_text . '<input type="text" id="ljmusic" name="ljmusic" size="55" value="';
 		if (array_key_exists('unt_lj_music', $lj_meta)) 
 		{
@@ -435,6 +439,8 @@ function build_LJ_Extras_GUI()
         }
         echo '/>';
         
+    } else {
+            echo 'You have no Journals configured.<br/>Go to the Live+Press settings page to add a journal.';
     }
     echo '</fieldset>';
 }
