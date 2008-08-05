@@ -4,27 +4,25 @@ Previous Contributors: unteins, creepigurl
 Tags: crossposting, livejournal, livepress
 Requires at least: 2.3
 Tested up to: 2.6
-Stable tag: 2.0.4
+Stable tag: 2.0.5
 Donate link: none
 
+LiveJournal Crosspost Plugin for WordPress
 
-Crosspost blog entries to LiveJournal automatically or on a post by post basis. Crosspostable options include user pic, current music, current mood, security "friends" group, with ability to disable comments on LJ side, and insert a linkback to original wordpress post.
-
+-------------------------------------------------------
 
 == Description ==
 
-Livepress is a plugin for wordpress which allows the user to automatically crosspost journal entries to a LiveJournal blog account.
+Livepress is a plugin for wordpress which allows the user to automatically crosspost journal entries to a LiveJournal account.
 
 This fork of the plugin is licensed under GPLv3. All contributions and suggestions are welcome.
 
-Originally written by <a href="http://jason.goldsmith.us/>Jason Goldsmith (aka, "unteins")</a>
-
-Please report bugs to the <a href="http://groups.google.com/group/livepressplugin">Support Forum</a>
+Please report bugs under "Issues" section. 
 
 
 == Features ==
 
-Current version features list: (2.0.4)
+Current version features list: (2.0.5)
 
     * (Tested with Wordpress 2.5.1 and 2.6)
     * cross posting full posts or exerpts with lj_cuts tags
@@ -62,6 +60,13 @@ Using shell access
     * Go to your plugins admin page and activate the LivePress plugin
     * Go To the Settings -> LivePress to configure your plugin on the admin page 
 
+Adding new journal.
+  1) click on add journal to get pop up box
+  2) enter the your journal login info
+  3) click on save on the pop up box
+  4) click on save on the LP options page
+
+
 
 == Frequently Asked Questions ==
 
@@ -75,9 +80,10 @@ For a Screenshots visit: http://code.google.com/p/livepress/
 
 == Releases ==
 Current version
-Version 2.0.4
+Version 2.0.5
 
 Older Versions
+Version 2.0.4
 Version 2.0.3
 Version 2.0.2
 Version 2.0.1
