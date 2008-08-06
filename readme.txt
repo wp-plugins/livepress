@@ -4,7 +4,7 @@ Previous Contributors: unteins, creepigurl
 Tags: crossposting, livejournal, livepress
 Requires at least: 2.3
 Tested up to: 2.6
-Stable tag: 2.0.5
+Stable tag: 2.0.6
 Donate link: none
 
 LiveJournal Crosspost Plugin for WordPress
@@ -22,7 +22,7 @@ Please report bugs under "Issues" section.
 
 == Features ==
 
-Current version features list: (2.0.5)
+Current version features list: (2.0.6)
 
     * (Tested with Wordpress 2.5.1 and 2.6)
     * cross posting full posts or exerpts with lj_cuts tags
@@ -80,9 +80,10 @@ For a Screenshots visit: http://code.google.com/p/livepress/
 
 == Releases ==
 Current version
-Version 2.0.5
+Version 2.0.6
 
 Older Versions
+Version 2.0.5
 Version 2.0.4
 Version 2.0.3
 Version 2.0.2

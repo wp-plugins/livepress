@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.0.5
+//Live+Press_2.0.6
 
 function unt_livepress_admin() 
 {
@@ -60,7 +60,29 @@ function unt_livepress_admin_display()
         }
         else
         {
-            echo "<div class=\"updated\"><p><strong>Live+Press</strong> has not been installed. Please <a href=\"" . $_SERVER['REQUEST_URI'] . "&installLP=true\">install</a> Live+Press before continuing.</p></div>";
+
+	    $_SERVER['FULL_URL'] = 'http';
+	    $script_name = '';
+	    if(isset($_SERVER['REQUEST_URI'])) {
+		$script_name = $_SERVER['REQUEST_URI'];
+	    } else {
+		$script_name = $_SERVER['PHP_SELF'];
+		if($_SERVER['QUERY_STRING']>' ') {
+		    $script_name .=  '?'.$_SERVER['QUERY_STRING'];
+		}
+	    }
+	    if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']=='on') {
+		$_SERVER['FULL_URL'] .=  's';
+	    }
+	    $_SERVER['FULL_URL'] .=  '://';
+	    if($_SERVER['SERVER_PORT']!='80')  {
+		$_SERVER['FULL_URL'] .=
+		$_SERVER['HTTP_HOST'].':'.$_SERVER['SERVER_PORT'].$script_name;
+	    } else {
+		$_SERVER['FULL_URL'] .=  $_SERVER['HTTP_HOST'].$script_name;
+	    }
+
+            echo "<div class=\"updated\"><p><strong>Live+Press</strong> has not been installed. Please <a href=\"" . $_SERVER['FULL_URL'] . "&installLP=true\">install</a> Live+Press before continuing.</p></div>";
         }
     }
     else

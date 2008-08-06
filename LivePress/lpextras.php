@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.0.5
+//Live+Press_2.0.6
 
 require_once(dirname(__FILE__) . '/../../../../wp-admin/includes/post.php');
 
