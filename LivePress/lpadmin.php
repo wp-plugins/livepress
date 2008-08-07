@@ -1,5 +1,6 @@
 <?php
-//Live+Press_2.0.6
+//Live+Press_2.0.7
+
 
 function unt_livepress_admin() 
 {
@@ -98,7 +99,7 @@ function unt_livepress_admin_display()
         function journalEditor(querystring) 
         {
 
-        var editor = window.open(\"../wp-content/plugins/livepress/LivePress/lpeditjournal.php\" + querystring, \"Edit Journal\", \"width=800,height=600\");
+        var editor = window.open(\"".get_option('siteurl')."/wp-content/plugins/livepress/LivePress/lpeditjournal.php\" + querystring, \"Edit Journal\", \"width=800,height=600\");
 
         }
         
