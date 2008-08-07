@@ -1,7 +1,8 @@
 <?php
-//Live+Press_2.0.6
+//Live+Press_2.0.7
 
-require_once(dirname(__FILE__) . '/../../../../wp-admin/includes/post.php');
+require_once(ABSPATH.'/wp-admin/includes/post.php');
+require_once(ABSPATH.'/wp-includes/class-IXR.php');
 
 
 if (!function_exists('array_combine')){
@@ -77,19 +78,19 @@ function checkbit($number, $bit) {
 function get_LJ_login_data()
 {
 	global $unt_livepress_options, $unt_lp_clientid, $user_login, $journals;
-	 //get_currentuserinfo();
-	if (isset($journals)) {
-	foreach (array_keys($journals) as $name){
-		//if (strpos($journals[$name]['allowlist'], $user_login) === False)
-		//{
-			//unset($journals[$name]);
-		//}	
-	}
-	}
-	require_once(ABSPATH . '/wp-includes/class-IXR.php');
+
+	//get_currentuserinfo();
+	//if (isset($journals)) {
+	//    foreach (array_keys($journals) as $name){
+	//	if (strpos($journals[$name]['allowlist'], $user_login) === False)
+	//	{
+	//		unset($journals[$name]);
+	//	}	
+	//    }
+	//}
 
 	if (isset($journals)) {
-	foreach(array_keys($journals) as $name) {
+	    foreach(array_keys($journals) as $name) {
 		$msg_array = array();
 		$msg_array['username'] = utf8_encode($name);
 		$msg_array['auth_method'] = utf8_encode('clear');
@@ -104,9 +105,10 @@ function get_LJ_login_data()
 			return false;
 		}
 		$journals[$name]['data'] = $client->getResponse();
-	}
+	    }
 	}
 }
+
 
 function user_pics($lj_meta){
 	global $unt_livepress_options, $journals;
@@ -122,7 +124,8 @@ function user_pics($lj_meta){
 	    }
 	    $lj_pics = array_combine(array_values($lj_picz), $lj_picz);
 
-	    $text .= '<select id="' . $username . '_userpics" name="' . $username . '_userpics" class="LJExtras_userpics" style="display:none;">';
+	    $text .= '<select id="' . $username . '_userpics" name="' . $username;
+	    $text .= '_userpics" class="LJExtras_userpics" style="display:none;">';
 	    $text .= '<option value="">(default)</option>';
 	    $text .= array_to_options($lj_pics, $lj_meta['unt_lj_userpic']['value']);
 	    $text .= '</select> ' . "\n";
