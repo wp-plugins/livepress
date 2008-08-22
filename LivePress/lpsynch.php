@@ -43,7 +43,7 @@ function append_Linkback ($tmpevent, $postmeta, $postid) {
 	$tmpevent .= '<!-- Start LivePress linkback -->';
 	$tmpevent .= '<center>';
 	$tmpevent .= '<div style="padding: 5px; margin: 5px; width: auto; font-size: 11px; font-weight: bold;">';
-	$tmpevent .= '<table style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 5px 5px 5px 15px;">';
+	$tmpevent .= '<table style="border-top: 1px solid black; border-bottom: 1px solid black; padding: 5px;">';
 	$tmpevent .= '<tr><td style="border-right: 1px solid #000; text-align:right; padding-left: 10px;"></td>';
 	$tmpevent .= '<td style="padding: 0 15px;">';
 	$tmpevent .= 'Originally published at ';
