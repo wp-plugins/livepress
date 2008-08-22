@@ -126,7 +126,7 @@ contemplative:101:thinking.gif
 nostalgic:60:thinking.gif
 pensive:73:thinking.gif
 working:88:
-accomplished:90:
+accomplished:90:Accomlished.gif
 artistic:108:
 busy:91:
 creative:107:
