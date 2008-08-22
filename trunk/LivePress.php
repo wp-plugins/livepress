@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Live+Press
-Version: 2.0.7
+Version: 2.1.0
 Plugin URI: http://code.google.com/p/livepress/
 Description: Live+Press allows Wordpress posts to be automatically crossposted to a LiveJournal user blogs. This fork of the plugin is licensed under GPLv3. All contributions and suggestions are welcome.  More plugin details and help can be found at the plugin home page on google code. Originally written by <a href="http://jason.goldsmith.us/">Jason Goldsmith</a>
 Author URI: http://digsite.net/livepress
@@ -17,9 +17,10 @@ function LivePress_Style($postID)
     echo '<link rel="stylesheet" href="wp-content/plugins/livepress/LivePress/LivePress.css" type="text/css" />';
 }
 
-$unt_lp_clientid = 'WordPress-LivePress/1.99.9';
+$unt_lp_clientid = 'WordPress-LivePress/2.0';
 $unt_livepress_options = get_option("unt_livepress_options");
-$journals = $unt_livepress_options['journals'];
+$unt_livepress_logins = get_option("unt_livepress_logins");
+$journals = $unt_livepress_logins;
 
 require_once('LivePress/lpadmin.php');
 
@@ -35,14 +36,14 @@ if($unt_livepress_options['general']['usemusic'])
 {
 	require_once('LivePress/lpmusic.php');
 }
-if($unt_livepress_options['general']['useextras'])
-{
+//if($unt_livepress_options['general']['useextras'])
+//{
 	require_once('LivePress/lpextras.php');
-}
-if($unt_livepress_options['general']['usesynch'])
-{
+//}
+//if($unt_livepress_options['general']['usesynch'])
+//{
 	require_once('LivePress/lpsynch.php');
-}
+//}
 
 add_action('wp_head', 'LivePress_Style');
 ?>

@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.0.7
+//Live+Press_2.1.0
 
 $ljmoods = $unt_livepress_options['moods']['file'];
 $ljmoods = file($ljmoods, 1);
@@ -9,9 +9,9 @@ $mood_image_base_url = $unt_livepress_options['moods']['imagebaseurl'];
 $unt_lp_mood_position = $unt_livepress_options['moods']['position']; 
 $unt_lp_mood_xhtml = $unt_livepress_options['moods']['xhtml'];
 
-if ($unt_livepress_options['moods']['fixincludepath']) {
-	ini_set('include_path', '.:' . ini_get('include_path'));
-}
+//if ($unt_livepress_options['moods']['fixincludepath']) {
+//	ini_set('include_path', '.:' . ini_get('include_path'));
+//}
 
 function add_mood ($text)
 {

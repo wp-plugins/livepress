@@ -1,38 +1,38 @@
 === Live+Press ===
-Contributors: Tania Morell (digsite)
-Previous Contributors: unteins, creepigurl
-Tags: crossposting, livejournal, livepress
-Requires at least: 2.3
-Tested up to: 2.6
-Stable tag: 2.0.7
+Contributors: Tania Morell (aka "digsite")
 Donate link: none
+Tags: crossposting, cross post, livejournal, livepress
+Requires at least: 2.3
+Tested up to: 2.6.1
+Stable tag: 2.1.0
 
-LiveJournal Crosspost Plugin for WordPress
-
--------------------------------------------------------
+Crosspost blog entries to LiveJournal automatically or on a post by post basis. Crosspostable options include user pic, current music, current mood, security "friends" group, with ability to disable comments on LJ side, and insert a linkback to original wordpress post.
 
 == Description ==
 
-Livepress is a plugin for wordpress which allows the user to automatically crosspost journal entries to a LiveJournal account.
+Livepress is a plugin for wordpress which allows the user to crosspost journal entries to a LiveJournal blog account.
+
+You can crosspost blog entries automatically or on a post by post basis. Crosspostable options include user pic, current music, current mood, security "friends" group, with ability to disable comments on LJ side, and insert a linkback to original wordpress post.
 
 This fork of the plugin is licensed under GPLv3. All contributions and suggestions are welcome.
 
-Please report bugs under "Issues" section. 
+Originally written by <a href="http://jason.goldsmith.us/>Jason Goldsmith (aka "unteins")</a>
+
+Please report bugs to the <a href="http://groups.google.com/group/livepressplugin">Support Forum</a>
 
 
 == Features ==
 
-Current version features list: (2.0.7)
+Current version features list:
 
-    * (Tested with Wordpress 2.5.1 and 2.6)
     * cross posting full posts or exerpts with lj_cuts tags
     * cross posting of User Pics, Moods, Music, and Tags
     * choose LJ security level and custom friends lists
     * enable / disable comments on livejournal side
     * include a link back to the original wordpress post
-    * (new) cross posts Tags instead of Categories
-    * (new) post delete also deletes livejournal post
-    * (new) automatic crosspost email and cell phone text and multimedia posts 
+    * (new with 2.0) cross posts Tags instead of Categories
+    * (new with 2.0) post delete also deletes livejournal post
+    * (new with 2.0) automatic crosspost email and cell phone text and multimedia posts 
 
 
 == Installation ==
@@ -60,38 +60,47 @@ Using shell access
     * Go to your plugins admin page and activate the LivePress plugin
     * Go To the Settings -> LivePress to configure your plugin on the admin page 
 
-Adding new journal.
-  1) click on add journal to get pop up box
-  2) enter the your journal login info
-  3) click on save on the pop up box
-  4) click on save on the LP options page
 
-
-
-== Frequently Asked Questions ==
-
-For a FAQ visit: http://code.google.com/p/livepress/
+Adding Journal login info to LivePress:
+    * click on add journal to get pop up box
+    * enter the your journal login info 
+    * click on save on the pop up box 
+    * click on save on the LP options page
 
 
 == Screenshots ==
 
-For a Screenshots visit: http://code.google.com/p/livepress/
+1. Screenshot Live+Press Extras
+2. Screenshot Admin Page
+
+
+== Frequently Asked Questions ==
+
+Visit: http://code.google.com/p/livepress/
 
 
 == Releases ==
-Current version
-Version 2.0.7
+Current version: 2.1.0
 
-Older Versions
-Version 2.0.6
-Version 2.0.5
-Version 2.0.4
-Version 2.0.3
-Version 2.0.2
-Version 2.0.1
-Version 2.0
-Version 1.99.9
-Version 1.99
-Version 1.5.2
-Version 1.5.1.3
-Version 1.2.0
+Older Versions:
+
+_by digsite_
+  * 2.0.7
+  * 2.0.6
+  * 2.0.5
+  * 2.0.4
+  * 2.0.3
+  * 2.0.2
+  * 2.0.1
+  * 2.0
+
+_by creepigurl_
+  * 1.99.9 
+
+_by unteins_
+  * 1.99
+  * 1.5.2
+  * 1.5.1.3
+  * 1.2.0
+
+

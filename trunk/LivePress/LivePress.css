@@ -1,3 +1,4 @@
+
 .unt_lp_extras {
 }
 
@@ -17,4 +18,20 @@
 }
 
 .ljusertagimg {
+}
+
+.reset p {
+    text-align: right;
+}
+
+table.jlist {
+	width: 50%;
+	border: 0px;
+	margin: 0px;
+	float:right;
+}
+
+table.jlist tr {
+	border: 0px;
+	margin: 0px;
 }
