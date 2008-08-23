@@ -462,7 +462,7 @@ function remove_login(delinfo)
 	    // LIST JOURNAL ENTRIES //
 
 	    $unt_livepress_logins = get_option('unt_livepress_logins');
-	    if (isset($unt_livepress_logins)) {
+	    if (isset($unt_livepress_logins) && (!empty($unt_livepress_logins))) {
 
 		foreach ($unt_livepress_logins as $journal => $login) {
                     echo '<table class="jlist">';
