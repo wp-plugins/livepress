@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.3
+//Live+Press_2.1.4
 
 function parse_lj_tags($text)
 {

@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.3
+//Live+Press_2.1.4
 
 require_once('lpextras.php');
 //require_once('jquery-1.2.6.min.js');
@@ -182,14 +182,17 @@ function unt_livepress_admin_display()
 	    $rmname = $_GET['name'];
 	    RemoveLogin($rmjournal, $rmname);
 	} else {
-	    if (empty($unt_livepress_options)) {
+	    if ( empty($unt_livepress_options) 
+		    || (!isset($unt_livepress_options['email'])) 
+		    || empty($unt_livepress_options['email']) ) {
 		if ($_GET['installLP'] == true) {
 		    $unt_livepress_options = set_option_defaults();
 		    add_option("unt_livepress_options", $unt_livepress_options, "Option settings for the LivePress Plugin.",true);
 		} else {
 		    echo '<div class="updated"><p><strong>Live+Press</strong> ';
-		    echo 'has not been installed. Please <a href="' . current_uri();
-		    echo '&installLP=true">install</a> Live+Press before continuing.</p></div>';
+		    echo 'has not been installed, or has not been installed properly. ';
+		    echo 'Please <a href="'.current_uri().'&installLP=true">install</a> '; 
+		    echo 'Live+Press before continuing.</p></div>';
 		}
 	    } else {
 		if (isset($_POST['unt_lp_options'])) {
@@ -769,17 +772,19 @@ echo "
 //	    get_LJ_login_data();
 echo"
 	    <label for=\"unt_lp_options[email][security]\"><br>Default Friends List: </label>
-            " . friend_groups($tmp_meta) ."
-";
+            " . friend_groups($tmp_meta);
+
         echo '<br>Post to: ' . user_journals($lj_meta);
         echo ' &nbsp;&nbsp;&nbsp; ';
 
         echo '<br>Username: <select id="ljusername" name="ljusername" class="LJExtras_username" onChange="swapLists(this);">';
+	if (!empty($journals)) {
         foreach ($journals as $type => $login) {
             foreach ($login as $key => $value) {
         	echo '<option ' . (strcmp($unt_livepress_options['email']['user'],$key) ? '' : 'selected');
 		echo ' value="' . $key . '">' . $key . '</option>';
             }
+        }
         }
         echo '</select>';
         echo '&nbsp;&nbsp;&nbsp; ';
