@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.0
+//Live+Press_2.1.2
 
 require_once('lpextras.php');
 //require_once('jquery-1.2.6.min.js');
