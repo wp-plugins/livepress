@@ -183,8 +183,10 @@ function friend_groups($lj_meta) {
 		$lj_friendboxes = $value['data']['friendgroups'];
 		$temp_array = array();
 
+		if (!empty($lj_friendboxes)) {
 		foreach($lj_friendboxes as $value) {
 		    $temp_array[$value['id']] = $value['name'];
+	        }
 	        }
 
 	        $lj_friendboxes = $temp_array;
