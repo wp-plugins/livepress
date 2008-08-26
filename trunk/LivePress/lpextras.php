@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.2
+//Live+Press_2.1.3
 
 require_once(ABSPATH . 'wp-admin/admin-functions.php');
 
@@ -133,9 +133,9 @@ function user_pics($lj_meta) {
 	$userpics_text = $unt_livepress_options['userpics']['text'];
 	$text .= $userpics_text;
 	$text .= '<select id="ljuserpics" name="ljuserpics" class="LJExtras_userpics"></select>';
-
+ 
+	if (!empty($journals)) {
 	foreach ($journals as $type => $login) {
-	//foreach ($login as $key => $value) {
 	foreach ($journals[$type] as $key => $value) {
 	    $username = $key;
 
@@ -149,6 +149,7 @@ function user_pics($lj_meta) {
 	    $text .= '<option value="">(default)</option>';
 	    $text .= array_to_options($lj_pics, $lj_meta['unt_lj_userpic']['value']);
 	    $text .= '</select> ' . "\n";
+	}
 	}
 	}
 	return $text;
@@ -175,6 +176,7 @@ function friend_groups($lj_meta) {
 	$text .= '<fieldset id="ljfriendboxedset" style="display:none;"></fieldset>';
 
 	/* spit out custom friend lists */
+	if (!empty($journals)) {
 	foreach ($journals as $type => $login) {
 	    foreach ($journals[$type] as $key => $value) {
 		$username = $key;
@@ -200,6 +202,7 @@ function friend_groups($lj_meta) {
 		$text .= '</fieldset>';
 	    }
 	}
+	}
 	return $text;
 }
 
@@ -208,6 +211,7 @@ function user_journals($lj_meta) {
 	global $unt_livepress_options, $journals;
 
 	$text .= '<select id="ljuserjournals" name="ljuserjournals" class="LJExtras_userjournals"></select>';
+	if (!empty($journals)) {
 	foreach ($journals as $type => $login) {
 	  foreach ($login as $user => $value) {
 	    $lj_userjournals = array_keys($journals);
@@ -216,6 +220,7 @@ function user_journals($lj_meta) {
 	    //$text .= array_to_options($lj_userjournals, $lj_meta['unt_lj_journal']['value']);
 	    $text .= '</select> ' . "\n";
 	  }
+	}
 	}
 	return $text;
 }
@@ -484,12 +489,14 @@ echo "</pre>";
 
 	/* Journal Accounts Drop down box. */
         echo 'Username: <select id="ljusername" name="ljusername" class="LJExtras_username" onChange="swapLists(this);">';
+	if (!empty($journals)) {
 	foreach ($journals as $type => $login) {
 	    foreach ($journals[$type] as $key => $value) {
         	echo '<option ';
 		echo (!strcmp($lj_meta['unt_lj_username']['value'], $key) ? 'selected' : '');
         	echo ' value="' . $key . '">' . $key . '</option>';
             }
+        }
         }
         echo '</select>';
         echo '&nbsp;&nbsp;&nbsp; ';
@@ -606,12 +613,14 @@ function init_LJ_Extras_GUI()
 	    $firstJournal = array_keys($journals);
 	    $firstUserName = $firstJournal[0];
 	    echo '<script language="JavaScript">';
+	if (!empty($journals)) {
 	    foreach ($journals as $type => $login) {
 	    foreach ($journals[$type] as $key => $value) 
 	    {
 		echo 'document.getElementsByTagName(\'body\')[0].appendChild(document.getElementById("'. $key .'_friendboxes"));' ."\n";
 	    }
 	    }
+	}
 	    echo 'swapLists(document.getElementById("ljusername"));
 		</script>';
 	}
