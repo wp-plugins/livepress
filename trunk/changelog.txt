@@ -7,7 +7,6 @@ v2.1.0 08.22.2008
 - Bugfix : Rewrite of journal login/edit code fixed jsQuery errors
 - Bugfix : Was unable to deselect comment option on previously published posts
 - Bugfix : Was unable to deselect linkback option on previously published posts
-- Removed : The need to hack wp-includes/class-IXR.php
 - Removed : Removed options usesynch, useextras, advanced linkback
 - Removed : Removed options guess mood, and fix include path 
 - Removed : ljeditjournal.php, no longer needed

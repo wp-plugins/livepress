@@ -2,6 +2,7 @@
 //Live+Press_2.1.0
 
 require_once('lpextras.php');
+//require_once('jquery-1.2.6.min.js');
 
 function RemoveLogin($journal, $name)
 {
@@ -183,7 +184,7 @@ function unt_livepress_admin_display()
 	} else {
 	    if (empty($unt_livepress_options)) {
 		if ($_GET['installLP'] == true) {
-		    $unt_livepress_options = set_defaults();
+		    $unt_livepress_options = set_option_defaults();
 		    add_option("unt_livepress_options", $unt_livepress_options, "Option settings for the LivePress Plugin.",true);
 		} else {
 		    echo '<div class="updated"><p><strong>Live+Press</strong> ';
@@ -342,7 +343,15 @@ fwrite($fh, $stringData);
 
 
 		<!--  S T A R T   A D M I N   P A G E  -->
+
 <script type="text/javascript" >
+
+function setPositionAbsolute()
+{
+document.getElementById("saveit").style.position="absolute";
+document.getElementById("saveit").style.top="10px";
+}
+
 function change_settings(stuff) 
 { 
 
@@ -411,7 +420,7 @@ for (var i=0; i<allu.length; i++) {
 x2[1].innerHTML=allowlist;
 
 x3[0].innerHTML="<input type='button' value='Change Settings' onClick=\"change_settings(\'"+user+","+pass+",true,"+temp[3]+","+temp[4]+"\')\" />";
-x3[1].innerHTML="<input type='button' value='Remove' onclick='remove_login(\'"+user+"\',\'false\')' />";
+x3[1].innerHTML="<input type='button' value='Remove' onclick='remove_login(\""+user+"\",\"false\")' />";
 
 }
 }
@@ -436,15 +445,19 @@ function remove_login(delinfo)
 
 </script>
 
-		<div class="wrap">
 
-		<h2>Live+Press Options</h2>
+
+		<div  id="lpadminpage" class="wrap" style="padding: 20px;">
+
 		<form method="post"> 
-		    <p class="submit"><input type="submit" value="Save Settings"/>
+		<h2>Live+Press Options</h2>
+		  <div style="position: relative; margin: 0 auto;">
+		    <div id="saveit" class="submit" style="position: absolute; top: 0; margin: 0 auto; width: 950px;S">
+		    <input type="submit" value="Save Settings" style="z-index: 100; top: 0px; float:right;"/>
 		    <?php if (isset($passmatch) && ($passmatch == false)) { ?>
 			Passwords don't match, try again.
 		    <?php } ?>
-		    </p>
+		    </div>
 
 		    <table class="form-table">
 		    <tbody>
@@ -504,7 +517,7 @@ function remove_login(delinfo)
 			echo '<td id="lpjbutton">'; 
 			echo '<input type="button" value="Remove" onClick="remove_login(\''.$journal.','.$name.'\')" />';
 			echo '</td></tr></table>';
-			echo '</form>';
+			echo '</div></form>';
 		    }
 		    echo '</td></tr></table>';
 		}
