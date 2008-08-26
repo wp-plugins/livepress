@@ -4,7 +4,7 @@ Donate link: none
 Tags: crossposting, cross post, livejournal, livepress
 Requires at least: 2.3
 Tested up to: 2.6.1
-Stable tag: 2.1.1
+Stable tag: 2.1.2
 
 Crosspost blog entries to LiveJournal automatically or on a post by post basis. Crosspostable options include user pic, current music, current mood, security "friends" group, with ability to disable comments on LJ side, and insert a linkback to original wordpress post.
 
@@ -71,11 +71,13 @@ Visit: http://code.google.com/p/livepress/
 
 
 == Releases ==
-Current version: 2.1.1
+Current version: 2.1.2
 
 Older Versions:
 
 _by digsite_
+  * 2.1.1
+  * 2.1.0
   * 2.0.7
   * 2.0.6
   * 2.0.5
