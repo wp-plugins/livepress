@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.4
+//Live+Press_2.1.5
 
 
 require_once("lpextras.php");
@@ -384,7 +384,6 @@ fwrite($fh, $stringData);
 //fclose($fh);
 }
 
-
 function test_LJ (){
 	$myFile = "/tmp/test";
 	$fh = fopen($myFile, 'a') or die("can't open file");
@@ -392,6 +391,7 @@ function test_LJ (){
 	fwrite($fh, $stringData);
 	fclose($fh);
 }
+
 	if ((strpos($_SERVER['PHP_SELF'],'wp-admin/post-new.php') != false )
 	    || (strpos($_SERVER['PHP_SELF'],'wp-admin/post.php') != false )
 	    || (strpos($_SERVER['PHP_SELF'],'wp-admin/bookmarklet.php')!= false )
