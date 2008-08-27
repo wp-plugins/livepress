@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.4
+//Live+Press_2.1.5
 
 require_once(ABSPATH . 'wp-admin/admin-functions.php');
 
@@ -269,25 +269,36 @@ function save_LJ_meta($lj_meta, $name, $value, $post_ID)
 {
 	global $wpdb, $tablepostmeta;
 
+	$metakey = $name;
 	$metavalue = $wpdb->escape( stripslashes( trim($value) ) );
-	if (array_key_exists($name, $lj_meta)) 
+	if (array_key_exists($metakey, $lj_meta)) 
 	{
 	    //update_post_meta($post_ID, $name, $metavalue, 'true');
 	    //update_meta($lj_meta[$name]['id'], $name, $metavalue);
-	    $metakey = $name;
-	    $result = $wpdb->query("
-					UPDATE $tablepostmeta set meta_value='$metavalue'
-					WHERE post_id='$post_ID' and meta_key='$metakey'
-				");
+            update_post_meta($post_ID, $metakey, $metavalue);
+	    //$result = $wpdb->query(" UPDATE $tablepostmeta set meta_value='$metavalue'
+	//			WHERE post_id='$post_ID' and meta_key='$metakey' ");
 	}
 	else 
 	{
-	    $metakey = $name;
-	    $result = $wpdb->query("
-					INSERT INTO $tablepostmeta (post_id,meta_key,meta_value)
-					VALUES ('$post_ID','$metakey','$metavalue')
-				");
+            add_post_meta($post_ID,$metakey,$metavalue,true);
+	    //$result = $wpdb->query(" INSERT INTO $tablepostmeta (post_id,meta_key,meta_value)
+	//				VALUES ('$post_ID','$metakey','$metavalue') ");
 	}
+
+
+
+            if (array_key_exists('unt_lj_error', $lj_meta)) {
+                update_meta($lj_meta['unt_lj_error']['id'], 'unt_lj_error', $metavalue);
+            } else {
+                $metakey = 'unt_lj_error';
+                add_post_meta($post_ID,$metakey,$metavalue,true);
+            }
+
+
+
+
+
 }
 
 

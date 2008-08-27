@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.4
+//Live+Press_2.1.5
 
 require_once('lpextras.php');
 //require_once('jquery-1.2.6.min.js');
@@ -163,7 +163,7 @@ function unt_livepress_admin_display()
 
 <?php
 
-	if ($_GET['resetLP'] == true ) {
+	if ( ($_GET['resetLP'] == true ) || ($_GET['installLP'] == true) )  {
 	    delete_option('unt_livepress_options');
             $unt_livepress_options = set_option_defaults();
             add_option("unt_livepress_options", $unt_livepress_options, "Option settings for the LivePress Plugin.", true);
@@ -185,31 +185,14 @@ function unt_livepress_admin_display()
 	    if ( empty($unt_livepress_options) 
 		    || (!isset($unt_livepress_options['email'])) 
 		    || empty($unt_livepress_options['email']) ) {
-		if ($_GET['installLP'] == true) {
-		    $unt_livepress_options = set_option_defaults();
-		    add_option("unt_livepress_options", $unt_livepress_options, "Option settings for the LivePress Plugin.",true);
-		} else {
-		    echo '<div class="updated"><p><strong>Live+Press</strong> ';
-		    echo 'has not been installed, or has not been installed properly. ';
-		    echo 'Please <a href="'.current_uri().'&installLP=true">install</a> '; 
-		    echo 'Live+Press before continuing.</p></div>';
-		}
+		echo '<div class="updated"><p><strong>Live+Press</strong> ';
+		echo 'has not been installed, or has not been installed properly. ';
+		echo 'Please <a href="'.current_uri().'&installLP=true">install</a> '; 
+		echo 'Live+Press before continuing.</p></div>';
 	    } else {
 		if (isset($_POST['unt_lp_options'])) {
 		    update_option("unt_livepress_options", $_POST['unt_lp_options']);
 		    $unt_livepress_options = get_option("unt_livepress_options");
-
-$myFile = "/tmp/testlinkback";
-$fh = fopen($myFile, 'a') or die("can't open file");
-$stringData = "\n  - - - -- - -  - - - \n";
-$stringData .= "unt_livepress_options\n";
-$stringData .= $unt_livepress_options['synch']['insertlinkback'];
-$stringData .= "post unt_lp_options synch\n";
-$stringData .= $_POST['unt_lp_options']['synch']['insertlinkback'];
-$stringData .= "\n  \n";
-fwrite($fh, $stringData);
-
-
 
                     if (!strcmp($_POST['lj_synch_default_op'], 'synchall') ) {
                         $unt_livepress_options['synch']['synchall'] = 'checked';
@@ -454,9 +437,9 @@ function remove_login(delinfo)
 
 		<form method="post"> 
 		<h2>Live+Press Options</h2>
-		  <div style="position: relative; margin: 0 auto;">
-		    <div id="saveit" class="submit" style="position: absolute; top: 0; margin: 0 auto; width: 950px;S">
-		    <input type="submit" value="Save Settings" style="z-index: 100; top: 0px; float:right;"/>
+		  <div style="position: relative; margin: 0 auto; padding-top: 10px;">
+		    <div id="saveit" class="submit" style="border: 0px; position: relative; top: 0; margin: 0 auto;">
+		    <input type="submit" value="Save Settings" style="z-index: 100; top: 0px;"/>
 		    <?php if (isset($passmatch) && ($passmatch == false)) { ?>
 			Passwords don't match, try again.
 		    <?php } ?>
