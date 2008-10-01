@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.5
+//Live+Press_2.1.6
 
 
 require_once("lpextras.php");
@@ -115,7 +115,7 @@ fwrite($fh, $stringData);
 
 function publish_phone_LJ ($post_ID){
 	global $journals, $wpdb, $tablepostmeta, $user_login, $unt_livepress_options;
-	$the_post = get_postdata($post_ID);
+	$the_post = get_post($post_ID);
 
 	//$uzer=get_userdata('admin');
 	//$user_ID = $uzer->ID;
@@ -126,6 +126,7 @@ function publish_phone_LJ ($post_ID){
 	$metakey_nosynch	= 'unt_lj_nosynch';
 	$metakey_excerpt	= 'unt_lj_excerptonly';
 	$metakey_synchall	= 'unt_lj_synchall';
+	$metakey_synchop	= 'unt_lj_synchop';
 	
 	if (!strcmp($unt_livepress_options['email']['nosynch'], "checked")) {
 	    $metavalue_nosynch	= 'checked';
@@ -162,6 +163,9 @@ function publish_phone_LJ ($post_ID){
 
 	$lj_meta['unt_lj_nocomment']['value'] = $unt_livepress_options['email']['nocomment'];	// checked
 	add_post_meta($post_ID,'unt_lj_nocomment',$unt_livepress_options['email']['nocomment'],true);
+
+	$lj_meta['unt_lj_linkbacktext']['value'] = $unt_livepress_options['synch']['linkbacktext'];
+	add_post_meta($post_ID,'unt_lj_linkbacktext',$unt_livepress_options['synch']['linkbacktext'],true);
 
 	if ($lj_meta['unt_lj_excerptonly']['value'] == 'checked') {
 	    if (empty($the_post->post_excerpt)) {
@@ -214,13 +218,23 @@ function publish_phone_LJ ($post_ID){
 	    $msg_array['allowmask'] = utf8_encode($lj_meta['unt_lj_allowmask']['value']);
 	}
 
-	$post_data = get_postdata($post_ID);
-	$post_date = mktime(substr($post_data['Date'],11,2),substr($post_data['Date'],14,2),substr($post_data['Date'],17,2),substr($post_data['Date'],5,2),substr($post_data['Date'],8,2),substr($post_data['Date'],0,4));
+	$post_date = mktime(substr($the_post->post_date,11,2),substr($the_post->post_date,14,2),substr($the_post->post_date,17,2),substr($the_post->post_date,5,2),substr($the_post->post_date,8,2),substr($the_post->post_date,0,4));
 	$msg_array['year'] = utf8_encode(date('Y', $post_date));
 	$msg_array['mon'] = utf8_encode(date('m', $post_date));
 	$msg_array['day'] = utf8_encode(date('d', $post_date));
 	$msg_array['hour'] = utf8_encode(date('H', $post_date));
 	$msg_array['min'] = utf8_encode(date('i', $post_date));
+/*
+$myFile = "/tmp/test";
+$fh = fopen($myFile, 'w') or die("can't open file");
+$stringData = "\n  - - - -- - -  - - - \n";
+	    foreach ($msg_array as $tk=>$tg) {
+$stringData .= "$tk:\n $tg";
+$stringData .= "\n";
+		}
+$stringData .= "\n before the second if \n";
+fwrite($fh, $stringData);
+*/
 
 	$props = array ( "current_mood" => utf8_encode($lj_meta['unt_lj_mood']['value']), "current_moodid" => utf8_encode($lj_meta['unt_lj_moodid']['value']), "current_music" => utf8_encode($lj_meta['unt_lj_music']['value']), "picture_keyword" => utf8_encode($lj_meta['unt_lj_userpic']['value']), "taglist" => utf8_encode(get_category_list($post_ID)), "opt_nocomments" => ($lj_meta['unt_lj_nocomment']['value'] == "checked" ? true : false));
 	$msg_array['props'] = $props;
@@ -241,16 +255,27 @@ function publish_phone_LJ ($post_ID){
 		add_post_meta($post_ID,$metakey,$metavalue,true);
 	    }
 	}
-
-
 	$return_values = $client->getResponse();
-
+/*
+$myFile = "/tmp/test";
+$fh = fopen($myFile, 'w') or die("can't open file");
+$stringData = "\n  - - - -- - -  - - - \n";
+$stringData .= "$return_values\n";
+foreach ($return_values as $tk=>$tg)  {
+	$stringData .= "$tk:\n $tg";
+	$stringData .= "\n";
+}
+*/
 	$metavalue = $wpdb->escape( stripslashes( trim($return_values['itemid']) ) );
+//$stringData .= "metavalue: \n$metavalue\n";
         if (array_key_exists('unt_lj_entry', $lj_meta)) {
 	    update_meta($lj_meta['unt_lj_entry']['id'], 'unt_lj_entry', $metavalue);
 	} else {
 	    $metakey = 'unt_lj_entry';
+	    add_post_meta($post_ID,$metakey,$metavalue,true);
         }
+//$stringData .= "\n before the second if \n";
+//fwrite($fh, $stringData);
 }
 
 
@@ -398,7 +423,7 @@ function test_LJ (){
 	    || (strpos($_SERVER['PHP_SELF'],'wp-mail.php') != false )
 	    || (strpos($_SERVER['PHP_SELF'],'edit.php') != false)) {
 
-		add_action('publish_phone', 'publish_phone_LJ');
+		add_action('publish_phone', 'publish_phone_LJ', 5);
 		add_action('edit_post', 'synch_LJ');
 		add_action('publish_post', 'synch_LJ', 5);
 		add_action('delete_post', 'delete_post_LJ');
