@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.6
+//Live+Press_2.1.7
 
 require_once(ABSPATH . 'wp-admin/admin-functions.php');
 
