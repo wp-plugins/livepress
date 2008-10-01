@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.5
+//Live+Press_2.1.6
 
 require_once(ABSPATH . 'wp-admin/admin-functions.php');
 
@@ -621,7 +621,7 @@ function changeContent(parent, source, target) {
 function init_LJ_Extras_GUI()
 {
 	global $unt_livepress_options, $journals;
-	if (isset($journals)) 
+	if (isset($journals) && (!empty($journals)) ) 
 	{
 	    $firstJournal = array_keys($journals);
 	    $firstUserName = $firstJournal[0];
