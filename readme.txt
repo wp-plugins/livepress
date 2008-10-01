@@ -4,7 +4,7 @@ Donate link: none
 Tags: crossposting, cross post, livejournal, livepress
 Requires at least: 2.3
 Tested up to: 2.6.1
-Stable tag: 2.1.6 
+Stable tag: 2.1.6
 
 Crosspost blog entries to LiveJournal automatically or on a post by post basis. Crosspostable options include user pic, current music, current mood, security "friends" group, with ability to disable comments on LJ side, and insert a linkback to original wordpress post.
 
@@ -67,8 +67,8 @@ Using shell access
 
 == Frequently Asked Questions ==
 
-Visit: http://code.google.com/p/livepress/
-
+Q: How do I crosspost an excerpt.
+A: Type in an excerpt in the "exerpt" section of wordpress' new-post page then select "excerpt only" in the lj extras section of the page.
 
 == Releases ==
 Current version: 2.1.6
