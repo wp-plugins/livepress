@@ -38,4 +38,5 @@ Planned Features/Ideas:
 
 == Screenshots ==
 
-1. Very simple set up of the widget on an empty blog... (I admit, it's just to have a screenshot at all :P)
+1. Very simple set up of the widget on an empty blog.
+2. The Widget configuration panel
