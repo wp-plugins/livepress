@@ -1,0 +1,13 @@
+.widget_authoravatars .author-list {
+	text-align: center;
+}
+.widget_authoravatars .author-list .user {
+	padding: 0.2em;
+	display: inline;
+}
+.widget_authoravatars .author-list .with-name {
+	display: block;
+}
+.widget_authoravatars .author-list .user .name {
+	display: block;
+}
