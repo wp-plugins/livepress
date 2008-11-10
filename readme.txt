@@ -14,11 +14,11 @@ This plugin provides a widget which allows you to show avatars of blog users.
 
 The widget can be configured to
 
-*   show a custom title
-*   only show specific user groups and/or hide certain users
-*   limit the number of users shown
-*   change the sort order of users or show in random order
-*   adjust the size of user avatars
+*   Show a custom title
+*   Only show specific user groups and/or hide certain users
+*   Limit the number of users shown
+*   Change the sort order of users or show in random order
+*   Adjust the size of user avatars
 
 The plugin makes use of built in wordpress (core) functions to retrieve user information / get avatars.
 
@@ -39,4 +39,4 @@ Planned Features/Ideas:
 == Screenshots ==
 
 1. Very simple set up of the widget on an empty blog.
-2. The Widget configuration panel
+2. The Widget configuration panel.
