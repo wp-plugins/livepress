@@ -71,11 +71,14 @@ Q: How do I crosspost an excerpt.
 A: Type in an excerpt in the "exerpt" section of wordpress' new-post page then select "excerpt only" in the lj extras section of the page.
 
 == Releases ==
-Current version: 2.1.6
+Current version: 2.1.8
 
 Older Versions:
 
 _by digsite_
+  * 2.1.8
+	- fixed problem with breaking blog when lj is down
+  * 2.1.7
   * 2.1.6
 	- fixed problem getting and storing postid from LJ when posting via email.
 	- fixed missing linkbacktext from email post.
