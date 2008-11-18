@@ -1,6 +1,9 @@
 Live+Press
 supported by Tania Morell
 
+v2.1.7 11.18.2008
+- Bugfix : Livejournal.com site down results on broken blog
+
 v2.1.0 08.22.2008
 - Bugfix : Clean posts of invisible space characters that break crossposting
 - Bugfix : Saving/Editing journal logins flakiness
