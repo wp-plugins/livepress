@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.7
+//Live+Press_2.1.8
 
 require_once(ABSPATH . 'wp-admin/admin-functions.php');
 
@@ -94,7 +94,7 @@ function get_LJ_login_data() {
 		$client = new IXR_client($jurl, "/interface/xmlrpc", 80);
 		$client->debug = false;
 		if (!$client->query('LJ.XMLRPC.getchallenge')) {
-		    wp_die('Something went wrong - '.$client->getErrorCode().' : '.$client->getErrorMessage());
+		    //wp_die('Something went wrong - '.$client->getErrorCode().' : '.$client->getErrorMessage());
 		}
 		$response = $client->getResponse();
 		$challenge = $response['challenge'];
