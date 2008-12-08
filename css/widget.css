@@ -1,13 +1,13 @@
-.widget_authoravatars .author-list {
+.multiwidget_author_avatars .author-list {
 	text-align: center;
 }
-.widget_authoravatars .author-list .user {
+.multiwidget_author_avatars .author-list .user {
 	padding: 0.2em;
 	display: inline;
 }
-.widget_authoravatars .author-list .with-name {
+.multiwidget_author_avatars .author-list .with-name {
 	display: block;
 }
-.widget_authoravatars .author-list .user .name {
+.multiwidget_author_avatars .author-list .user .name {
 	display: block;
 }

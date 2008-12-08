@@ -1,7 +1,7 @@
 === Plugin Name ===
 Contributors: bforchhammer, pbearne
 Donate link:
-Tags: avatar, author, editor, user
+Tags: Avatar, Author, Editor, User, Widget
 Requires at least: 2.6
 Tested up to: 2.7
 Stable tag: 0.1
@@ -23,6 +23,8 @@ The widget can be configured to
 The plugin makes use of built in wordpress (core) functions to retrieve user information / get avatars.
 
 The plugin has been developed for wpmu 2.6. and tested on wp 2.6. and wp 2.7.
+
+The plugin uses Alex Tingle's "MultiWidget" class (http://blog.firetree.net/2008/11/30/wordpress-multi-widget/).
 
 Planned Features/Ideas:
 
