@@ -20,6 +20,7 @@ class AuthorAvatarsWidget extends MultiWidget
 			'hiddenusers' => '',
 			'roles' => array('administrator', 'editor'),
 			'display' => array(
+				0 => 'link_to_authorpage',
 				'avatar_size' => '',
 				'limit' => '',
 				'order' => 'display_name',
@@ -82,7 +83,7 @@ class AuthorAvatarsWidget extends MultiWidget
 		$count = 0;
 		echo '<div class="author-list">';
 		foreach ($users as $user) {
-			if (in_array($user->user_login, $hiddenusers)) continue;
+			if (in_array($user->user_login, $hiddenusers) || in_array($user->user_id, $hiddenusers)) continue;
 			if ($limit > 0 && $count >= $instance['limit']) break;
 			echo $this->format_user($user, $instance);
 			$count++;
@@ -91,8 +92,6 @@ class AuthorAvatarsWidget extends MultiWidget
 		
 		echo $after_widget;
 	}
-	
-	
 	
 	/**
 	 * Formats the given user as html.
@@ -104,6 +103,7 @@ class AuthorAvatarsWidget extends MultiWidget
 	function format_user($user, $options = array()) {
 		if (!is_array($options['display'])) $options['display'] = array();
 		$show_name = in_array('show_name', $options['display']);
+		$link_to_authorpage = in_array('link_to_authorpage', $options['display']);
 		$avatar_size = intval($options['display']['avatar_size']);
 		if (!$avatar_size) $avatar_size = false;
 
@@ -119,8 +119,10 @@ class AuthorAvatarsWidget extends MultiWidget
 		if ($show_name) $divcss[] = 'with-name';
 
 		$html = '<div class="'.implode($divcss, ' ').'">';
+		if ($link_to_authorpage) $html .= '<a href="'. get_author_posts_url($user->user_id).'">';
 		$html .= '<span class="avatar">'. $avatar .'</span>';
 		if ($show_name) $html .= '<span class="name">'. $name . '</span>';
+		if ($link_to_authorpage) $html .= '</a>';
 		$html .= '</div>';
 
 		return $html;
@@ -242,6 +244,7 @@ class AuthorAvatarsWidget extends MultiWidget
 		
 		$display_options = Array(
 			'show_name' => __('Show Name'),
+			'link_to_authorpage' => __('Link avatar to <a href="http://codex.wordpress.org/Author_Templates" target="_blank">author page</a>.'),
 		);
 		$order_options = Array(
 			'user_id' => __('User Id'),
