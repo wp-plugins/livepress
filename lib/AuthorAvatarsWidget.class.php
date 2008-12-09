@@ -42,16 +42,29 @@ class AuthorAvatarsWidget extends MultiWidget
 		);
 		
 		add_action('wp_head', array(get_class($this), 'print_css_link'));
+		add_action('wp_print_scripts', array(get_class($this), 'attach_scripts'));
 	}
 	
 	/**
-	 * Prints a <link> element pointing to the authoravatars stylesheet.
+	 * Prints a <link> element pointing to the authoravatars widget stylesheet.
 	 * This function is executed on the "wp_head" action.
 	 *
 	 * @return void
 	 */
 	function print_css_link() {
 		echo '<link type="text/css" rel="stylesheet" href="' . WP_PLUGIN_URL . '/author-avatars/css/widget.css" />' . "\n";
+	}
+	
+	/**
+	 * Attaches scripts (using wp_enqueue_script) to the wp_print_scripts action.
+	 *
+	 * @return void
+	 */
+	function attach_scripts() {
+		if (is_admin()) {
+			wp_enqueue_script('author-avatars-jquery-ui', WP_PLUGIN_URL .'/author-avatars/js/jquery-ui-personalized-1.5.3.packed.js');
+			wp_enqueue_script('author-avatars-widget-admin', WP_PLUGIN_URL .'/author-avatars/js/widget.admin.js');
+		}
 	}
 
 	/**
@@ -254,7 +267,7 @@ class AuthorAvatarsWidget extends MultiWidget
 		);
 
 		echo '<p>';
-		$this->_form_input('text', 'title', 'Title: ', $title, 'widefat' );
+		$this->_form_input('text', 'title', 'Title: ', $title, array('class' => 'widefat') );
 		echo '</p>';
 
 		echo '<p><strong>Show roles:</strong><br />';
@@ -262,7 +275,7 @@ class AuthorAvatarsWidget extends MultiWidget
 		echo '</p>';
 
 		echo '<p>';
-		$this->_form_input('text', 'hiddenusers', '<strong>Hidden users:</strong> ', $hiddenusers, 'widefat');
+		$this->_form_input('text', 'hiddenusers', '<strong>Hidden users:</strong> ', $hiddenusers, array('class' => 'widefat'));
 		echo '<small>(Comma separate list of user login ids)</small></p>';
 
 		echo '<p><strong>Display options:</strong><br />';
@@ -273,10 +286,14 @@ class AuthorAvatarsWidget extends MultiWidget
 		echo '</label>';
 		echo '<br />';
 		$this->_form_input('text', 'display][limit', 'Max. number of avatars shown:<br /> ', $display['limit']);
-		echo '<br />';
-		$this->_form_input('text', 'display][avatar_size', 'Avatar Size:<br /> ', $display['avatar_size']);
+		echo '<br />';	
+		$this->_form_input('text', 'display][avatar_size', 'Avatar Size:<br /> ', $display['avatar_size'], array('class' => 'avatar_size_input'));
+		echo 'px';
+		global $user_email;
+		get_currentuserinfo();
+		echo '<div class="avatar_size_preview" style="background-color: #666; border: 1px solid #eee; width: 200px; height: 200px; padding: 10px;">'. get_avatar($user_email, $display['avatar_size']) .'</div>'; 
 		echo '</p>';
-
+		
 		$this->_form_input('hidden', 'submit', '', '1');
 	}
 	
@@ -306,17 +323,27 @@ class AuthorAvatarsWidget extends MultiWidget
 	 * @param $varname The name of the (form) element.
 	 * @param $label The label for the element.
 	 * @param $value The value of the element.
-	 * @param $cssclass An optional css class for the element.
+	 * @param $htmlattr An optional array of html attributes.
 	 * @return void
 	 */
-	function _form_input($type, $varname, $label="", $value="", $cssclass = '') {
+	function _form_input($type, $varname, $label="", $value="", $htmlattr = array()) {
 		$id = $this->get_field_id($varname);
 		$name = $this->get_field_name($varname);
-		if (!empty($cssclass)) $cssclass = ' class="'.$cssclass.'"';
-		if ($checked) $checked = ' checked="checked"';
-		$html = '<input id="'.$id.'" name="'.$name.'" type="'.$type.'" value="'.$value.'"'.$cssclass.' />';
+		$attr = $this->_buildHtmlAttributes($htmlattr);
+		
+		$html = '<input id="'.$id.'" name="'.$name.'" type="'.$type.'" value="'.$value.'"'.$attr.' />';
 		if (!empty($label)) $html = '<label>'.$label.$html.'</label>';
 		echo $html;
+	}
+	
+	function _buildHtmlAttributes($attributes) {
+		if (!is_array($attributes)) return "";
+		
+		$string = "";
+		foreach ($attributes as $key => $value) {
+			$string .= ' '. $key . '="'. wp_specialchars($value) .'"';
+		}
+		return $string;
 	}
 
 	/**
