@@ -9,8 +9,26 @@ class AuthorAvatars {
 	 * Constructor
 	 */	
 	function AuthorAvatars() {
-		$this->update_check();
-		$this->init_widgets();
+		if (!$this->system_check()) {
+			echo 'Author avatars: system check failed.';
+		}
+		elseif(!$this->install_check()) {
+			echo 'Author avatars: install check failed.';
+		}
+		elseif(!$this->update_check()) {
+			echo 'Author avatars: update check failed.';			
+		}
+		else {
+			$this->init_widgets();
+		}
+	}
+	
+	/**
+	 * Check we got everything we need to use the plugin
+	 */
+	function system_check() {
+		if (!defined('AUTHOR_AVATARS_VERSION')) die('Author Avatars: constant AUTHOR_AVATARS_VERSION is not defined.');
+		return true;
 	}
 	
 	/**
@@ -29,36 +47,80 @@ class AuthorAvatars {
 	 * Number of the currently installed version of the plugin.
 	 * @access private
 	 */
-	var $version_installed = null;
+	var $__version_installed = null;
 	
 	/**
 	 * returns the version number of the currently installed plugin.
 	 */ 
 	function get_installed_version($reset = false) {
-		if ($this->version_installed == null || $reset) {
-			$this->version_installed = get_option('author_avatars_version');
+		if ($this->__version_installed == null || $reset) {
+			$this->__version_installed = get_option('author_avatars_version');
 		}
-		if (empty($this->version_installed)) {
-			add_option('author_avatars_version', '0.1');
-			$this->version_installed = '0.1';
-		}
-		return $this->version_installed;
+		return $this->__version_installed;
 	}
 	
 	/**
 	 * updates the number of the currently installed version.
 	 */
 	function set_installed_version($value) {
-		update_option('author_avatars_version', $value);
-		$this->version_installed = $value;
+		$oldversion = $this->get_installed_version();
+		if (empty($oldversion)) {
+			add_option('author_avatars_version', $value);
+		}
+		else {
+			update_option('author_avatars_version', $value);
+		}
+		$this->__version_installed = $value;
+	}
+	
+	/**
+	 * Check if author avatars is installed and install it if necessary
+	 * @return false if an error occured, true otherwise
+	 */
+	function install_check() {
+		$version = $this->get_installed_version(true);
+		
+		// Version not empty -> plugin already installed
+		if (!empty($version)) return true;
+		
+		// Version empty: this means we are either on version 0.1 (which didn't have this option) or on a fresh install.
+		else {
+			// check if the 0.1 version is installed
+			if (get_option('widget_blogauthors')) {
+				// set installed version to 0.1
+				$this->set_installed_version('0.1');
+				return true;
+			}
+			// else it's probably a new/fresh install
+			else {
+				if ($this->install()) {
+					$this->set_installed_version(AUTHOR_AVATARS_VERSION);
+					return true;
+				}
+				else {
+					echo 'are we in here??';
+					return false; // install failed.
+				}
+			}
+		}
+	}
+	
+	/**
+	 * install the plugin
+	 * @return true if install was successful, false otherwise
+	 */
+	function install() {
+		// nothing to install
+		return true;
 	}
 	
 	/**
 	 * Check if there's any need to do updates and start updates if necessary
+	 * @return false if an error occured, true otherwise
 	 */
 	function update_check() {
-		if (!defined('AUTHOR_AVATARS_VERSION')) die('Author Avatars: constant AUTHOR_AVATARS_VERSION is not defined.');
 		if ($this->get_installed_version() != AUTHOR_AVATARS_VERSION) $this->do_updates();
+		return true;
 	}
 	
 	/**
