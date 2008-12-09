@@ -98,7 +98,6 @@ class AuthorAvatars {
 					return true;
 				}
 				else {
-					echo 'are we in here??';
 					return false; // install failed.
 				}
 			}
