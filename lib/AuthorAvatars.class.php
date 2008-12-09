@@ -1,0 +1,132 @@
+<?php
+/**
+ * Author Avatars class
+ * 
+ * Performs updates and initialises widgets.
+ */
+class AuthorAvatars {
+	/**
+	 * Constructor
+	 */	
+	function AuthorAvatars() {
+		$this->update_check();
+		$this->init_widgets();
+	}
+	
+	/**
+	 * Init author avatar widget
+	 */
+	function init_widgets() {
+		// include necessary file(s).
+		require_once('AuthorAvatarsWidget.class.php');
+		
+		// Create an object for the widget and register it.
+		$author_avatars_multiwidget = new AuthorAvatarsWidget();
+		add_action( 'widgets_init', array($author_avatars_multiwidget,'register') );
+	}
+		
+	/**
+	 * Number of the currently installed version of the plugin.
+	 * @access private
+	 */
+	var $version_installed = null;
+	
+	/**
+	 * returns the version number of the currently installed plugin.
+	 */ 
+	function get_installed_version($reset = false) {
+		if ($this->version_installed == null || $reset) {
+			$this->version_installed = get_option('author_avatars_version');
+		}
+		if (empty($this->version_installed)) {
+			add_option('author_avatars_version', '0.1');
+			$this->version_installed = '0.1';
+		}
+		return $this->version_installed;
+	}
+	
+	/**
+	 * updates the number of the currently installed version.
+	 */
+	function set_installed_version($value) {
+		update_option('author_avatars_version', $value);
+		$this->version_installed = $value;
+	}
+	
+	/**
+	 * Check if there's any need to do updates and start updates if necessary
+	 */
+	function update_check() {
+		if (!defined('AUTHOR_AVATARS_VERSION')) die('Author Avatars: constant AUTHOR_AVATARS_VERSION is not defined.');
+		if ($this->get_installed_version() != AUTHOR_AVATARS_VERSION) $this->do_updates();
+	}
+	
+	/**
+	 * tries to do all updates until we're up to date
+	 */
+	function do_updates() {
+		$step_count = 0;
+		$max_number_updates = 10;
+		while ($this->get_installed_version() != AUTHOR_AVATARS_VERSION) {
+			if ($step_count >= $max_number_updates) {
+				break;
+				die('more than 10 updates.. something might be wrong...'); // FIXME: change error handling!?
+			}
+			$this->do_update_step();
+			$step_count++;
+		}
+	}
+	
+	/**
+	 * Does one version update, for example from version 0.1 to version 0.2, and updates the version number in the end.
+	 */
+	function do_update_step() {
+		switch($this->get_installed_version()) {
+			// update 0.1 -> 0.2
+			case '0.1':
+				if($this->update__01_02()) $this->set_installed_version('0.2');	
+				else die('Author Avatars: update 0.1 to 0.2 failed.');
+				break;
+			
+			// update 0.2 -> 0.3
+			/*case '0.2':
+				$this->set_installed_version('0.3');
+				break;*/
+
+			default: 
+				die('Author Avatars: not good... not good at all. '); // FIXME: change error handling!?
+		}
+	}
+	
+	/**
+	 * Do update step 0.1 to 0.2
+	 */
+	function update__01_02() {
+		// update database: convert old widgets to new ones using the "MultiWidget" class.
+		$old_widget = get_option('widget_blogauthors');
+		$new_widget = $old_widget;
+		foreach ($new_widget as $id => $widget) {
+			$new_widget[$id]['__multiwidget'] = $id;
+		}
+		
+		delete_option('widget_blogauthors');
+		add_option('multiwidget_author_avatars', $new_widget);
+
+		// update sidebar option
+		$sidebars = get_option('sidebars_widgets');
+		foreach ($sidebars as $i => $sidebar) {
+			if(is_array($sidebar)) {
+				foreach ($sidebar as $k => $widget) {
+					$sidebars[$i][$k] = str_replace('blogauthors-', 'author_avatars-', $widget);
+				}
+			}
+		}
+		
+		update_option('sidebars_widgets', $sidebars);
+		
+		// return true if update successful (FIXME)
+		return true;
+	}
+}
+
+?>

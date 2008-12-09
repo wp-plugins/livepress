@@ -7,10 +7,10 @@ Version: 0.2
 Author: <a href="http://mind2.de">Benedikt Forchhammer</a>, Idea: <a href="http://bearne.com">Paul Bearne</a>
 */
 
-require_once('lib/AuthorAvatarsWidget.class.php');
+// The current version of the author avatars plugin. Needs to be updated every time we do a version step.
+define('AUTHOR_AVATARS_VERSION', '0.2');
 
-// Create an object for the widget and register it.
-$author_avatars_multiwidget = new AuthorAvatarsWidget();
-add_action( 'widgets_init', array($author_avatars_multiwidget,'register') );
+require_once('lib/AuthorAvatars.class.php');
+new AuthorAvatars();
 
 ?>
