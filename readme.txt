@@ -4,7 +4,7 @@ Donate link:
 Tags: Avatar, Author, Editor, User, Widget
 Requires at least: 2.6
 Tested up to: 2.7
-Stable tag: 0.1
+Stable tag: 0.2
 
 Adds a widget that shows avatars of the blog users so that people can see what you look like...
 
@@ -24,11 +24,10 @@ The plugin makes use of built in wordpress (core) functions to retrieve user inf
 
 The plugin has been developed for wpmu 2.6. and tested on wp 2.6. and wp 2.7.
 
-The plugin uses Alex Tingle's "MultiWidget" class (http://blog.firetree.net/2008/11/30/wordpress-multi-widget/).
+As of version 0.2 the plugin uses Alex Tingle's "MultiWidget" class (http://blog.firetree.net/2008/11/30/wordpress-multi-widget/). The plugin should automatically upgrade widgets from the old version (0.1), if anyone has any problem drop us a note. In the worst case you will have to reconfigure the widget(s).
 
 Planned Features/Ideas:
 
-*   Enhance template options for author pages (list of posts/comments for authors)
 *   Provide tag to display widget content in pages/posts
 *   Show users from multiple blogs (wpmu)
 
@@ -37,6 +36,15 @@ Planned Features/Ideas:
 1. Upload the `author-avatars` folder to the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
 1. Enable and configure the widget as usual on the Design / Widgets page.
+
+== Changelog ==
+
+Version 0.2:
+
+*    Widget: added avatar preview image to the control panel
+*    Widget: added option to link the user/avatar to their respective "author page"
+*    Widget: hiddenusers also allows user ids now (e.g. 1 for "admin")
+*    Refactored the plugin to use Alex Tingle's MultiWidget class
 
 == Screenshots ==
 
