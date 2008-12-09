@@ -95,11 +95,17 @@ class AuthorAvatarsWidget extends MultiWidget
 
 		$count = 0;
 		echo '<div class="author-list">';
-		foreach ($users as $user) {
-			if (in_array($user->user_login, $hiddenusers) || in_array($user->user_id, $hiddenusers)) continue;
-			if ($limit > 0 && $count >= $instance['limit']) break;
-			echo $this->format_user($user, $instance);
-			$count++;
+		
+		if (empty($users)) {
+			echo '<p>No users found.</p>';
+		}
+		else {
+			foreach ($users as $user) {
+				if (in_array($user->user_login, $hiddenusers) || in_array($user->user_id, $hiddenusers)) continue;
+				if ($limit > 0 && $count >= $instance['limit']) break;
+				echo $this->format_user($user, $instance);
+				$count++;
+			}
 		}
 		echo '</div>';	
 		
