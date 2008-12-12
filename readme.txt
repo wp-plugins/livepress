@@ -1,7 +1,7 @@
 === Plugin Name ===
 Contributors: bforchhammer, pbearne
 Donate link:
-Tags: Avatar, Author, Editor, User, Widget
+Tags: Avatar, Author, Editor, Image, Photo, Picture, Profile, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.6
 Tested up to: 2.7
 Stable tag: 0.2
@@ -24,7 +24,7 @@ The plugin makes use of built in wordpress (core) functions to retrieve user inf
 
 The plugin has been developed for wpmu 2.6. and tested on wp 2.6. and wp 2.7.
 
-As of version 0.2 the plugin uses Alex Tingle's "MultiWidget" class (http://blog.firetree.net/2008/11/30/wordpress-multi-widget/). The plugin should automatically upgrade widgets from the old version (0.1), if anyone has any problem drop us a note. In the worst case you will have to reconfigure the widget(s).
+As of version 0.2 the plugin uses [Alex Tingle's "MultiWidget" class](http://blog.firetree.net/2008/11/30/wordpress-multi-widget/). The plugin should automatically upgrade widgets from the old version (0.1), if anyone has any problem drop us a note. In the worst case you will have to reconfigure the widget(s).
 
 Planned Features/Ideas:
 
