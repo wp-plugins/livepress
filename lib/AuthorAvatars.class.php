@@ -150,9 +150,8 @@ class AuthorAvatars {
 				break;
 			
 			// update 0.2 -> 0.3
-			/*case '0.2':
-				$this->set_installed_version('0.3');
-				break;*/
+			case '0.2':
+				break;
 
 			default: 
 				die('Author Avatars: not good... not good at all. '); // FIXME: change error handling!?
