@@ -4,7 +4,7 @@ Donate link:
 Tags: Avatar, Author, Editor, Image, Photo, Picture, Profile, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.6
 Tested up to: 2.7
-Stable tag: 0.2
+Stable tag: 0.3
 
 Adds a widget that shows avatars of the blog users so that people can see what you look like...
 
@@ -38,6 +38,10 @@ Planned Features/Ideas:
 1. Enable and configure the widget as usual on the Design / Widgets page.
 
 == Changelog ==
+
+Version 0.3
+
+*    Fixed error that broke some javascript on "edit post" pages in wordpress 2.7
 
 Version 0.2:
 
