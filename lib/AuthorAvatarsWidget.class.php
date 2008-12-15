@@ -58,10 +58,15 @@ class AuthorAvatarsWidget extends MultiWidget
 	/**
 	 * Attaches scripts (using wp_enqueue_script) to the wp_print_scripts action.
 	 *
+	 * Note: the personalised jquery library includes jquery.ui.resizable. The files
+	 * are only included on the widget admin pages, as they appear to conflict with
+	 * some javascript on the post edit pages (wordpress 2.7).
+	 *
 	 * @return void
 	 */
 	function attach_scripts() {
-		if (is_admin()) {
+		// only load the scripts on the widget admin page
+		if (is_admin() && basename($_SERVER['PHP_SELF']) == 'widgets.php') { 
 			wp_enqueue_script('author-avatars-jquery-ui', WP_PLUGIN_URL .'/author-avatars/js/jquery-ui-personalized-1.5.3.packed.js');
 			wp_enqueue_script('author-avatars-widget-admin', WP_PLUGIN_URL .'/author-avatars/js/widget.admin.js');
 		}
