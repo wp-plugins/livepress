@@ -11,7 +11,7 @@ Widget and shortcode for displaying lists of avatars of blog users.
 
 == Description ==
 
-This plugin provides a widget and a [shortcode](http://codex.wordpress.org/Author_Avatars_ShortCode_Documentation) which allow you to show avatars of blog users.
+This plugin provides a widget and a [shortcode](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) which allow you to show avatars of blog users.
 
 The widget can be configured to
 
@@ -38,9 +38,9 @@ Planned Features/Ideas:
 1. Activate the plugin through the 'Plugins' menu in WordPress
 1. Enable and configure the widget as usual on the Design / Widgets page.
 
-[Look at this page](http://codex.wordpress.org/Author_Avatars_ShortCode_Documentation) to find out how to use the [authoravatars] shortcode.
+[Look at this page](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) to find out how to use the [authoravatars] shortcode.
 
-[Changelog](http://codex.wordpress.org/Author_Avatars_Changelog)
+[Changelog](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_Changelog)
 
 == Screenshots ==
 
@@ -58,5 +58,5 @@ A shortcode is a tag like <code>[authoravatars]</code> which you can insert into
 = How do I use the author avatar shortcode? =
 
 It's simple: just add [authoravatars] into your post and hit save!
-There's also a number of [parameters](http://codex.wordpress.org/Author_Avatars_ShortCode_Documentation) available!
+There's also a number of [parameters](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) available!
 
