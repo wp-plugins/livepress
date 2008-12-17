@@ -20,6 +20,7 @@ class AuthorAvatars {
 		}
 		else {
 			$this->init_widgets();
+			$this->init_shortcodes();
 		}
 	}
 	
@@ -41,6 +42,17 @@ class AuthorAvatars {
 		// Create an object for the widget and register it.
 		$author_avatars_multiwidget = new AuthorAvatarsWidget();
 		add_action( 'widgets_init', array($author_avatars_multiwidget,'register') );
+	}
+	
+	/**
+	 * Init author avatars shortcode
+	 */
+	function init_shortcodes() {
+		// include necessary file(s).
+		require_once('AuthorAvatarsShortcode.class.php');
+		
+		// Create an object of the shortcode. Registering is done in the object's constructor
+		$shortcode = new AuthorAvatarsShortcode();
 	}
 		
 	/**
@@ -127,11 +139,11 @@ class AuthorAvatars {
 	 */
 	function do_updates() {
 		$step_count = 0;
-		$max_number_updates = 10;
+		$max_number_updates = 25;
 		while ($this->get_installed_version() != AUTHOR_AVATARS_VERSION) {
 			if ($step_count >= $max_number_updates) {
 				break;
-				die('more than 10 updates.. something might be wrong...'); // FIXME: change error handling!?
+				die('Author Avatars: more than 25 update steps.. something might be wrong...'); // FIXME: change error handling!?
 			}
 			$this->do_update_step();
 			$step_count++;
@@ -151,6 +163,12 @@ class AuthorAvatars {
 			
 			// update 0.2 -> 0.3
 			case '0.2':
+				$this->set_installed_version('0.3');
+				break;
+				
+			// update 0.3 -> 0.4
+			case '0.3':
+				$this->set_installed_version('0.4');
 				break;
 
 			default: 
@@ -167,6 +185,7 @@ class AuthorAvatars {
 		$new_widget = $old_widget;
 		foreach ($new_widget as $id => $widget) {
 			$new_widget[$id]['__multiwidget'] = $id;
+			$new_widget[$id]['title'] = __('Blog Authors');
 		}
 		
 		delete_option('widget_blogauthors');
