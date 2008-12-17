@@ -76,7 +76,9 @@ class AuthorAvatarsWidget extends MultiWidget
 	 * Echo widget content = list of blog users.
 	 */
 	function widget($args,$instance)
-	{	
+	{
+		require_once('UserList.class.php');
+	
 		// parse hidden users string
 		if (!empty($instance['hiddenusers'])) {
 			$hiddenusers = explode(',', $instance['hiddenusers']);
@@ -86,154 +88,32 @@ class AuthorAvatarsWidget extends MultiWidget
 			$hiddenusers = array();
 		}
 		
-		// get users
-		$users = (array) $this->get_users_by_role($instance['roles']);
-		// sort 'em
-		$this->_sort($users, $instance['order']);
+		$userlist = new UserList();
+		
+		$userlist->roles = $instance['roles'];
+		$userlist->hiddenusers = $hiddenusers;
+		
+		if (is_array($instance['display'])) {
+			$userlist->show_name = in_array('show_name', $instance['display']);
+			$userlist->link_to_authorpage = in_array('link_to_authorpage', $instance['display']);
+			$userlist->avatar_size = $instance['display']['avatar_size'];
+			$userlist->limit = $instance['display']['limit'];
+			$userlist->order = $instance['display']['order'];
+		}
 		
 		// extract widget arguments
 		extract($args, EXTR_SKIP);
 		
 		// build the widget html
 		echo $before_widget;
-		if (!empty($instance['title'])) echo $before_title . $instance['title'] . $after_title;
+		echo $before_title . $instance['title'] . $after_title;
 
-		$count = 0;
-		echo '<div class="author-list">';
-		
-		if (empty($users)) {
-			echo '<p>No users found.</p>';
-		}
-		else {
-			foreach ($users as $user) {
-				if (in_array($user->user_login, $hiddenusers) || in_array($user->user_id, $hiddenusers)) continue;
-				if ($limit > 0 && $count >= $instance['limit']) break;
-				echo $this->format_user($user, $instance);
-				$count++;
-			}
-		}
-		echo '</div>';	
+		$userlist->output();
 		
 		echo $after_widget;
 	}
 	
-	/**
-	 * Formats the given user as html.
-	 *
-	 * @param $user The user to format (object of type WP_User).
-	 * @param $options The widget options.
-	 * @return html string
-	 */
-	function format_user($user, $options = array()) {
-		if (!is_array($options['display'])) $options['display'] = array();
-		$show_name = in_array('show_name', $options['display']);
-		$link_to_authorpage = in_array('link_to_authorpage', $options['display']);
-		$avatar_size = intval($options['display']['avatar_size']);
-		if (!$avatar_size) $avatar_size = false;
 
-		$roles = unserialize($user->meta_value);
-		$role = implode(' ', array_keys($roles));
-		$name = $user->display_name;
-
-		$avatar = get_avatar($user->user_email, $avatar_size);
-		$avatar = preg_replace('@alt=["\'][\w]*["\'] ?@', '', $avatar);
-		$avatar = preg_replace('@ ?\/>@',' alt="'.$name.' ('.$role.')" title="'.$name.' ('.$role.')" />',$avatar);
-
-		$divcss = array('user');
-		if ($show_name) $divcss[] = 'with-name';
-
-		$html = '<div class="'.implode($divcss, ' ').'">';
-		if ($link_to_authorpage) $html .= '<a href="'. get_author_posts_url($user->user_id).'">';
-		$html .= '<span class="avatar">'. $avatar .'</span>';
-		if ($show_name) $html .= '<span class="name">'. $name . '</span>';
-		if ($link_to_authorpage) $html .= '</a>';
-		$html .= '</div>';
-
-		return $html;
-	}
-
-	/**
-	 * Returns a list of all users matching roles passed to this function.
-	 *
-	 * @param $roles array of roles, e.g. Array('contributor', 'subscriber', 'author', ...)
-	 * @return array list of users
-	 */
-	function get_users_by_role($roles=false) {
-		if (!is_array($roles)) return;
-		$users_of_blog = (array) get_users_of_blog();
-
-		$users = array();
-		foreach ( $users_of_blog as $b_user ) {
-			$b_roles = unserialize($b_user->meta_value);
-			if (count(array_intersect(array_keys($b_roles), $roles))) {
-				$users[] = $b_user;
-			}
-		}
-		return $users;
-	}
-	
-	/**
-	 * Sorts the given array of users.
-	 * 
-	 * @access private
-	 * @param $users Array of users (WP_User objects).
-	 * @param $order The key to sort by. Can be one of the following: random, user_id, user_login, display_name.
-	 * @param Sorted array of users.
-	 */
-	function _sort(&$users, $order) {
-		switch ($order) {
-			case 'random':
-				shuffle($users);
-				break;
-			case 'user_id':
-				usort($users, array('authoravatars', '_users_cmp_id'));
-				break;
-			case 'user_login':
-				usort($users, array('authoravatars', '_users_cmp_login'));
-				break;
-			case 'display_name':
-				usort($users, array('authoravatars', '_users_cmp_name'));
-				break;
-		}
-	}
-
-	/**
-	 * Given two users, this function compares the user_ids
-	 * 
-	 * @access private
-	 * @param $a of type WP_User
-	 * @param $b of type WP_User
-	 * @return result of a string compare of the user_ids.
-	 */
-	function _users_cmp_id($a, $b) {
-		return strcmp($a->user_id, $b->user_id);
-	}
-
-	/**
-	 * Given two users, this function compares the user_logins
-	 * 
-	 * @access private
-	 * @param $a of type WP_User
-	 * @param $b of type WP_User
-	 * @return result of a string compare of the user_logins.
-	 */
-
-	function _users_cmp_login($a, $b) {
-		return strcmp($a->user_login, $b->user_login);
-	}
-
-	/**
-	 * Given two users, this function compares the user's display names
-	 * 
-	 * @access private
-	 * @param $a of type WP_User
-	 * @param $b of type WP_User
-	 * @return result of a string compare of the user display names.
-	 */
-
-	function _users_cmp_name($a, $b) {
-		return strcmp($a->display_name, $b->display_name);
-	}
 	
 	/**
 	 * Updates a particular instance of the widget.
@@ -347,6 +227,18 @@ class AuthorAvatarsWidget extends MultiWidget
 		echo $html;
 	}
 	
+	/**
+	 * Builds a string of html attributes from an associative array.
+	 * 
+	 * Example: 
+	 * Array('title' => 'My title'); will be transformed into this string: [ title="My title"]
+	 * 
+	 * All attribute values are cleaned up using the function wp_specialchars().
+	 *
+	 * @access private
+	 * @param $attributes Array of attributes
+	 * @return string 
+	 */
 	function _buildHtmlAttributes($attributes) {
 		if (!is_array($attributes)) return "";
 		
@@ -417,6 +309,5 @@ class AuthorAvatarsWidget extends MultiWidget
 		$parts = explode('|', $element);
 		return $parts[0];
 	}
-	
 }
 ?>
