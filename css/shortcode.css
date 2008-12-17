@@ -1,4 +1,4 @@
-.shortcode-author-avatars div.author-list {
+.shortcode-author-avatars .author-list {
 	float: left;
 	width: 100%;
 	padding-bottom: 1.5em;
@@ -21,7 +21,7 @@
 }
 
 .shortcode-author-avatars ul.author-list .avatar,
-.shortcode-author-avatars ol.author-list .avatar{
+.shortcode-author-avatars ol.author-list .avatar {
 	float: left;
 	clear: left;
 	margin-right: .25em;
