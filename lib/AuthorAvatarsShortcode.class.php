@@ -83,7 +83,7 @@ class AuthorAvatarsShortcode {
 		
 		// render as a list?
 		if (isset($atts['render_as_list'])) {
-			$set_to_false = ($atts['link_to_authorpage'] == 'false');
+			$set_to_false = ($atts['render_as_list'] == 'false');
 			if (!$set_to_false) $userlist->use_list_template();
 		}
 		
