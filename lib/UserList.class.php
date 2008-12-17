@@ -47,7 +47,38 @@ class UserList {
 	var $order = 'display_name';
 	
 	/**
+	 * Wrapper template
+	 * - {users} is replaced by the list of users
+	 */
+	var $wrapper_template = '<div class="author-list">{users}</div>';
+	
+	/**
+	 * User template
+	 * - {class} is replaced by user specific classes
+	 * - {user} is replaced by the user avatar (and possibly name)
+	 */
+	var $user_template = '<div class="{class}">{user}</div>';
+	
+	/**
+	 * Changes the template strings so the user is rendered in a html list.
+	 *
+	 * @param $ordered set to true to use an ordered list (<ol>) instead of an unordered one (<ul>)
+	 * @return void
+	 */
+	function use_list_template($ordered = false) {
+		if ((bool)$ordered) {
+			$this->wrapper_template = '<ol class="author-list">{users}</ol>';
+		}
+		else {
+			$this->wrapper_template = '<ul class="author-list">{users}</ul>';
+		}
+		$this->user_template = '<li class="{class}">{user}</li>';
+	}
+	
+	/**
 	 * Echos the list of users.
+	 *
+	 * @return void
 	 */
 	function output() {
 		echo $this->get_output();
@@ -55,15 +86,14 @@ class UserList {
 	
 	/**
 	 * Returns the list of users.
+	 *
+	 * @return the html formatted list of users
 	 */
 	function get_output() {
-		$html = '';
-	
 		// get users
 		$users = $this->get_users();
-
-		$html .= '<div class="author-list">';
 		
+		$html = '';
 		if (empty($users)) {
 			$html .= '<p class="no_users">No users found.</p>';
 		}
@@ -72,9 +102,8 @@ class UserList {
 				$html .= $this->format_user($user);
 			}
 		}
-		$html .= '</div>';
 		
-		return $html;
+		return str_replace('{users}', $html, $this->wrapper_template);
 	}
 	
 	/**
@@ -84,11 +113,13 @@ class UserList {
 	 * @return html string
 	 */
 	function format_user($user) {
+		$tpl_vars = array('{class}' => '', '{user}' => '');
+	
 		$avatar_size = intval($this->avatar_size);
 		if (!$avatar_size) $avatar_size = false;
 
-		$roles = unserialize($user->meta_value);
-		$role = implode(' ', array_keys($roles));
+		$user_roles = unserialize($user->meta_value);
+		$role = implode(', ', array_keys($user_roles));
 		$name = $user->display_name;
 
 		$avatar = get_avatar($user->user_email, $avatar_size);
@@ -97,15 +128,17 @@ class UserList {
 
 		$divcss = array('user');
 		if ($this->show_name) $divcss[] = 'with-name';
-
-		$html = '<div class="'.implode($divcss, ' ').'">';
+		
+		$html = '';
 		if ($this->link_to_authorpage) $html .= '<a href="'. get_author_posts_url($user->user_id).'">';
 		$html .= '<span class="avatar">'. $avatar .'</span>';
 		if ($this->show_name) $html .= '<span class="name">'. $name . '</span>';
 		if ($this->link_to_authorpage) $html .= '</a>';
-		$html .= '</div>';
+		
+		$tpl_vars['{class}'] = implode($divcss, ' ');
+		$tpl_vars['{user}'] = $html;
 
-		return $html;
+		return str_replace(array_keys($tpl_vars), $tpl_vars, $this->user_template);
 	}
 	
 	/**
@@ -119,7 +152,7 @@ class UserList {
 
 		// filter them by roles and remove hiddenusers
 		$this->_filter($users);
-		
+				
 		// sort them
 		$this->_sort($users);
 
