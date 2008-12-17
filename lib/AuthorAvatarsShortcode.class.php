@@ -17,14 +17,14 @@ class AuthorAvatarsShortcode {
 	 */
 	function register() {
 		add_shortcode('authoravatars', array($this, 'shortcode_handler'));
-		add_action('wp_print_styles', array($this, 'add_stylesheets'));
+		add_action('wp_head', array($this, 'print_css_link'));
 	}
 	
 	/**
 	 * Add css stylesheets (using wp_enqueue_style()).
 	 */
-	function add_stylesheets() {
-		wp_enqueue_style('author-avatars-shortcode', WP_PLUGIN_URL . '/author-avatars/css/shortcode.css');
+	function print_css_link() {
+		echo '<link type="text/css" rel="stylesheet" href="' . WP_PLUGIN_URL . '/author-avatars/css/shortcode.css" />' . "\n";
 	}
 	
 	/**
