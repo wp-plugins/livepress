@@ -222,7 +222,7 @@ class MultiWidget
             isset($wp_registered_widgets[$_widget_id]['params'][0]['number']) )
         {
           $number = $wp_registered_widgets[$_widget_id]['params'][0]['number'];
-          if( !in_array( $this->id_base.'-'.$number, $_POST['widget-id'] ) )
+          if( !in_array( $this->id_base.'-'.$number, (array) $_POST['widget-id'] ) )
           {
             // the widget has been removed.
             unset($all_instances[$number]);
