@@ -42,6 +42,19 @@ class AuthorAvatarsShortcode {
 		}
 		$userlist->roles = $roles;
 		
+		// blogs
+		$blogs = array(); // default value: empty -> only current blog
+		if ($this->_blog_selection_allowed() && !empty($atts['blogs'])) {
+			if (strtolower($atts['blogs']) == 'all') {
+				$blogs = array(-1);
+			}
+			else {
+				$blogs = explode(',', $atts['blogs']);
+				$blogs = array_map('intval', $blogs);
+			}
+		}
+		$userlist->blogs = $blogs;
+		
 		// hidden users 
 		$hiddenusers = array(); // default value: no restriction -> all users
 		if (!empty($atts['hiddenusers'])) {
@@ -88,6 +101,14 @@ class AuthorAvatarsShortcode {
 		}
 		
 		return '<div class="shortcode-author-avatars">' . $userlist->get_output() . $content . '</div>';
+	}
+	
+	/** 
+	 * Return true if we're on a wpmu site and the we're allowed to show users from multiple blogs.
+	 */
+	function _blog_selection_allowed() {
+		require_once('helper.functions.php');
+		return is_wpmu();
 	}
 }
 

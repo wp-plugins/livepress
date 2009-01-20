@@ -9,12 +9,18 @@ class UserList {
 	 * Constructor
 	 */
 	function UserList() {
+		require_once('helper.functions.php');
 	}
 	
 	/**
 	 * Array of users that are not displayed
 	 */ 
 	var $hiddenusers = array();
+	
+	/**
+	 * Array of blog ids which to take users from. (empty = only current blog, "-1" = all blogs)
+	 */
+	var $blogs = array();
 	
 	/**
 	 * Array of role names. Only users belonging to one of these roles are displayed.
@@ -148,11 +154,11 @@ class UserList {
 	 */
 	function get_users() {
 		// get all users
-		$users = (array) $this->get_blog_users();
-
-		// filter them by roles and remove hiddenusers
+		$users = $this->get_blog_users();
+		
+		// filter them
 		$this->_filter($users);
-				
+		
 		// sort them
 		$this->_sort($users);
 
@@ -165,12 +171,38 @@ class UserList {
 	}
 	
 	/**
-	 * Returns array of all users of the current blog.
+	 * Returns array of all users from all blogs specified in field $blogs. 
+	 * If $blogs is empty only users from the current blog are returned.
 	 * 
 	 * @return Array of users (WP_User objects).
 	 */
 	function get_blog_users() {
-		$users = (array) get_users_of_blog();
+		global $wpdb, $blog_id;
+		
+		if (is_wpmu() && !empty($this->blogs)) {
+		
+			// make sure all values are integers
+			$this->blogs = array_map ('intval', $this->blogs);
+			
+			// if -1 is in the array display all users (no filtering)
+			if (in_array('-1', $this->blogs)) {
+				$blogs_condition = "meta_key LIKE '". $wpdb->base_prefix ."%_capabilities'";
+			}
+			// else filter by set blog ids
+			else {
+				$blogs = array_map(create_function('$v', 'return "\''.$wpdb->base_prefix.'". $v ."_capabilities\'";'), $this->blogs);
+				$blogs_condition = 'meta_key IN ('.  implode(',', $blogs) .')';
+			}
+		}
+		else {
+			$blogs_condition = "meta_key = '". $wpdb->prefix ."capabilities'";
+		}
+		
+		$query = "SELECT user_id, user_login, display_name, user_email, meta_key, meta_value FROM $wpdb->users, $wpdb->usermeta".
+			" WHERE " . $wpdb->users . ".ID = " . $wpdb->usermeta . ".user_id AND ". $blogs_condition;
+				
+		$users = $wpdb->get_results( $query );
+		
 		return $users;
 	}
 	
@@ -183,6 +215,9 @@ class UserList {
 	 */
 	function _filter(&$users) {
 		if (is_array($users)) {
+			// array keeping track of all 'valid' user_ids
+			$user_ids = array();
+			
 			foreach($users as $id => $user) {
 				if ( (
 					// if we have set some roles to restrict by
@@ -193,10 +228,21 @@ class UserList {
 					// if we have set some users which we want to hide
 					is_array($this->hiddenusers) && !empty($this->hiddenusers) &&
 					// and the current user is one of them
-					(in_array($user->user_login, $this->hiddenusers) || in_array($user->user_id, $this->hiddenusers))
-				))
-				// then remove the current user from the array
-				unset($users[$id]);
+					(in_array($user->user_login, $this->hiddenusers) || in_array($user->user_id, $this->hiddenusers)) )
+				|| (
+					// if we're not grouping anything (not implemented yet) [fixme]
+					true && 
+					// and the current value has already been added
+					in_array($user->user_id, $user_ids))
+				) {
+					// then remove the current user from the array
+					unset($users[$id]);
+				}
+				// else 
+				else {
+					// store the user_id for
+					$user_ids[] = $user->user_id;
+				}
 			}
 		}
 	}
@@ -248,7 +294,6 @@ class UserList {
 	 * @param $b of type WP_User
 	 * @return result of a string compare of the user_logins.
 	 */
-
 	function _users_cmp_login($a, $b) {
 		return strcmp($a->user_login, $b->user_login);
 	}
@@ -261,7 +306,6 @@ class UserList {
 	 * @param $b of type WP_User
 	 * @return result of a string compare of the user display names.
 	 */
-
 	function _users_cmp_name($a, $b) {
 		return strcmp($a->display_name, $b->display_name);
 	}
