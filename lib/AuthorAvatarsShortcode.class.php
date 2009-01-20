@@ -16,12 +16,8 @@ class AuthorAvatarsShortcode {
 	 * register shortcode 
 	 */
 	function register() {
-		// authoravatars shortcode
-		add_shortcode('authoravatars', array($this, 'shortcode_handler_authoravatars'));
+		add_shortcode('authoravatars', array($this, 'shortcode_handler'));
 		add_action('wp_head', array($this, 'print_css_link'));
-		
-		// avatar
-		add_shortcode('show_avatar', array($this, 'shortcode_handler_showavatar'));
 	}
 	
 	/**
@@ -32,57 +28,9 @@ class AuthorAvatarsShortcode {
 	}
 	
 	/**
-	 * The shortcode handler for the [show_avatar] shortcode.
-	 * 
-	 * Example: [show_avatar id=pbearne@tycoelectronics.com avatar_size=30 align=right]
-	 */	
-	function shortcode_handler_showavatar($atts, $content=null) {
-	
-		// get id or email
-		$id = '';
-		if (!empty($atts['id'])) {
-			$id = preg_replace('[^\w\.\@\-]', '', $atts['id']);
-		}
-		if (empty($id) && !empty($atts['email'])) {
-			$id = preg_replace('[^\w\.\@\-]', '', $atts['email']);
-		}
-		
-		// get avatar size
-		if (!empty($atts['avatar_size'])) {
-			$avatar_size = intval($atts['avatar_size']);
-		}
-		if (!$avatar_size) $avatar_size = false;
-		
-		// get alignment
-		if (!empty($atts['align'])) {
-			switch ($atts['align']) {
-				case 'left':
-					$style = "float: left; margin-right: 10px;";
-					break;
-				case 'right':
-					$style = "float: right; margin-left: 10px;";
-					break;
-				case 'center':
-					$style = "text-align: center; width: 100%;";
-					break;
-			}
-		}
-		
-		if (!empty($id)) {
-			$avatar = get_avatar($id, $avatar_size);
-		}
-		else {
-			$avatar = "[show_author shortcode: please specify id or email]";
-		}
-	
-		if (!empty($style)) $style = ' style="'. $style .'"';
-		return '<div class="avatar"'. $style .'>'. $avatar .'</div>' . $content;
-	}
-	
-	/**
 	 * The shortcode handler for the [authoravatars] shortcode.
 	 */
-	function shortcode_handler_authoravatars($atts, $content=null) {
+	function shortcode_handler($atts, $content=null) {
 		require_once('UserList.class.php');
 		$userlist = new UserList();
 		

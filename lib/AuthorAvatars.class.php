@@ -50,9 +50,11 @@ class AuthorAvatars {
 	function init_shortcodes() {
 		// include necessary file(s).
 		require_once('AuthorAvatarsShortcode.class.php');
+		require_once('ShowAvatarShortcode.class.php');
 		
-		// Create an object of the shortcode. Registering is done in the object's constructor
-		$shortcode = new AuthorAvatarsShortcode();
+		// Create objects of the shortcode classes. Registering is done in the objects' constructors
+		$author_avatars = new AuthorAvatarsShortcode();
+		$show_avatar = new ShowAvatarShortcode();
 	}
 		
 	/**
@@ -170,9 +172,14 @@ class AuthorAvatars {
 			case '0.3':
 				$this->set_installed_version('0.4');
 				break;
+				
+			// update 0.4 -> 0.5
+			case '0.4':
+				$this->set_installed_version('0.5');
+				break;
 
 			default: 
-				die('Author Avatars: not good... not good at all. '); // FIXME: change error handling!?
+				die('Author Avatars: error trying to update version '. $this->get_installed_version() .' to '. AUTHOR_AVATARS_VERSION .'. No update step defined. '); // FIXME: change error handling!?
 		}
 	}
 	
