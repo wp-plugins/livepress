@@ -11,7 +11,7 @@ Widget and shortcode for displaying lists of avatars of blog users.
 
 == Description ==
 
-This plugin provides a widget and a [shortcode](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) which allow you to show avatars of blog users.
+This plugin provides a widget and a [shortcode](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) which allow you to show lists of avatars of blog users.
 
 The widget can be configured to
 
@@ -27,7 +27,9 @@ The plugin has been developed for wpmu 2.6. and tested on wp 2.6. and wp 2.7.
 
 Planned Features/Ideas:
 
-*   Show users from multiple blogs (wpmu)
+*   Shortcode creation wizard for WYSIWYG Editor
+*   User information popup on rollover
+*   Advanced user display configuration / templates
 *   Any more ideas or suggestions? [tell us about it](mailto:b.forchhammer@mind2.de)!
 
 
