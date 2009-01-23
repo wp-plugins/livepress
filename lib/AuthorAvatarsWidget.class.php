@@ -19,7 +19,6 @@ class AuthorAvatarsWidget extends MultiWidget
 			'title' => __('Blog Authors'),
 			'hiddenusers' => '',
 			'roles' => array('administrator', 'editor'),
-			'blogs' => array(),
 			'display' => array(
 				0 => 'link_to_authorpage',
 				'avatar_size' => '',
@@ -27,6 +26,11 @@ class AuthorAvatarsWidget extends MultiWidget
 				'order' => 'display_name',
 			),
 		);
+		
+		if (is_wpmu()) {
+			global $blog_id;
+			if (intval($blog_id) > 0) $this->defaults['blogs'] = Array(intval($blog_id));
+		}
 	}
 	
 	/**
@@ -116,8 +120,6 @@ class AuthorAvatarsWidget extends MultiWidget
 		echo $after_widget;
 	}
 	
-
-	
 	/**
 	 * Updates a particular instance of the widget.
 	 * This function is called every time the widget is saved, and used to validate the data.
@@ -135,6 +137,8 @@ class AuthorAvatarsWidget extends MultiWidget
 		$instance['roles'] = (array) $new_instance['roles'];
 		$instance['blogs'] = (array) $new_instance['blogs'];
 		$instance['display'] = (array) $new_instance['display'];
+		
+		if (empty($instance['blogs'])) $instance['blogs'] = $this->defaults['blogs'];
 		return $instance;
 	}
 
@@ -165,7 +169,7 @@ class AuthorAvatarsWidget extends MultiWidget
 		$this->_form_input('text', 'title', 'Title: ', $title, array('class' => 'widefat') );
 		echo '</p>';
 		
-		if ($this->_blog_selection_allowed()) {
+		if (AA_settings()->blog_selection_allowed()) {
 			echo '<label><strong>Show users from blogs:</strong><br />';
 			$this->_form_select('blogs', Array(-1 => "All") + $this->_get_all_blogs(), $blogs, true);
 			echo '<br/><small>If no blog is selected only users from the current blog are displayed. </small></label>';
@@ -284,15 +288,7 @@ class AuthorAvatarsWidget extends MultiWidget
 		}
 		echo '</select>';
 	}
-	
-	/** 
-	 * Return true if we're on a wpmu site and the we're allowed to show users from multiple blogs.
-	 */
-	function _blog_selection_allowed() {
-		require_once('helper.functions.php');
-		return is_wpmu();
-	}
-	
+		
 	/**
 	 * Override MultiWidget::get_field_id(). Cleans up the id before returning it as the form element id.
 	 */

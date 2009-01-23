@@ -9,7 +9,6 @@ class UserList {
 	 * Constructor
 	 */
 	function UserList() {
-		require_once('helper.functions.php');
 	}
 	
 	/**
@@ -230,7 +229,7 @@ class UserList {
 					// and the current user is one of them
 					(in_array($user->user_login, $this->hiddenusers) || in_array($user->user_id, $this->hiddenusers)) )
 				|| (
-					// if we're not grouping anything (not implemented yet) [fixme]
+					// if we're not grouping anything (not implemented yet)  FIXME
 					true && 
 					// and the current value has already been added
 					in_array($user->user_id, $user_ids))

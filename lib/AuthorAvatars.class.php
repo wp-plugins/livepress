@@ -2,7 +2,7 @@
 /**
  * Author Avatars class
  * 
- * Performs updates and initialises widgets.
+ * Performs updates and initialises widgets, shortcodes, admin areas.
  */
 class AuthorAvatars {
 	/**
@@ -16,11 +16,13 @@ class AuthorAvatars {
 			echo 'Author avatars: install check failed.';
 		}
 		elseif(!$this->update_check()) {
-			echo 'Author avatars: update check failed.';			
+			echo 'Author avatars: update check failed.';	
 		}
 		else {
+			$this->init_settings();
 			$this->init_widgets();
 			$this->init_shortcodes();
+			$this->init_controlpanels();
 		}
 	}
 	
@@ -29,7 +31,21 @@ class AuthorAvatars {
 	 */
 	function system_check() {
 		if (!defined('AUTHOR_AVATARS_VERSION')) die('Author Avatars: constant AUTHOR_AVATARS_VERSION is not defined.');
+		if (!defined('AUTHOR_AVATARS_VERSION_HISTORY')) die('Author Avatars: constant AUTHOR_AVATARS_VERSION_HISTORY is not defined.');
 		return true;
+	}
+	
+	/**
+	 * Include settings class
+	 */
+	function init_settings() {
+		// include global helper functions file.
+		require_once('helper.functions.php');
+	
+		// include settings file
+		require_once('AuthorAvatarsSettings.class.php');
+		
+		// no initialisation needed as that's done on the fly when used the first time..
 	}
 	
 	/**
@@ -45,7 +61,7 @@ class AuthorAvatars {
 	}
 	
 	/**
-	 * Init author avatars shortcode
+	 * Init author avatars shortcodes
 	 */
 	function init_shortcodes() {
 		// include necessary file(s).
@@ -55,6 +71,16 @@ class AuthorAvatars {
 		// Create objects of the shortcode classes. Registering is done in the objects' constructors
 		$author_avatars = new AuthorAvatarsShortcode();
 		$show_avatar = new ShowAvatarShortcode();
+	}
+	
+	/**
+	 * Init control panels
+	 */
+	function init_controlpanels() {
+		// include necessary file(s).
+		require_once('AuthorAvatarsSitewideAdminPanel.class.php');
+		
+		$wpmu_settings = new AuthorAvatarsSitewideAdminPanel();
 	}
 		
 	/**
@@ -153,33 +179,26 @@ class AuthorAvatars {
 	}
 	
 	/**
-	 * Does one version update, for example from version 0.1 to version 0.2, and updates the version number in the end.
+	 * Do one version update, for example from version 0.1 to version 0.2, and updates the version number in the end.
 	 */
 	function do_update_step() {
-		switch($this->get_installed_version()) {
-			// update 0.1 -> 0.2
-			case '0.1':
-				if($this->update__01_02()) $this->set_installed_version('0.2');	
-				else die('Author Avatars: update 0.1 to 0.2 failed.');
-				break;
-			
-			// update 0.2 -> 0.3
-			case '0.2':
-				$this->set_installed_version('0.3');
-				break;
+		$version_history = unserialize(AUTHOR_AVATARS_VERSION_HISTORY);
+		
+		foreach ($version_history as $i => $version) {
+			// for the current version, if there is a next version
+			if ($version == $this->get_installed_version() && ($i+1) < count($version_history)) {
+				$new_version = $version_history[$i+1];
 				
-			// update 0.3 -> 0.4
-			case '0.3':
-				$this->set_installed_version('0.4');
-				break;
-				
-			// update 0.4 -> 0.5
-			case '0.4':
-				$this->set_installed_version('0.5');
-				break;
+				$fn = 'update__'. ereg_replace("[^0-9]","",$version) .'_'. ereg_replace("[^0-9]","",$new_version);
 
-			default: 
-				die('Author Avatars: error trying to update version '. $this->get_installed_version() .' to '. AUTHOR_AVATARS_VERSION .'. No update step defined. '); // FIXME: change error handling!?
+				if (method_exists($this, $fn) && !$this->{$fn}()) {
+					die('Author Avatars: error trying to update version '. $version .' to '. $new_version .'. '); // FIXME: change error handling!?
+				}
+				else {
+					$this->set_installed_version($new_version);
+				}
+				break;
+			}
 		}
 	}
 	
@@ -210,7 +229,7 @@ class AuthorAvatars {
 		
 		update_option('sidebars_widgets', $sidebars);
 		
-		// return true if update successful (FIXME)
+		// return true if update successful
 		return true;
 	}
 }
