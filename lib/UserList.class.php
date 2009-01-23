@@ -27,6 +27,11 @@ class UserList {
 	var $roles = array('administrator', 'editor');
 	
 	/**
+	 * Grouping of users. For example set to "blog" to group users by blogs.
+	 */
+	var $group_by = '';
+	
+	/**
 	 * Flag whether to link user avatars to the respective user pages.
 	 */
 	var $link_to_authorpage = true;
@@ -52,11 +57,24 @@ class UserList {
 	var $order = 'display_name';
 	
 	/**
+	 * Group wrapper template
+	 * - {groups} is replaced by the list of groups
+	 */
+	var $group_wrapper_template = '<div class="grouped-author-list">{groups}</div>';
+	
+	/**
+	 * Group template
+	 * - {name} is replaced by the name of the group
+	 * - {group} is replaced by the list of users
+	 */
+	var $group_template = '<div class="author-group"><strong>{name}</strong><br/>{group}</div>';
+	
+	/**
 	 * Wrapper template
 	 * - {users} is replaced by the list of users
 	 */
-	var $wrapper_template = '<div class="author-list">{users}</div>';
-	
+	var $userlist_template = '<div class="author-list">{users}</div>';
+		
 	/**
 	 * User template
 	 * - {class} is replaced by user specific classes
@@ -72,10 +90,10 @@ class UserList {
 	 */
 	function use_list_template($ordered = false) {
 		if ((bool)$ordered) {
-			$this->wrapper_template = '<ol class="author-list">{users}</ol>';
+			$this->userlist_template = '<ol class="author-list">{users}</ol>';		
 		}
 		else {
-			$this->wrapper_template = '<ul class="author-list">{users}</ul>';
+			$this->userlist_template = '<ul class="author-list">{users}</ul>';
 		}
 		$this->user_template = '<li class="{class}">{user}</li>';
 	}
@@ -98,18 +116,50 @@ class UserList {
 		// get users
 		$users = $this->get_users();
 		
-		$html = '';
 		if (empty($users)) {
-			$html .= '<p class="no_users">No users found.</p>';
+			return '<p class="no_users">No users found.</p>';
+		}
+		elseif (!empty($this->group_by)) {
+			return $this->format_groups($users);
 		}
 		else {
-			foreach ($users as $user) {
-				$html .= $this->format_user($user);
-			}
+			return $this->format_users($users);
 		}
-		
-		return str_replace('{users}', $html, $this->wrapper_template);
 	}
+	
+	/**
+	 * Formats a grouped list of users
+	 *
+	 * @param $groups Array of an array of users. The array keys are used to retrieve the group name (see _group_name())
+	 * @return the html formatted list of grouped users
+	 */
+	function format_groups ($groups) {
+		$html = '';	
+		foreach ($groups as $id => $group_users) {
+			$tpl_vars = array(
+				'{name}' => $this->_group_name($id),
+				'{group}' => $this->format_users($group_users),
+			);
+			
+			$html .= str_replace(array_keys($tpl_vars), $tpl_vars, $this->group_template);
+		}
+		return str_replace('{groups}', $html, $this->group_wrapper_template);	
+	}
+	
+	/**
+	 * Formats a list of users
+	 *
+	 * @param $groups An array of users.
+	 * @return the html formatted list of users
+	 */
+	function format_users($users) {
+		$html = '';
+		foreach ($users as $user) {
+			$html .= $this->format_user($user);
+		}
+		return str_replace('{users}', $html, $this->userlist_template);	
+	}
+	
 	
 	/**
 	 * Formats the given user as html.
@@ -160,7 +210,10 @@ class UserList {
 		
 		// sort them
 		$this->_sort($users);
-
+		
+		// group them
+		$this->_group($users);
+		
 		// and limit the number
 		if (intval($this->limit) > 0) {
 			$users = array_slice($users, 0, intval($this->limit), true);
@@ -230,7 +283,7 @@ class UserList {
 					(in_array($user->user_login, $this->hiddenusers) || in_array($user->user_id, $this->hiddenusers)) )
 				|| (
 					// if we're not grouping anything (not implemented yet)  FIXME
-					true && 
+					empty($this->group_by) &&
 					// and the current value has already been added
 					in_array($user->user_id, $user_ids))
 				) {
@@ -307,6 +360,47 @@ class UserList {
 	 */
 	function _users_cmp_name($a, $b) {
 		return strcmp($a->display_name, $b->display_name);
+	}
+	
+	/**
+	 * Group the given set of users if set in field "group_by"
+	 */
+	function _group(&$users) {
+		if (empty($this->group_by)) return;
+		
+		switch($this->group_by) {
+			case 'blog':
+				if (is_wpmu()) {
+					$users_new = array();
+					
+					global $wpdb;
+					$pattern = '/' . $wpdb->base_prefix . '([0-9]+)_capabilities/';
+										
+					foreach($users as $user) {
+						$key = $user->meta_key;
+						$matches = array();
+						if (preg_match($pattern, $key, $matches) > 0) {
+							$users_new[$matches[1]][] = $user;
+						}
+					}
+					
+					if (!empty($users_new)) $users = $users_new;
+				}
+				
+				break;
+		}
+	}
+	
+	function _group_name($id) {
+		$name = 'Group #'. $id;
+		if (!empty($this->group_by)) {			
+			switch ($this->group_by) {
+				case 'blog':
+					$name = get_blog_option( $id, 'blogname');
+					break;
+			}
+		}
+		return $name;
 	}
 }
 

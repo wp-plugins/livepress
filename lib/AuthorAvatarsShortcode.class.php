@@ -55,6 +55,13 @@ class AuthorAvatarsShortcode {
 		}
 		$userlist->blogs = $blogs;
 		
+		// grouping
+		$group_by = '';
+		if (isset($atts['group_by'])) {
+			if (is_wpmu() && $atts['group_by'] == 'blog') $group_by = 'blog';
+		}
+		$userlist->group_by = $group_by;
+		
 		// hidden users 
 		$hiddenusers = array(); // default value: no restriction -> all users
 		if (!empty($atts['hiddenusers'])) {

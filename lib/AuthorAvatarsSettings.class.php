@@ -130,18 +130,18 @@ class AuthorAvatarsSettings {
 	function save($settings) {
 		if (!is_array($settings)) return false;
 		
+		// validation??
+		
+		// merge new settings with old ones
+		$old_settings = get_option('author_avatars_settings');
+		$settings = array_merge($old_settings, $settings);
+
 		// remove default values
 		foreach ($settings as $key => $value) {
 			if ($this->is_default($key, $value)) {
 				unset($settings[$key]);
 			}
 		}
-		
-		// validation??
-		
-		// merge new settings with old ones
-		$old_settings = get_option('author_avatars_settings');
-		$settings = array_merge($old_settings, $settings);
 		
 		// save to database
 		update_option('author_avatars_settings', $settings);

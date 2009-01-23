@@ -19,6 +19,7 @@ class AuthorAvatarsWidget extends MultiWidget
 			'title' => __('Blog Authors'),
 			'hiddenusers' => '',
 			'roles' => array('administrator', 'editor'),
+			'group_by' => '',
 			'display' => array(
 				0 => 'link_to_authorpage',
 				'avatar_size' => '',
@@ -98,7 +99,9 @@ class AuthorAvatarsWidget extends MultiWidget
 		
 		$userlist->roles = $instance['roles'];
 		$userlist->blogs = $instance['blogs'];
+		$userlist->group_by = $instance['group_by'];
 		$userlist->hiddenusers = $hiddenusers;
+		
 		
 		if (is_array($instance['display'])) {
 			$userlist->show_name = in_array('show_name', $instance['display']);
@@ -136,6 +139,7 @@ class AuthorAvatarsWidget extends MultiWidget
 		$instance['hiddenusers'] = wp_specialchars ( $new_instance['hiddenusers'] );
 		$instance['roles'] = (array) $new_instance['roles'];
 		$instance['blogs'] = (array) $new_instance['blogs'];
+		$instance['group_by'] = wp_specialchars ($new_instance['group_by']);
 		$instance['display'] = (array) $new_instance['display'];
 		
 		if (empty($instance['blogs'])) $instance['blogs'] = $this->defaults['blogs'];
@@ -164,6 +168,10 @@ class AuthorAvatarsWidget extends MultiWidget
 			'display_name' => __('Display Name'),
 			'random' => __('Random'),
 		);
+		$group_by_options = Array();
+		if (is_wpmu()) {
+			$group_by_options['blog'] = __('Group by blogs');
+		}
 
 		echo '<p>';
 		$this->_form_input('text', 'title', 'Title: ', $title, array('class' => 'widefat') );
@@ -173,6 +181,19 @@ class AuthorAvatarsWidget extends MultiWidget
 			echo '<label><strong>Show users from blogs:</strong><br />';
 			$this->_form_select('blogs', Array(-1 => "All") + $this->_get_all_blogs(), $blogs, true);
 			echo '<br/><small>If no blog is selected only users from the current blog are displayed. </small></label>';
+		}
+		
+		if (count($group_by_options) == 1) {
+			$key = array_keys($group_by_options);
+			$key = $key[0];
+			$id = $this->get_field_id('group_by');
+			$name = $this->get_field_name('group_by');
+			$checked = $key == $group_by ? ' checked="checked"' : '';
+			echo '<p><label><input id="'.$id.'" name="'.$name.'" type="checkbox" value="'.$key.'"'.$checked.' /> '.$group_by_options[$key].'</label></p>';
+		}
+		if (count($group_by_options) > 1) {
+			echo '<label>User list Grouping:</label>';
+			$this->_form_select('group_by', $group_by_options, $group_by);
 		}
 
 		echo '<p><strong>Show roles:</strong><br />';
