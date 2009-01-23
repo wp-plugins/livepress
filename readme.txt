@@ -4,9 +4,9 @@ Donate link:
 Tags: Avatar, Author, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.6
 Tested up to: 2.7
-Stable tag: 0.4
+Stable tag: 0.5
 
-Widget and shortcode for displaying lists of avatars of blog users.
+Display lists of avatars from blog users using widgets or shortcodes.
 
 
 == Description ==
@@ -20,6 +20,10 @@ The widget can be configured to
 *   Limit the number of users shown
 *   Change the sort order of users or show in random order
 *   Adjust the size of user avatars
+*   Show users from the current blog, all blogs or a selection of blogs (on WPMU)
+*   Group users by their blog (when showing from multiple blogs), and show the blog name above each grouping (experimental).
+
+All features available in the widget are also available using a shortcode which means you can insert avatar lists whereever you want!
 
 The plugin makes use of built in wordpress (core) functions to retrieve user information and get avatars.
 
@@ -62,3 +66,8 @@ A shortcode is a tag like <code>[authoravatars]</code> which you can insert into
 It's simple: just add [authoravatars] into your post and hit save!
 There's also a number of [parameters](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) available!
 
+= I can't get my widget to show users from multiple blogs! =
+
+Make sure you have enabled the "blog filter" in Site Admin / Author Avatars for the blog on which you are trying to use this feature on. By default this is only enabled for the root blog (blog id = 1).
+
+And you are running [Wordpress MU](http://mu.wordpress.org/), right?
