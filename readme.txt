@@ -4,7 +4,7 @@ Donate link:
 Tags: Avatar, Author, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.6
 Tested up to: 2.7
-Stable tag: 0.5
+Stable tag: 0.5.1
 
 Display lists of avatars from blog users using widgets or shortcodes.
 
@@ -36,7 +36,24 @@ Planned Features/Ideas:
 *   Advanced user display configuration / templates
 *   Any more ideas or suggestions? [tell us about it](mailto:b.forchhammer@mind2.de)!
 
+= Changelog =
 
+Version 0.5.1
+
+*   Fixed method chaining error that caused a critical syntax error on PHP 4 
+
+Version 0.5
+
+*    Added "show_avatar" shortcode
+*    Small MultiWidget fix by [http://blog.firetree.net/2008/11/30/wordpress-multi-widget/#comment-24976 Dan Cole]
+*    Refactored [show_avatar] shortcode into new file ShowAvatarShortcode.class.php to keep it all nice and tidy.
+*    Added basic blog filtering feature.
+*    Added classes for settings and sitewide admin
+*    Added sitewide setting for the blog filter
+*    Updated update mechanism in AuthorAvatars.class.php
+*    Added "Group by blog" feature
+
+[Full Changelog](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_Changelog)
 
 == Installation ==
 
