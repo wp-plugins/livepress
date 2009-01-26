@@ -33,6 +33,7 @@ class AuthorAvatarsShortcode {
 	function shortcode_handler($atts, $content=null) {
 		require_once('UserList.class.php');
 		$userlist = new UserList();
+		$settings = AA_settings();
 		
 		// roles
 		$roles = array(); // default value: no restriction -> all users
@@ -44,7 +45,7 @@ class AuthorAvatarsShortcode {
 		
 		// blogs
 		$blogs = array(); // default value: empty -> only current blog
-		if (AA_settings()->blog_selection_allowed() && !empty($atts['blogs'])) {
+		if ($settings->blog_selection_allowed() && !empty($atts['blogs'])) {
 			if (strtolower($atts['blogs']) == 'all') {
 				$blogs = array(-1);
 			}

@@ -155,6 +155,7 @@ class AuthorAvatarsWidget extends MultiWidget
 	 */
 	function control_form($instance)
 	{
+		$settings = AA_settings();
 		$instance = array_merge($this->defaults, $instance);
 		extract($instance);
 		
@@ -177,7 +178,7 @@ class AuthorAvatarsWidget extends MultiWidget
 		$this->_form_input('text', 'title', 'Title: ', $title, array('class' => 'widefat') );
 		echo '</p>';
 		
-		if (AA_settings()->blog_selection_allowed()) {
+		if ($settings->blog_selection_allowed()) {
 			echo '<label><strong>Show users from blogs:</strong><br />';
 			$this->_form_select('blogs', Array(-1 => "All") + $this->_get_all_blogs(), $blogs, true);
 			echo '<br/><small>If no blog is selected only users from the current blog are displayed. </small></label>';

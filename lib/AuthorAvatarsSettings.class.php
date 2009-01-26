@@ -3,7 +3,7 @@
 /**
  * Shorthand for AuthorAvatarsSettings::get_instance()
  */
-function AA_Settings() {
+function &AA_Settings() {
 	return AuthorAvatarsSettings::get_instance();
 }
 
@@ -42,14 +42,14 @@ class AuthorAvatarsSettings {
 	 * @access public
 	 * @return AuthorAvatarsSettings singleton class instance
 	 */
-	function get_instance() {
+	function &get_instance() {
 		static $instance = null;
 		
 		if ($instance === null) {
 			$c = __CLASS__;
 			$instance = new $c;
 		}
-		return $instance;		
+		return $instance;
 	}
 	
 	/**

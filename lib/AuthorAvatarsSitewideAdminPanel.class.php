@@ -4,6 +4,11 @@
  * Sitewide settings pages can only be seen by 
  */
 class AuthorAvatarsSitewideAdminPanel {
+
+	/**
+	 * Holds a reference to the AuthorAvatarSettings class
+	 */
+	var $settings = null;
 	
 	/**
 	 * Constructor
@@ -17,6 +22,7 @@ class AuthorAvatarsSitewideAdminPanel {
 	 * Initialise the sitewide admin panel: register actions and filters
 	 */
 	function init() {
+		if (is_null($this->settings)) $this->settings = AA_settings();
 		add_action('admin_menu', array(&$this, 'add_submenu'));
 	}
 	
@@ -42,8 +48,7 @@ class AuthorAvatarsSitewideAdminPanel {
 	function save_settings() {
 		check_admin_referer();
 		$settings = $_POST['settings_sitewide'];
-		
-		return AA_settings()->save_sitewide($settings);
+		return $this->settings->save_sitewide($settings);
 	}
 	
 	function render_config_page($updated) {
@@ -77,7 +82,7 @@ class AuthorAvatarsSitewideAdminPanel {
 		echo $this->_form_select(
 			'settings_sitewide[blog_filters_enabled]',
 			AuthorAvatarsWidget::_get_all_blogs(),
-			AA_settings()->get_sitewide('blog_filters_enabled'),
+			$this->settings->get_sitewide('blog_filters_enabled'),
 			true);
 		echo '</td>';
 		echo '</tr>';
