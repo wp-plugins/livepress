@@ -170,7 +170,7 @@ class AuthorAvatarsWidget extends MultiWidget
 			'random' => __('Random'),
 		);
 		$group_by_options = Array();
-		if (is_wpmu()) {
+		if ($settings->blog_selection_allowed()) {
 			$group_by_options['blog'] = __('Group by blogs');
 		}
 
