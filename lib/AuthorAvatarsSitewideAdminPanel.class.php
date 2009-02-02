@@ -69,8 +69,10 @@ class AuthorAvatarsSitewideAdminPanel {
 		$this->_render_blogfilter_active_setting();
 
 		echo '</table>';
-		echo '<input type="hidden" name="action" value="update" />';
-		echo '<p class="submit"><input type="submit" name="wpmu_author_avatars_settings_save" value="'. __('Save Changes') .'" /></p>';
+		echo FormHelper::input('hidden', 'action', 'update');
+		echo '<p class="submit">';
+		echo FormHelper::input('submit', 'wpmu_author_avatars_settings_save', __('Save Changes'));
+		echo '</p>';
 		echo '</form>';
 		echo '</div>';
 	}
@@ -79,41 +81,13 @@ class AuthorAvatarsSitewideAdminPanel {
 		echo '<tr valign="top">';
 		echo '<th scope="row">Enable blog filter</th><td>';
 		_e('Select the blogs which you would like the blog filter to be enabled. Only blogs selected here can display users from other blogs.');
-		echo '<br/>' . $this->_form_select(
+		echo '<br/>' . FormHelper::choice(
 			'settings_sitewide[blog_filters_enabled]',
 			AuthorAvatarsWidget::_get_all_blogs(),
 			$this->settings->get_sitewide('blog_filters_enabled'),
-			true);
+			array('multiple' => true));
 		echo '</td>';
 		echo '</tr>';
-	}
-	
-	/**
-	 * Renders the given array $rows as a html <select> element.
-	 *
-	 * @access private
-	 * @param $varname The name of the (form) element.
-	 * @param $rows Associative array to build the select elements from. Array keys are the input "value"s, array values the input "label"s.
-	 * @param $values Array of active values. For any keys in the $rows array that are present in this array, the element gets rendered as "selected".
-	 * @param $multiple Boolean flag whether multiple values are allowed (true) or not (false, default).
-	 * @return void
-	 * @todo This method is a copy of AuthorAvatarsWidget::_form_select, therefore should be refactored according to DRY
-	 */
-	function _form_select($varname, $rows, $values=array(), $multiple = false) {
-		$id = str_replace('--', '-', preg_replace('/[\W]/', '-', $varname));
-		$name = $varname;
-		if (!is_array($values)) $values = array($values);
-
-		echo '<select id="'.$id.'" name="'.$name;
-		echo ' size="'. (count($size) <= 5 ? '5' : (count($size) > 10 ? '10' : count($size))) .'"';
-		if ($multiple) echo '[]" multiple="multiple" style="height: auto;';
-		echo '">';
-		foreach ($rows as $key => $label) {
-			if (in_array($key, $values)) $selected = ' selected="selected"';
-			else $selected = "";
-			echo '<option value="'.$key.'"'.$selected.'>'.$label.'</option>';
-		}
-		echo '</select>';
 	}
 }
 

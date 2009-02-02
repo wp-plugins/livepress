@@ -234,12 +234,9 @@ class AuthorAvatarsWidget extends MultiWidget
 	 * @return void
 	 */
 	function _form_checkbox_matrix($varname, $rows, $values) {
-		foreach($rows as $key => $label) {
-			$id = $this->get_field_id($varname);
-			$name = $this->get_field_name($varname);
-			$checked = in_array($key, $values) ? ' checked="checked"' : '';
-			echo '<label><input id="'.$id.'" name="'.$name.'[]" type="checkbox" value="'.$key.'"'.$checked.' /> '.$label.'</label><br />';
-		}
+		$id = $this->get_field_id($varname);
+		$name = $this->get_field_name($varname);
+		echo FormHelper::choice($name, $rows, $values, array( 'multiple' => true, 'id' => $id, 'expanded' => true ));
 	}
 
 	/**
@@ -254,37 +251,13 @@ class AuthorAvatarsWidget extends MultiWidget
 	 * @return void
 	 */
 	function _form_input($type, $varname, $label="", $value="", $htmlattr = array()) {
-		$id = $this->get_field_id($varname);
-		$name = $this->get_field_name($varname);
-		$attr = $this->_buildHtmlAttributes($htmlattr);
+		$name = $this->get_field_name($varname);	
+		$htmlattr['id'] = $this->get_field_id($varname);
+		$htmlattr['label'] = $label;
 		
-		$html = '<input id="'.$id.'" name="'.$name.'" type="'.$type.'" value="'.$value.'"'.$attr.' />';
-		if (!empty($label)) $html = '<label>'.$label.$html.'</label>';
-		echo $html;
+		echo FormHelper::input($type, $name, $value, $htmlattr);
 	}
 	
-	/**
-	 * Builds a string of html attributes from an associative array.
-	 * 
-	 * Example: 
-	 * Array('title' => 'My title'); will be transformed into this string: [ title="My title"]
-	 * 
-	 * All attribute values are cleaned up using the function wp_specialchars().
-	 *
-	 * @access private
-	 * @param $attributes Array of attributes
-	 * @return string 
-	 */
-	function _buildHtmlAttributes($attributes) {
-		if (!is_array($attributes)) return "";
-		
-		$string = "";
-		foreach ($attributes as $key => $value) {
-			$string .= ' '. $key . '="'. wp_specialchars($value) .'"';
-		}
-		return $string;
-	}
-
 	/**
 	 * Renders the given array $rows as a html <select> element.
 	 *
@@ -298,17 +271,8 @@ class AuthorAvatarsWidget extends MultiWidget
 	function _form_select($varname, $rows, $values=array(), $multiple = false) {
 		$id = $this->get_field_id($varname);
 		$name = $this->get_field_name($varname);
-		if (!is_array($values)) $values = array($values);
-
-		echo '<select id="'.$id.'" name="'.$name;
-		if ($multiple) echo '[]" multiple="multiple" style="height: auto;';
-		echo '">';
-		foreach ($rows as $key => $label) {
-			if (in_array($key, $values)) $selected = ' selected="selected"';
-			else $selected = "";
-			echo '<option value="'.$key.'"'.$selected.'>'.$label.'</option>';
-		}
-		echo '</select>';
+		
+		echo FormHelper::choice($name, $rows, $values, array( 'multiple' => $multiple, 'id' => $id ));
 	}
 		
 	/**
