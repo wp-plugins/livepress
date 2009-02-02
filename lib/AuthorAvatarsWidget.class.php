@@ -28,7 +28,7 @@ class AuthorAvatarsWidget extends MultiWidget
 			),
 		);
 		
-		if (is_wpmu()) {
+		if (AA_is_wpmu()) {
 			global $blog_id;
 			if (intval($blog_id) > 0) $this->defaults['blogs'] = Array(intval($blog_id));
 		}

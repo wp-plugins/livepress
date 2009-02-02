@@ -65,7 +65,7 @@ class AuthorAvatarsSettings {
 			if (isset($settings[$key])) {
 				return $settings[$key];
 			}
-			elseif (is_wpmu() && $check_sitewide &&  ($sitewide_value = $this->get_sitewide($key, true))) {
+			elseif (AA_is_wpmu() && $check_sitewide &&  ($sitewide_value = $this->get_sitewide($key, true))) {
 				return $sitewide_value;
 			}
 			else {
@@ -192,7 +192,7 @@ class AuthorAvatarsSettings {
 	 */
 	function blog_selection_allowed($blog = false) {
 		// check that we are on a wpmu enabled blog:
-		if (!is_wpmu()) return false;
+		if (!AA_is_wpmu()) return false;
 		
 		// if $blog is empty use current blog id
 		if (!$blog) {

@@ -231,7 +231,7 @@ class UserList {
 	function get_blog_users() {
 		global $wpdb, $blog_id;
 		
-		if (is_wpmu() && !empty($this->blogs)) {
+		if (AA_is_wpmu() && !empty($this->blogs)) {
 		
 			// make sure all values are integers
 			$this->blogs = array_map ('intval', $this->blogs);
@@ -370,7 +370,7 @@ class UserList {
 		
 		switch($this->group_by) {
 			case 'blog':
-				if (is_wpmu()) {
+				if (AA_is_wpmu()) {
 					$users_new = array();
 					
 					global $wpdb;

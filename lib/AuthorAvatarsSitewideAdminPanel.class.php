@@ -15,7 +15,7 @@ class AuthorAvatarsSitewideAdminPanel {
 	 */
 	function AuthorAvatarsSitewideAdminPanel() {
 		// only init on wpmu sites...
-		if (is_wpmu()) $this->init();
+		if (AA_is_wpmu()) $this->init();
 	}
 	
 	/**
@@ -79,7 +79,7 @@ class AuthorAvatarsSitewideAdminPanel {
 		echo '<tr valign="top">';
 		echo '<th scope="row">Enable blog filter</th><td>';
 		_e('Select the blogs which you would like the blog filter to be enabled. Only blogs selected here can display users from other blogs.');
-		echo $this->_form_select(
+		echo '<br/>' . $this->_form_select(
 			'settings_sitewide[blog_filters_enabled]',
 			AuthorAvatarsWidget::_get_all_blogs(),
 			$this->settings->get_sitewide('blog_filters_enabled'),
@@ -105,6 +105,7 @@ class AuthorAvatarsSitewideAdminPanel {
 		if (!is_array($values)) $values = array($values);
 
 		echo '<select id="'.$id.'" name="'.$name;
+		echo ' size="'. (count($size) <= 5 ? '5' : (count($size) > 10 ? '10' : count($size))) .'"';
 		if ($multiple) echo '[]" multiple="multiple" style="height: auto;';
 		echo '">';
 		foreach ($rows as $key => $label) {
