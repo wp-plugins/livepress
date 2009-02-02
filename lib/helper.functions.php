@@ -1,7 +1,9 @@
 <?php
 
 /**
- * helper function which checks whether we are running wpmu
+ * Helper function which checks whether we are running wpmu
+ *
+ * @return bool true if we are on a wordpress mu system, false otherwise.
  */
 if (!function_exists('AA_is_wpmu')):
 function AA_is_wpmu() {
