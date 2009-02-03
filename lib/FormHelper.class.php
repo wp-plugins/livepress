@@ -31,9 +31,15 @@ class FormHelper {
 	 * - "expanded": If set to true the choices are rendered as a set of radio buttons or checkboxes (if "multiple" is set to true). (default: false)
 	 * - "wrapper_tag": A html tag which is used to wrap expanded fields into a container, the default value is "div".
 	 * - "id": Set this value to override the id which by default is generated from the $name parameter.
-	 * - "label": Set to display a label above the field
-	 * - "help": Set to display a help text underneith the field
+	 * - "label": Set to display a label above the field. This is automatically wrapped into "label" tags for non-expanded fields.
+	 * - "help": Set to display a (help) text underneith the field.
 	 * - anything else is simply used rendered as an html attribute on the element (or wrapper span if expanded=true). You can e.g. specify "class" to add a css class name.
+	 *
+	 * Which combination of expanded and multiple is rendered in which field?
+	 * - expanded and multiple: checkboxes (input with type checkbox)
+	 * - expanded but not multiple: radio buttons (input with type radio)
+	 * - not expanded but multiple: multi-select (select with multiple=true)
+	 * - not expanded and not multiple: dropdown (plain normal select)
 	 *
 	 * @static
 	 * @access public
@@ -56,8 +62,7 @@ class FormHelper {
 		$expanded = isset($attributes['expanded']) && $attributes['expanded'] == true;
 		
 		// multiple value selection allowed?
-		if (count($choices) == 1 && $expanded) $multiple = true;
-		else $multiple = isset($attributes['multiple']) && $attributes['multiple'] == true;
+		$multiple = isset($attributes['multiple']) && $attributes['multiple'] == true;
 		
 		// label or help text?
 		$field_label = !empty($attributes['label']) ? $attributes['label'] : false;
@@ -156,6 +161,7 @@ class FormHelper {
 	 *
 	 * The attributes parameter accepts any html properties plus the following:
 	 * - "label": set this value to wrap the input field into a label with the given value in front of the input field.
+	 * - "help": Set to display a (help) text underneith the field.
 	 *
 	 * @static
 	 * @access public
