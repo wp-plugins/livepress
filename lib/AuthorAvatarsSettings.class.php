@@ -19,7 +19,7 @@ class AuthorAvatarsSettings {
 	 * Default values for option 'author_avatars_wpmu_settings' (sitewide)
 	 */
 	var $defaults_sitewide = array(
-		'blog_filters_enabled' => array(1), // blog filters only enabled for the root blog
+		'blog_filters_enabled' => null, // blog filters only enabled for the root blog (see init in _setDefaults())
 	);
 
 	/**
@@ -34,6 +34,16 @@ class AuthorAvatarsSettings {
 	 * @access protected
 	 */
 	function AuthorAvatarsSettings() {
+		$this->_setDefaults();
+	}
+	
+	/**
+	 * Initialise computed default values which cannot be set on the class field above.
+	 */
+	function _setDefaults() {
+		// blog filters only enabled for the root blog
+		$this->defaults_sitewide['blog_filters_enabled'] = defined('BLOGID_CURRENT_SITE') ? array(BLOGID_CURRENT_SITE) : array(1);
+		
 	}
 	
 	/**
