@@ -52,6 +52,8 @@ class AuthorAvatarsSitewideAdminPanel {
 	}
 	
 	function render_config_page($updated) {
+		require_once('FormHelper.class.php');
+	
 		echo '<div class="wrap">';
 		
 		if ($updated === true) {
@@ -63,7 +65,7 @@ class AuthorAvatarsSitewideAdminPanel {
 		
 		echo '<h2>'. __('Sitewide Author Avatars Options') .'</h2>';
 		
-		echo '<form method="post" id="wpmu_author_avatars_settings">';
+		echo '<form method="post" id="wpmu_author_avatars_settings" action="">';
 		echo '<h3>'. __('Avatar list settings') .'</h3>';
 		echo '<table class="form-table">';
 		$this->_render_blogfilter_active_setting();
@@ -78,14 +80,19 @@ class AuthorAvatarsSitewideAdminPanel {
 	}
 	
 	function _render_blogfilter_active_setting() {
+		require_once('AuthorAvatarsForm.class.php');
+
 		echo '<tr valign="top">';
 		echo '<th scope="row">Enable blog filter</th><td>';
-		_e('Select the blogs which you would like the blog filter to be enabled. Only blogs selected here can display users from other blogs.');
-		echo '<br/>' . FormHelper::choice(
+		echo FormHelper::choice(
 			'settings_sitewide[blog_filters_enabled]',
-			AuthorAvatarsWidget::_get_all_blogs(),
+			AuthorAvatarsForm::_getAllBlogs(),
 			$this->settings->get_sitewide('blog_filters_enabled'),
-			array('multiple' => true));
+			array(
+				'multiple' => true,
+				'label' => __('Select the blogs which you would like the blog filter to be enabled. Only blogs selected here can display users from other blogs.'),
+			)
+		);
 		echo '</td>';
 		echo '</tr>';
 	}

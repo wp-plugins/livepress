@@ -41,10 +41,7 @@ class AuthorAvatars {
 	function init_settings() {
 		// include global helper functions file.
 		require_once('helper.functions.php');
-		
-		// include form helpers file
-		require_once('FormHelper.class.php');
-	
+					
 		// include settings file
 		require_once('AuthorAvatarsSettings.class.php');
 		

@@ -29,8 +29,11 @@ class FormHelper {
 	 * The $attributes parameter accepts the following values:
 	 * - "multiple": If set to true the element allows the user to select multiple values (default: false)
 	 * - "expanded": If set to true the choices are rendered as a set of radio buttons or checkboxes (if "multiple" is set to true). (default: false)
+	 * - "wrapper_tag": A html tag which is used to wrap expanded fields into a container, the default value is "div".
 	 * - "id": Set this value to override the id which by default is generated from the $name parameter.
-	 * - anything else is simply used rendered as an html attribute on the element (or wrapper div if expanded=true). You can e.g. specify "class" to add a css class name.
+	 * - "label": Set to display a label above the field
+	 * - "help": Set to display a help text underneith the field
+	 * - anything else is simply used rendered as an html attribute on the element (or wrapper span if expanded=true). You can e.g. specify "class" to add a css class name.
 	 *
 	 * @static
 	 * @access public
@@ -53,16 +56,28 @@ class FormHelper {
 		$expanded = isset($attributes['expanded']) && $attributes['expanded'] == true;
 		
 		// multiple value selection allowed?
-		$multiple = isset($attributes['multiple']) && $attributes['multiple'] == true;
-
+		if (count($choices) == 1 && $expanded) $multiple = true;
+		else $multiple = isset($attributes['multiple']) && $attributes['multiple'] == true;
+		
+		// label or help text?
+		$field_label = !empty($attributes['label']) ? $attributes['label'] : false;
+		$field_help = !empty($attributes['help']) ? $attributes['help'] : false;
+		$wrapper_tag = !empty($attributes['wrapper_tag']) ? $attributes['wrapper_tag'] : 'div';
+	
 		// set up variables for tags and attributes.
 		$wrapper_attributes = array();
-		$row_attributes = array();		
+		$row_attributes = array();
 				
 		// id = either from $attributes['id'] or safe version of $name
 		$wrapper_attributes['id'] = !empty($attributes['id']) ? $attributes['id'] : str_replace('--', '-', preg_replace('/[\W]/', '-', $name));
 		
-		if ($multiple) $name .= '[]';
+		// if we only have one choice and we're rendering radio buttons then render a checkbox instead but not use the array name []
+		if (count($choices) == 1 && $expanded) {
+			$multiple = true;
+		}
+		elseif ($multiple) {
+			$name .= '[]';
+		}
 				
 		if ($expanded) {
 			$row_attributes['name'] = $name;
@@ -90,15 +105,16 @@ class FormHelper {
 		}
 		
 		// filter out values which we set ourselves
-		unset($attributes['name'], $attributes['id'], $attributes['multiple'], $attributes['expanded']);
+		unset($attributes['name'], $attributes['id'], $attributes['multiple'], $attributes['expanded'], $attributes['label'], $attributes['help'], $attributes['wrapper_tag']);
 		// add remaining $attributes values onto $wrapper_attributes
 		$wrapper_attributes = array_merge($attributes, $wrapper_attributes);
-		
+				
 		// return value
-		$html = '<';
-		$html .= $expanded ? 'div' : 'select';
-		$html .= self::buildHtmlAttributes($wrapper_attributes);
-		$html .= '>';
+		$html = '';
+				
+		if (!$expanded && $field_label) $html .= '<label>'. $field_label;
+		$html .= '<' . ($expanded ? $wrapper_tag : 'select') . self::buildHtmlAttributes($wrapper_attributes) . '>';
+		if ($expanded && $field_label) $html .= $field_label;
 		
 		foreach ($choices as $value => $label) {		
 			$attr = self::buildHtmlAttributes($row_attributes);
@@ -125,9 +141,12 @@ class FormHelper {
 			$html .= $row;
 		}
 		
-		$html .= '</';
-		$html .= $expanded ? 'div' : 'select';
-		$html .= '>';
+		if ($expanded && $field_help) $html .= $field_help;
+				
+		$html .= '</' . ($expanded ? $wrapper_tag : 'select') . '>';
+		
+		if (!$expanded && $field_label) $html .= '</label>';
+		if (!$expanded && $field_help) $html .= $field_help;
 		
 		return $html;
 	}
@@ -147,9 +166,9 @@ class FormHelper {
 	 * @return string Html rendered form element.
 	 */
 	function input($type, $name, $value, $attributes=array()) {
-		$valid_types = array('text', 'hidden', 'password', 'submit');
-		if (!in_array($type, $valid_types)) return '[Only types "text" and "hidden" are allowed in FormHelper::input()]';
-		
+		$valid_types = array('text', 'hidden', 'password', 'submit', 'reset');
+		if (!in_array($type, $valid_types)) return '[Only types "'.join('", "', $valid_types).'" are allowed in FormHelper::input()]';
+				
 		$attributes['type'] = $type;
 		$attributes['id'] = !empty($attributes['id']) ? $attributes['id'] : str_replace('--', '-', preg_replace('/[\W]/', '-', $name));
 		$attributes['name'] = $name;
@@ -161,12 +180,20 @@ class FormHelper {
 			unset($attributes['label']);
 		}
 		
+		$help = '';
+		if (isset($attributes['help'])) {
+			$help = $attributes['help'] .' ';
+			unset($attributes['help']);
+		}
+		
 		$attr = self::buildHtmlAttributes($attributes);
 		
 		$html = '<input'.$attr.' />';
 		if (!empty($label)) $html = '<label>'.$label.$html.'</label>';
+		if (!empty($help)) $html .= $help;
 		return $html;
 	}
+
 	/**
 	 * Builds a string of html attributes from an associative array.
 	 * 

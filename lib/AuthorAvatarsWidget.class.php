@@ -155,124 +155,34 @@ class AuthorAvatarsWidget extends MultiWidget
 	 */
 	function control_form($instance)
 	{
-		$settings = AA_settings();
 		$instance = array_merge($this->defaults, $instance);
-		extract($instance);
 		
-		$display_options = Array(
-			'show_name' => __('Show Name'),
-			'link_to_authorpage' => __('Link avatar to <a href="http://codex.wordpress.org/Author_Templates" target="_blank">author page</a>.'),
-		);
-		$order_options = Array(
-			'user_id' => __('User Id'),
-			'user_login' => __('Login Name'),
-			'display_name' => __('Display Name'),
-			'random' => __('Random'),
-		);
-		$group_by_options = Array();
-		if ($settings->blog_selection_allowed()) {
-			$group_by_options['blog'] = __('Group by blogs');
-		}
-
-		echo '<p>';
-		$this->_form_input('text', 'title', 'Title: ', $title, array('class' => 'widefat') );
-		echo '</p>';
-		
-		if ($settings->blog_selection_allowed()) {
-			echo '<label><strong>Show users from blogs:</strong><br />';
-			$this->_form_select('blogs', Array(-1 => "All") + $this->_get_all_blogs(), $blogs, true);
-			echo '<br/><small>If no blog is selected only users from the current blog are displayed. </small></label>';
-		}
-		
-		if (count($group_by_options) == 1) {
-			$key = array_keys($group_by_options);
-			$key = $key[0];
-			$id = $this->get_field_id('group_by');
-			$name = $this->get_field_name('group_by');
-			$checked = $key == $group_by ? ' checked="checked"' : '';
-			echo '<p><label><input id="'.$id.'" name="'.$name.'" type="checkbox" value="'.$key.'"'.$checked.' /> '.$group_by_options[$key].'</label></p>';
-		}
-		if (count($group_by_options) > 1) {
-			echo '<label>User list Grouping:</label>';
-			$this->_form_select('group_by', $group_by_options, $group_by);
-		}
-
-		echo '<p><strong>Show roles:</strong><br />';
-		$this->_form_checkbox_matrix('roles', $this->_get_all_roles(), $roles);
-		echo '</p>';
-
-		echo '<p>';
-		$this->_form_input('text', 'hiddenusers', '<strong>Hidden users:</strong> ', $hiddenusers, array('class' => 'widefat'));
-		echo '<small>(Comma separate list of user login ids)</small></p>';
-
-		echo '<p><strong>Display options:</strong><br />';
-		$this->_form_checkbox_matrix('display', $display_options, $display);
-		//echo '<br />';
-		echo '<label>Sorting order: <br />';
-		$this->_form_select('display][order', $order_options, $display['order']);
-		echo '</label>';
-		echo '<br />';
-		$this->_form_input('text', 'display][limit', 'Max. number of avatars shown:<br /> ', $display['limit']);
-		echo '<br />';	
-		$this->_form_input('text', 'display][avatar_size', 'Avatar Size:<br /> ', $display['avatar_size'], array('class' => 'avatar_size_input'));
-		echo 'px';
-		global $user_email;
-		get_currentuserinfo();
-		echo '<div class="avatar_size_preview" style="background-color: #666; border: 1px solid #eee; width: 200px; height: 200px; padding: 10px;">'. get_avatar($user_email, $display['avatar_size']) .'</div>'; 
-		echo '</p>';
-		
-		$this->_form_input('hidden', 'submit', '', '1');
-	}
+		require_once('AuthorAvatarsForm.class.php');
+		$form = new AuthorAvatarsForm();
+		$form->setFieldIdCallback(array($this, 'get_field_id'));
+		$form->setFieldNameCallback(array($this, 'get_field_name'));
 	
-	/**
-	 * Renders the given array $rows as a list of checkboxes. If 
-	 *
-	 * @access private
-	 * @param $varname The name of the (form) element.
-	 * @param $rows Associative array to build the checkboxes from. Array keys are the input "value"s, array values the input "label"s.
-	 * @param $values Array of active values. For any keys in the $rows array that are present in this array, the checkbox gets rendered as "checked".
-	 * @return void
-	 */
-	function _form_checkbox_matrix($varname, $rows, $values) {
-		$id = $this->get_field_id($varname);
-		$name = $this->get_field_name($varname);
-		echo FormHelper::choice($name, $rows, $values, array( 'multiple' => true, 'id' => $id, 'expanded' => true ));
-	}
-
-	/**
-	 * Renders a html <input> element.
-	 *
-	 * @access private
-	 * @param $type The type of the input element.
-	 * @param $varname The name of the (form) element.
-	 * @param $label The label for the element.
-	 * @param $value The value of the element.
-	 * @param $htmlattr An optional array of html attributes.
-	 * @return void
-	 */
-	function _form_input($type, $varname, $label="", $value="", $htmlattr = array()) {
-		$name = $this->get_field_name($varname);	
-		$htmlattr['id'] = $this->get_field_id($varname);
-		$htmlattr['label'] = $label;
+		// widget title
+		echo '<p>'. FormHelper::input(
+			'text',
+			$this->get_field_name('title'),
+			$instance['title'],
+			array(
+				'label' => 'Title: ',
+				'class' => 'widefat',
+				'id' => $this->get_field_id('title'),
+			)
+		) .'</p>';
 		
-		echo FormHelper::input($type, $name, $value, $htmlattr);
-	}
-	
-	/**
-	 * Renders the given array $rows as a html <select> element.
-	 *
-	 * @access private
-	 * @param $varname The name of the (form) element.
-	 * @param $rows Associative array to build the select elements from. Array keys are the input "value"s, array values the input "label"s.
-	 * @param $values Array of active values. For any keys in the $rows array that are present in this array, the element gets rendered as "selected".
-	 * @param $multiple Boolean flag whether multiple values are allowed (true) or not (false, default).
-	 * @return void
-	 */
-	function _form_select($varname, $rows, $values=array(), $multiple = false) {
-		$id = $this->get_field_id($varname);
-		$name = $this->get_field_name($varname);
+		// blog selection, group by, roles selection, hiddenusers, display options
+		echo $form->renderFieldBlogs($instance['blogs']);
+		echo $form->renderFieldGroupBy($instance['group_by']);
+		echo $form->renderFieldRoles($instance['roles']);
+		echo $form->renderFieldHiddenUsers($instance['hiddenusers']);
+		echo $form->renderDisplayOptions($instance['display']);
 		
-		echo FormHelper::choice($name, $rows, $values, array( 'multiple' => $multiple, 'id' => $id ));
+		// hidden "submit=1" field (do we still need this?, FIXME)
+		echo FormHelper::input('hidden', $this->get_field_name('submit'), '1', array('id' => $this->get_field_id('submit')));
 	}
 		
 	/**
@@ -282,76 +192,6 @@ class AuthorAvatarsWidget extends MultiWidget
 		$varname = preg_replace('/[\W]/', '-', $varname);
 		$varname = str_replace('--', '-', $varname);
 		return parent::get_field_id($varname);
-	}
-
-	/**
-	 * Retrieves all roles, and returns them as an associative array (key -> role name) 
-	 *
-	 * @access private
-	 * @return Array of role names.
-	 */
-	function _get_all_roles() {
-		global $wpdb;
-
-		$roles_data = get_option($wpdb->prefix.'user_roles');
-		$roles = array();
-		foreach($roles_data as $key => $role) {
-			$roles[$key] = $this->_strip_level($role['name']);
-		}
-		return $roles;
-	}
-	
-	/**
-	 * Retrieves all blogs, and returns them as an associative array (blog id -> blog name)
-	 *
-	 * The list only contains public blogs which are not marked as archived, deleted
-	 * or spam and the list is ordered by blog name.
-	 *
-	 * @see http://codex.wordpress.org/WPMU_Functions/get_blog_list
-	 * @access private
-	 * @return Array of blog names
-	 */
-	function _get_all_blogs() {
-		global $wpdb;
-
-		$blogs = get_site_option( "author_avatars_blog_list_cache" );
-		$update = false;
-		if( is_array( $blogs ) ) {
-			if( ( $blogs['time'] + 60 ) < time() ) { // cache for 60 seconds.
-				$update = true;
-			}
-		} else {
-			$update = true;
-		}
-
-		if( $update == true ) {
-			$blogs = $wpdb->get_results( $wpdb->prepare("SELECT blog_id, path FROM $wpdb->blogs WHERE site_id = %d AND public = '1' AND archived = '0' AND mature = '0' AND spam = '0' AND deleted = '0'", $wpdb->siteid), ARRAY_A );
-
-			$blog_list = array();
-			foreach ( (array) $blogs as $details ) {
-				$blog_list[ $details['blog_id'] ] = get_blog_option( $details['blog_id'], 'blogname', $details['path']) .' ('. $details['blog_id'] .')';
-			}
-			asort($blog_list);
-			
-			$blogs = $blog_list;
-			unset($blog_list);
-			
-			update_site_option( "author_avatars_blog_list_cache", $blogs );			
-		}
-		
-		return $blogs;
-	}
-	
-	/**
-	 * Strips the user level from a role name (see option user_roles)
-	 *
-	 * @access private
-	 * @param $element A role name, $role['name']
-	 * @return the clean role name without user level added on the end.
-	 */
-	function _strip_level($element) {
-		$parts = explode('|', $element);
-		return $parts[0];
 	}
 }
 ?>
