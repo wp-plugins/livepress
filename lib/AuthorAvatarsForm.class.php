@@ -7,16 +7,19 @@ class AuthorAvatarsForm {
 	
 	/**
 	 * @var callback Callback for field "id" attributes.
+     * @access private
 	 */
 	var $field_id_callback = false;
 	
 	/**
 	 * @var callback Callback for field "name" attributes.
+     * @access private
 	 */
 	var $field_name_callback = false;
 	
 	/**
-	 * Reference to AuthorAvatarsSettings instance.
+	 * @var AuthorAvatarsSettings Reference to AuthorAvatarsSettings instance.
+     * @access private
 	 */
 	var $settings = null;
 	
@@ -250,17 +253,14 @@ class AuthorAvatarsForm {
 	 * Renders the set of display options (as it's used in the widget atm)
 	 */
 	function renderDisplayOptions ($display_values, $name_base='display') {
-		$html = '';	
+		$html = '';
 		$html .= $this->renderFieldDisplayOptions($display_values, $name_base);
 		$html .= $this->renderFieldOrder($display_values['order'], $name_base .'][order');
 		$html .= '<br />';
 		$html .= $this->renderFieldLimit($display_values['limit'], $name_base .'][limit');
 		$html .= '<br />';
 		$html .= $this->renderFieldAvatarSize($display_values['avatar_size'], $name_base . '][avatar_size');
-		$html .= '</p>';
 		return $html;
-
-		echo '</p>';		
 	}
 	
 	/**
