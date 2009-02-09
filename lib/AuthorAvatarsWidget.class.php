@@ -39,6 +39,13 @@ class AuthorAvatarsWidget extends MultiWidget
 	 */	
 	function AuthorAvatarsWidget()
 	{
+        add_action( 'widgets_init', array($this, 'init') );
+	}
+
+    /**
+     * Widget initialisation
+     */
+    function init() {
 		$this->_setDefaults();
 
 		$this->MultiWidget(
@@ -47,10 +54,12 @@ class AuthorAvatarsWidget extends MultiWidget
 			array('description'=>__('Displays avatars of blog users.')), // widget options
 			array('width' => '500px') // control options
 		);
-		
-		add_action('wp_head', array(get_class($this), 'print_css_link'));
-		add_action('wp_print_scripts', array(get_class($this), 'attach_scripts'));
-	}
+
+		add_action('wp_head', array($this, 'print_css_link'));
+		add_action('wp_print_scripts', array($this, 'attach_scripts'));
+
+        $this->register();
+    }
 	
 	/**
 	 * Prints a <link> element pointing to the authoravatars widget stylesheet.

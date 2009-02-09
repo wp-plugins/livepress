@@ -55,9 +55,8 @@ class AuthorAvatars {
 		// include necessary file(s).
 		require_once('AuthorAvatarsWidget.class.php');
 		
-		// Create an object for the widget and register it.
+		// Create an object for the widget. Registering is done in the object's constructor
 		$author_avatars_multiwidget = new AuthorAvatarsWidget();
-		add_action( 'widgets_init', array($author_avatars_multiwidget,'register') );
 	}
 	
 	/**
@@ -67,10 +66,13 @@ class AuthorAvatars {
 		// include necessary file(s).
 		require_once('AuthorAvatarsShortcode.class.php');
 		require_once('ShowAvatarShortcode.class.php');
+        require_once('AuthorAvatarsEditorButton.class.php');
 		
 		// Create objects of the shortcode classes. Registering is done in the objects' constructors
 		$author_avatars = new AuthorAvatarsShortcode();
 		$show_avatar = new ShowAvatarShortcode();
+
+        $editor_button = new AuthorAvatarsEditorButton();
 	}
 	
 	/**
