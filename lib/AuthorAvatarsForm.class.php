@@ -9,13 +9,13 @@ class AuthorAvatarsForm {
 	 * @var callback Callback for field "id" attributes.
      * @access private
 	 */
-	var $field_id_callback = false;
+	var $field_id_callback = null;
 	
 	/**
 	 * @var callback Callback for field "name" attributes.
      * @access private
 	 */
-	var $field_name_callback = false;
+	var $field_name_callback = null;
 	
 	/**
 	 * @var AuthorAvatarsSettings Reference to AuthorAvatarsSettings instance.
