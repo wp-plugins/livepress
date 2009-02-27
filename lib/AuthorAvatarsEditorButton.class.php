@@ -31,6 +31,14 @@ class AuthorAvatarsEditorButton {
                 add_filter('mce_external_plugins', array($this, 'add_tinymce_plugin'));
                 add_filter('mce_buttons', array($this, 'add_tinymce_button'));
             }
+			
+			// fix ajax post parameter
+			if (defined('DOING_AJAX') && DOING_AJAX == true) {
+				$p = 'author-avatars-editor-popup';
+				if ($_GET['action'] == $p && !isset($_POST['action'])) {
+					$_POST['action'] = $_GET['action'];
+				}
+			}
         }
     }
 

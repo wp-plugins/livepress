@@ -193,14 +193,12 @@ class AuthorAvatarsWidget extends MultiWidget
 		// hidden "submit=1" field (do we still need this?, FIXME)
 		echo FormHelper::input('hidden', $this->get_field_name('submit'), '1', array('id' => $this->get_field_id('submit')));
 	}
-		
-	/**
-	 * Override MultiWidget::get_field_id(). Cleans up the id before returning it as the form element id.
-	 */
-	function get_field_id($varname) {
-		$varname = preg_replace('/[\W]/', '-', $varname);
-		$varname = str_replace('--', '-', $varname);
-		return parent::get_field_id($varname);
+	
+	function get_field_name($varname) {
+		// replace all x[y] by x][y
+		$varname = str_replace(']', '', $varname); 
+		$varname = str_replace('[', '][', $varname);
+		return parent::get_field_name($varname);
 	}
 }
 ?>

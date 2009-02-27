@@ -74,7 +74,8 @@ class FormHelper {
 		$row_attributes = array();
 				
 		// id = either from $attributes['id'] or safe version of $name
-		$wrapper_attributes['id'] = !empty($attributes['id']) ? $attributes['id'] : str_replace('--', '-', preg_replace('/[\W]/', '-', $name));
+		$wrapper_attributes['id'] = !empty($attributes['id']) ? $attributes['id'] : $name;
+		$wrapper_attributes['id'] = str_replace('--', '-', preg_replace('/[\W]/', '-', $wrapper_attributes['id']));
 		
 		// if we only have one choice and we're rendering radio buttons then render a checkbox instead but not use the array name []
 		if (count($choices) == 1 && $expanded) {
@@ -176,7 +177,8 @@ class FormHelper {
 		if (!in_array($type, $valid_types)) return '[Only types "'.join('", "', $valid_types).'" are allowed in FormHelper::input()]';
 				
 		$attributes['type'] = $type;
-		$attributes['id'] = !empty($attributes['id']) ? $attributes['id'] : str_replace('--', '-', preg_replace('/[\W]/', '-', $name));
+		$attributes['id'] = !empty($attributes['id']) ? $attributes['id'] : $name;
+		$attributes['id'] = str_replace('--', '-', preg_replace('/[\W]/', '-', $attributes['id']));
 		$attributes['name'] = $name;
 		$attributes['value'] = $value;
 		

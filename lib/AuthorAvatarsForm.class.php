@@ -255,11 +255,11 @@ class AuthorAvatarsForm {
 	function renderDisplayOptions ($display_values, $name_base='display') {
 		$html = '';
 		$html .= $this->renderFieldDisplayOptions($display_values, $name_base);
-		$html .= $this->renderFieldOrder($display_values['order'], $name_base .'][order');
+		$html .= $this->renderFieldOrder($display_values['order'], $name_base .'[order]');
 		$html .= '<br />';
-		$html .= $this->renderFieldLimit($display_values['limit'], $name_base .'][limit');
+		$html .= $this->renderFieldLimit($display_values['limit'], $name_base .'[limit]');
 		$html .= '<br />';
-		$html .= $this->renderFieldAvatarSize($display_values['avatar_size'], $name_base . '][avatar_size');
+		$html .= $this->renderFieldAvatarSize($display_values['avatar_size'], $name_base . '[avatar_size]');
 		return $html;
 	}
 	

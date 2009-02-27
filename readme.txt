@@ -45,7 +45,7 @@ Version 0.5.1
 Version 0.5
 
 *    Added "show_avatar" shortcode
-*    Small MultiWidget fix by [http://blog.firetree.net/2008/11/30/wordpress-multi-widget/#comment-24976 Dan Cole]
+*    Small MultiWidget fix by [Dan Cole](http://blog.firetree.net/2008/11/30/wordpress-multi-widget/#comment-24976)
 *    Refactored [show_avatar] shortcode into new file ShowAvatarShortcode.class.php to keep it all nice and tidy.
 *    Added basic blog filtering feature.
 *    Added classes for settings and sitewide admin
