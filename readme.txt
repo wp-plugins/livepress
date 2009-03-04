@@ -1,57 +1,53 @@
-=== Plugin Name ===
+=== Author Avatars List ===
 Contributors: bforchhammer, pbearne
 Donate link:
 Tags: Avatar, Author, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.6
-Tested up to: 2.7
-Stable tag: 0.5.1
+Tested up to: 2.7.1
+Stable tag: 0.6
 
-Display lists of avatars from blog users using widgets or shortcodes.
-
+Display lists of user avatars using widgets or shortcodes.
 
 == Description ==
 
-This plugin provides a widget and a [shortcode](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) which allow you to show lists of avatars of blog users.
+This plugin makes it easy to *display lists of user avatars* on your (multiuser) blog. 
 
-The widget can be configured to
+It also allows to *insert single avatars* for blog users or any email address into a post or page. (Great for displaying an image of someone you're talking about.)
 
-*   Show a custom title
+Avatar lists can be inserted into your sidebar by adding a widget or into posts/pages by using a [shortcode](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation). The plugin comes with a tinymce editor plugin which makes inserting shortcodes very easy. 
+
+Both shortcode and widget can be configured to... 
+
+*   Show a custom title (widget only)
 *   Only show specific user groups and/or hide certain users
 *   Limit the number of users shown
 *   Change the sort order of users or show in random order
 *   Adjust the size of user avatars
 *   Show users from the current blog, all blogs or a selection of blogs (on WPMU)
-*   Group users by their blog (when showing from multiple blogs), and show the blog name above each grouping (experimental).
-
-All features available in the widget are also available using a shortcode which means you can insert avatar lists whereever you want!
+*   Group users by their blog (when showing from multiple blogs), and show the blog name above each grouping (experimental feature).
 
 The plugin makes use of built in wordpress (core) functions to retrieve user information and get avatars.
 
-The plugin has been developed for wpmu 2.6. and tested on wp 2.6. and wp 2.7.
+Single user avatars can be inserted using the [show_avatar shortcode](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation#The.C2.A0.5Bshow_avatar.5D_shortcode) and configured to...
+
+*   Adjust the size of the user avatar.
+*   Align the avatar left, centered or right.
+
+Please report bugs and provide feedback in the [wordpress support forum](http://wordpress.org/tags/author-avatars?forum_id=10#postform). (I'm following all posts with the "author-avatars" tag.)
 
 Planned Features/Ideas:
 
-*   Shortcode creation wizard for WYSIWYG Editor
 *   User information popup on rollover
 *   Advanced user display configuration / templates
-*   Any more ideas or suggestions? [tell us about it](mailto:b.forchhammer@mind2.de)!
+*   I18n: provide base for translations
+*   Any ideas or suggestions? [tell us about it](mailto:b.forchhammer@mind2.de)!
 
-= Changelog =
+= Latest Changes (Version 0.6) =
 
-Version 0.5.1
-
-*   Fixed method chaining error that caused a critical syntax error on PHP 4 
-
-Version 0.5
-
-*    Added "show_avatar" shortcode
-*    Small MultiWidget fix by [Dan Cole](http://blog.firetree.net/2008/11/30/wordpress-multi-widget/#comment-24976)
-*    Refactored [show_avatar] shortcode into new file ShowAvatarShortcode.class.php to keep it all nice and tidy.
-*    Added basic blog filtering feature.
-*    Added classes for settings and sitewide admin
-*    Added sitewide setting for the blog filter
-*    Updated update mechanism in AuthorAvatars.class.php
-*    Added "Group by blog" feature
+*   Implementation of new Shortcode insertion wizard (tinymce plugin)
+*   Improved handling of script files and css stylesheets
+*   New classes FormHelper AuthorAvatarsForm  for easy and consistent rendering of form fields
+*   Various Code Documentation Changes and Cleanups
 
 [Full Changelog](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_Changelog)
 
@@ -69,8 +65,8 @@ Version 0.5
 
 1. Very simple set up of the widget on an empty blog.
 2. The Widget configuration panel.
-3. Examples of what the [authoravatars] shortcode can do
-
+3. Examples of what the [authoravatars] shortcode can do.
+4. Shortcode helper available from the WYSIWYG editor on the edit post page.
 
 == Frequently asked questions ==
 
@@ -80,8 +76,11 @@ A shortcode is a tag like <code>[authoravatars]</code> which you can insert into
 
 = How do I use the author avatar shortcode? =
 
-It's simple: just add [authoravatars] into your post and hit save!
-There's also a number of [parameters](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) available!
+As of version 0.6 the plugin comes with a tinymce plugin which makes it very easy to insert shortcode(s).
+
+If you'd like to do it manually it's still simple: just add [authoravatars] into your post and hit save! There's a large number of [parameters](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) available.
+
+The plugin comes with two shortcodes: [authoravatars] for lists of avatars and [show_avatar] for single avatars.
 
 = I can't get my widget to show users from multiple blogs! =
 
