@@ -20,6 +20,7 @@ class AuthorAvatars {
 		}
 		else {
 			$this->init_settings();
+			$this->register_resources();
 			$this->init_widgets();
 			$this->init_shortcodes();
 			$this->init_controlpanels();
@@ -49,6 +50,29 @@ class AuthorAvatars {
 	}
 	
 	/**
+	 * Registers all stylesheets and scripts
+	 */
+	function register_resources() {
+		$aa_ver = AUTHOR_AVATARS_VERSION;
+
+		// make sure styles are written on wp_head action 
+		add_action('wp_head', 'wp_print_styles');
+		
+		// styles
+		wp_register_style('author-avatars-widget', WP_PLUGIN_URL . '/author-avatars/css/widget.css', array(), $aa_ver);
+		wp_register_style('author-avatars-shortcode', WP_PLUGIN_URL . '/author-avatars/css/shortcode.css', array(), $aa_ver);
+		wp_register_style('admin-form', WP_PLUGIN_URL . '/author-avatars/css/admin-form.css', array(), $aa_ver);
+		
+		// scripts
+		wp_register_script('jquery-ui-resizable', WP_PLUGIN_URL . '/author-avatars/js/jquery-ui.resizable.js', array('jquery-ui-core'), '1.5.3');
+
+		wp_register_script('author-avatars-avatar-preview', WP_PLUGIN_URL . '/author-avatars/js/avatar-preview.js', array('jquery-ui-resizable'), $aa_ver);		
+		wp_register_script('author-avatars-widget-admin', WP_PLUGIN_URL . '/author-avatars/js/widget.admin.js', array('author-avatars-avatar-preview'), $aa_ver);
+		wp_register_script('tinymce-popup', '/wp-includes/js/tinymce/tiny_mce_popup.js', array(), function_exists('mce_version') ? mce_version() : false);
+		wp_register_script('author-avatars-tinymce-popup', WP_PLUGIN_URL .'/author-avatars/js/tinymce.popup.js', array('author-avatars-avatar-preview', 'jquery-ui-tabs'), $aa_ver);
+	}
+	
+	/**
 	 * Init author avatar widget
 	 */
 	function init_widgets() {
@@ -71,7 +95,7 @@ class AuthorAvatars {
 		// Create objects of the shortcode classes. Registering is done in the objects' constructors
 		$author_avatars = new AuthorAvatarsShortcode();
 		$show_avatar = new ShowAvatarShortcode();
-
+		
         $editor_button = new AuthorAvatarsEditorButton();
 	}
 	

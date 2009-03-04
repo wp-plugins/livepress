@@ -33,6 +33,7 @@ class FormHelper {
 	 * - "id": Set this value to override the id which by default is generated from the $name parameter.
 	 * - "label": Set to display a label above the field. This is automatically wrapped into "label" tags for non-expanded fields.
 	 * - "help": Set to display a (help) text underneith the field.
+	 * - "inline": Set to true to display all choices "inline" without line breaks in-between. (default: false)
 	 * - anything else is simply used rendered as an html attribute on the element (or wrapper span if expanded=true). You can e.g. specify "class" to add a css class name.
 	 *
 	 * Which combination of expanded and multiple is rendered in which field?
@@ -64,6 +65,9 @@ class FormHelper {
 		// multiple value selection allowed?
 		$multiple = isset($attributes['multiple']) && $attributes['multiple'] == true;
 		
+		// render fields inline?
+		$fields_inline = isset($attributes['inline']) && $attributes['inline'] == true;
+		
 		// label or help text?
 		$field_label = !empty($attributes['label']) ? $attributes['label'] : false;
 		$field_help = !empty($attributes['help']) ? $attributes['help'] : false;
@@ -75,7 +79,7 @@ class FormHelper {
 				
 		// id = either from $attributes['id'] or safe version of $name
 		$wrapper_attributes['id'] = !empty($attributes['id']) ? $attributes['id'] : $name;
-		$wrapper_attributes['id'] = str_replace('--', '-', preg_replace('/[\W]/', '-', $wrapper_attributes['id']));
+		$wrapper_attributes['id'] = self::cleanHtmlId($wrapper_attributes['id']);
 		
 		// if we only have one choice and we're rendering radio buttons then render a checkbox instead but not use the array name []
 		if (count($choices) == 1 && $expanded) {
@@ -90,9 +94,11 @@ class FormHelper {
 			
 			if ($multiple) {
 				$row_attributes['type'] = 'checkbox';
+				$row_attributes['class'] = empty($row_attributes['class']) ? 'checkbox' : ' checkbox';
 			}
 			else {
 				$row_attributes['type'] = 'radio';
+				$row_attributes['class'] = empty($row_attributes['class']) ? 'radio' : ' radio';
 			}
 		}
 		else {
@@ -111,7 +117,7 @@ class FormHelper {
 		}
 		
 		// filter out values which we set ourselves
-		unset($attributes['name'], $attributes['id'], $attributes['multiple'], $attributes['expanded'], $attributes['label'], $attributes['help'], $attributes['wrapper_tag']);
+		unset($attributes['name'], $attributes['id'], $attributes['multiple'], $attributes['expanded'], $attributes['label'], $attributes['help'], $attributes['wrapper_tag'], $attributes['inline']);
 		// add remaining $attributes values onto $wrapper_attributes
 		$wrapper_attributes = array_merge($attributes, $wrapper_attributes);
 				
@@ -133,7 +139,8 @@ class FormHelper {
 				$row .= $attr;
 				$row .= '/> ';
 				$row .= $label;
-				$row .= '</label><br/>';
+				$row .= '</label>';
+				if (!$fields_inline) $row .= '<br/>';
 			}
 			else {
 				$row = '<option';
@@ -175,12 +182,20 @@ class FormHelper {
 	function input($type, $name, $value, $attributes=array()) {
 		$valid_types = array('text', 'hidden', 'password', 'submit', 'reset');
 		if (!in_array($type, $valid_types)) return '[Only types "'.join('", "', $valid_types).'" are allowed in FormHelper::input()]';
-				
-		$attributes['type'] = $type;
+			
+		if ($type == 'text' && isset($attributes['rows']) && intval($attributes['rows']) > 0) {
+			$tag = 'textarea';
+			$attributes['rows'] = intval($attributes['rows']);
+		}
+		else {
+			$tag = 'input';
+			$attributes['type'] = $type;
+			$attributes['value'] = $value;
+		}
+		
 		$attributes['id'] = !empty($attributes['id']) ? $attributes['id'] : $name;
-		$attributes['id'] = str_replace('--', '-', preg_replace('/[\W]/', '-', $attributes['id']));
+		$attributes['id'] = self::cleanHtmlId($attributes['id']);
 		$attributes['name'] = $name;
-		$attributes['value'] = $value;
 		
 		$label = '';
 		if (isset($attributes['label'])) {
@@ -196,7 +211,15 @@ class FormHelper {
 		
 		$attr = self::buildHtmlAttributes($attributes);
 		
-		$html = '<input'.$attr.' />';
+		$html = '<'.$tag.$attr;
+		if ($tag == 'textarea') {
+			$html .= '>';
+			$html .= htmlspecialchars($value);
+			$html .= '</'.$tag.'>';
+		}
+		else {
+			$html .= ' />';
+		}
 		if (!empty($label)) $html = '<label>'.$label.$html.'</label>';
 		if (!empty($help)) $html .= $help;
 		return $html;
@@ -223,6 +246,18 @@ class FormHelper {
 			$string .= ' '. $key . '="'. wp_specialchars($value) .'"';
 		}
 		return $string;
+	}
+	
+	/**
+	 * Transforms any string into a valid html id by replacing non-alphanumeric characters with dashes.
+	 *
+	 * @static
+	 * @access public
+	 * @param $id string id
+	 * @return string
+	 */
+	function cleanHtmlId($id) {
+		return strtolower(trim(str_replace('--', '-', preg_replace('/[\W]/', '-', $id)), "- \t\n\r\0\x0B"));
 	}
 }
 

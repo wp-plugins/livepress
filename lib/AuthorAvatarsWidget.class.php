@@ -41,53 +41,38 @@ class AuthorAvatarsWidget extends MultiWidget
 	{
         add_action( 'widgets_init', array($this, 'init') );
 	}
-
+	
     /**
      * Widget initialisation
      */
     function init() {
 		$this->_setDefaults();
-
+		
 		$this->MultiWidget(
 			'author_avatars', // id_base
 			'AuthorAvatars', // name
 			array('description'=>__('Displays avatars of blog users.')), // widget options
-			array('width' => '500px') // control options
+			array('width' => '600px') // control options
 		);
 
-		add_action('wp_head', array($this, 'print_css_link'));
-		add_action('wp_print_scripts', array($this, 'attach_scripts'));
-
-        $this->register();
-    }
-	
-	/**
-	 * Prints a <link> element pointing to the authoravatars widget stylesheet.
-	 * This function is executed on the "wp_head" action.
-	 *
-	 * @return void
-	 */
-	function print_css_link() {
-		echo '<link type="text/css" rel="stylesheet" href="' . WP_PLUGIN_URL . '/author-avatars/css/widget.css" />' . "\n";
+		add_action('init', array(&$this, 'enqueue_resources'));
+		
+		$this->register();
 	}
 	
 	/**
-	 * Attaches scripts (using wp_enqueue_script) to the wp_print_scripts action.
-	 *
-	 * Note: the personalised jquery library includes jquery.ui.resizable. The files
-	 * are only included on the widget admin pages, as they appear to conflict with
-	 * some javascript on the post edit pages (wordpress 2.7).
+	 * Enqueues scripts and stylesheets
 	 *
 	 * @return void
 	 */
-	function attach_scripts() {
-		// only load the scripts on the widget admin page
+	function enqueue_resources() {	
+		wp_enqueue_style('author-avatars-widget');
 		if (is_admin() && basename($_SERVER['PHP_SELF']) == 'widgets.php') { 
-			wp_enqueue_script('author-avatars-jquery-ui', WP_PLUGIN_URL .'/author-avatars/js/jquery-ui-personalized-1.5.3.packed.js');
-			wp_enqueue_script('author-avatars-widget-admin', WP_PLUGIN_URL .'/author-avatars/js/widget.admin.js');
+			wp_enqueue_script('author-avatars-widget-admin');
+			wp_enqueue_style('admin-form');
 		}
 	}
-
+	
 	/**
 	 * Echo widget content = list of blog users.
 	 */
@@ -172,23 +157,33 @@ class AuthorAvatarsWidget extends MultiWidget
 		$form->setFieldNameCallback(array($this, 'get_field_name'));
 	
 		// widget title
-		echo '<p>'. FormHelper::input(
-			'text',
-			$this->get_field_name('title'),
-			$instance['title'],
-			array(
-				'label' => 'Title: ',
-				'class' => 'widefat',
-				'id' => $this->get_field_id('title'),
-			)
+		$widget_title = '<p>'. FormHelper::input('text', $this->get_field_name('title'), $instance['title'],
+			array( 'label' => '<strong>Title:</strong> ', 'class' => 'widefat', 'id' => $this->get_field_id('title'),)
 		) .'</p>';
 		
-		// blog selection, group by, roles selection, hiddenusers, display options
-		echo $form->renderFieldBlogs($instance['blogs']);
-		echo $form->renderFieldGroupBy($instance['group_by']);
-		echo $form->renderFieldRoles($instance['roles']);
-		echo $form->renderFieldHiddenUsers($instance['hiddenusers']);
-		echo $form->renderDisplayOptions($instance['display']);
+		// BASIC TAB
+		$basic_left  = $widget_title;
+				
+		$basic_left .= $form->renderFieldRoles($instance['roles']);
+		$basic_left .= $form->renderFieldDisplayOptions($instance['display']);
+		
+		$basic_right = $form->renderFieldAvatarSize($instance['display']['avatar_size']);
+		
+		$basic  = '<h5>Basic</h5>';
+		$basic .= $form->renderColumns($basic_left, $basic_right);
+		
+		// ADVANCED TAB
+		$adv_left  = $form->renderFieldOrder($instance['display']['order']);
+		$adv_left .= $form->renderFieldLimit($instance['display']['limit']);
+		$adv_left .= $form->renderFieldHiddenUsers($instance['hiddenusers']);
+		
+		$adv_right  = $form->renderFieldBlogs($instance['blogs']);
+		$adv_right .= $form->renderFieldGroupBy($instance['group_by']);
+		
+		$advanced  = '<h5>Advanced</h5>';
+		$advanced .= $form->renderColumns($adv_left, $adv_right);
+		
+		echo '<div class="aa-widget-control-panel">'. $basic . $advanced .'</div>';
 		
 		// hidden "submit=1" field (do we still need this?, FIXME)
 		echo FormHelper::input('hidden', $this->get_field_name('submit'), '1', array('id' => $this->get_field_id('submit')));

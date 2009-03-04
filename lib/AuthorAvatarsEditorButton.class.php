@@ -6,33 +6,35 @@
 class AuthorAvatarsEditorButton {
 
     /**
-     * Constructor
-     */
+      * Constructor
+      */
     function AuthorAvatarsEditorButton() {
         $this->register();
     }
 
     /**
-     * Register init function
-     */
+      * Register init function
+      */
     function register() {
-        add_action('init', Array($this, 'init'));
-        add_action('wp_ajax_author-avatars-editor-popup', array($this, 'render_tinymce_popup'));
+        add_action('init', array(&$this, 'init'));
+        add_action('wp_ajax_author-avatars-editor-popup', array(&$this, 'render_tinymce_popup'));
     }
 
     /**
-     * Register button filters and actions
-     */
+      * Register button filters and actions
+      */
     function init() {
         // Don't bother adding the button if the current user lacks permissions
         if ( current_user_can('edit_posts') || current_user_can('edit_pages') ) {
             // Add only in Rich Editor mode
             if ( get_user_option('rich_editing') == 'true') {
-                add_filter('mce_external_plugins', array($this, 'add_tinymce_plugin'));
-                add_filter('mce_buttons', array($this, 'add_tinymce_button'));
+                add_filter('mce_external_plugins', array(&$this, 'add_tinymce_plugin'));
+                add_filter('mce_buttons', array(&$this, 'add_tinymce_button'));
             }
 			
-			// fix ajax post parameter
+			// In wordpress < 2.7 only the POST parameter "action" is used in admin-ajax.php 
+			// but we're using the GET parameter for the tinymce popup iframe, therefore manually
+			// set the POST parameter for the popup calls.
 			if (defined('DOING_AJAX') && DOING_AJAX == true) {
 				$p = 'author-avatars-editor-popup';
 				if ($_GET['action'] == $p && !isset($_POST['action'])) {
@@ -43,81 +45,99 @@ class AuthorAvatarsEditorButton {
     }
 
     /**
-     * Filter 'mce_external_plugins': add the authoravatars tinymce plugin
-     */
+      * Filter 'mce_external_plugins': add the authoravatars tinymce plugin
+      */
     function add_tinymce_plugin() {
         $plugin_array['authoravatars'] = WP_PLUGIN_URL.'/author-avatars/tinymce/editor_plugin.js';
         return $plugin_array;
     }
 
     /**
-     * Filter 'mce_buttons': add the authoravatars tinymce button
-     */
+      * Filter 'mce_buttons': add the authoravatars tinymce button
+      */
     function add_tinymce_button($buttons) {
-        array_push($buttons, "separator", "authoravatars");
+        $buttons[] = "authoravatars";
         return $buttons;
     }
 
     /**
-     * Renders the tinymce editor popup
-     */
+      * Renders the tinymce editor popup
+      */
     function render_tinymce_popup() {
-        print $this->get_tinymce_popup();
-        exit();
+		echo '<html xmlns="http://www.w3.org/1999/xhtml">' ."\n";
+		$this->render_tinymce_popup_head(); echo "\n";
+        $this->render_tinymce_popup_body(); echo "\n";
+        echo '</html>';
+		exit();
     }
     
     /**
-     * Builds the tinymce editor popup
-     */
-    function get_tinymce_popup() {
-        $html = '<html xmlns="http://www.w3.org/1999/xhtml">' ."\n";
-        $html .= $this->get_tinymce_popup_head() . "\n";
-        $html .= $this->get_tinymce_popup_body() . "\n";
-        $html .= '</html>';
-        
-        return $html;
+      * Builds the html head for the tinymce popup
+      *
+      * @access private
+      * @return string Popup head
+      */
+    function render_tinymce_popup_head() {
+        echo '<head>';
+		
+        echo "\n\t".'<title>Author avatars shortcodes</title>';
+        echo "\n\t".'<meta http-equiv="Content-Type" content="'. get_bloginfo('html_type').'; charset='. get_option('blog_charset').'" />';
+		
+        wp_print_scripts(array('jquery', 'jquery-ui-resizable', 'tinymce-popup', 'author-avatars-tinymce-popup'));
+		wp_print_styles(array('admin-form'));
+		
+		echo "\n".'</head>';
     }
 
     /**
-     * Builds the html head for the tinymce popup
-     *
-     * @access private
-     * @return string Popup head
-     */
-    function get_tinymce_popup_head() {
-        $html = '';
-        $html .= "\n\t".'<title>Author avatars shortcodes</title>';
-        $html .= "\n\t".'<meta http-equiv="Content-Type" content="'. get_bloginfo('html_type').'; charset='. get_option('blog_charset').'" />';
-        $html .= "\n\t".'<script language="javascript" type="text/javascript" src="'. get_option('siteurl') .'/wp-includes/js/tinymce/tiny_mce_popup.js"></script>';
-        $html .= "\n\t".'<script language="javascript" type="text/javascript" src="'. get_option('siteurl') .'/wp-includes/js/jquery/jquery.js"></script>';
-        //$html .= "\n\t".'<script language="javascript" type="text/javascript" src="'. WP_PLUGIN_URL .'/author-avatars/js/jquery-ui-personalized-1.5.3.min.js"></script>';
-        //$html .= "\n\t".'<script language="javascript" type="text/javascript" src="'. WP_PLUGIN_URL .'/author-avatars/js/widget.admin.js"></script>';
-        $html .= "\n\t".'<script language="javascript" type="text/javascript" src="'. WP_PLUGIN_URL .'/author-avatars/js/tinymce.popup.js"></script>';
-
-        return '<head>' . $html . "\n" . '</head>';
-    }
-
-    /**
-     * Builds the html body for the tinymce popup
-     *
-     * @access private
-     * @return string Popup body
-     */
-    function get_tinymce_popup_body() {
+	 * Builds the html body for the tinymce popup
+	 *
+	 * @access private
+	 * @return string Popup body
+	 */
+    function render_tinymce_popup_body() {
         require_once('AuthorAvatarsForm.class.php');
         $form = new AuthorAvatarsForm();
-        $html = '';
 
-		$html .= $form->renderFieldBlogs(array());
-		$html .= $form->renderFieldGroupBy(array());
-		$html .= $form->renderFieldRoles(array());
-		$html .= $form->renderFieldHiddenUsers('');
-		$html .= $form->renderDisplayOptions(array());
-
-        /*$html .= '<script language="javascript" type="text/javascript">
-setupAvatarSizePreview();
-</script>';*/
-
+		// BASIC TAB
+		$basic_left  = $form->renderFieldShortcodeType();
+		
+		$basic_left .= '<div class="fields_type_show_avatar">';
+		$basic_left .= $form->renderFieldEmail();
+		$basic_left .= $form->renderFieldAlignment();
+		$basic_left .= '</div>';
+		
+		$basic_left .= '<div class="fields_type_authoravatars">';
+		$basic_left .= $form->renderFieldRoles(array('administrator', 'editor'));
+		$basic_left .= $form->renderFieldDisplayOptions(array('link_to_authorpage'));
+		$basic_left .= '</div>';
+		
+		$basic_right = $form->renderFieldAvatarSize();
+		
+		$basic_tab  = $form->renderTabStart('Basic');
+		$basic_tab .= $form->renderColumns($basic_left, $basic_right);
+		$basic_tab .= $form->renderTabEnd();
+		
+		// ADVANCED TAB
+		$adv_left  = $form->renderFieldOrder('display_name');
+		$adv_left .= $form->renderFieldLimit();
+		$adv_left .= $form->renderFieldHiddenUsers();
+		
+		$adv_right = '';
+		if (AA_is_wpmu()) {
+			global $blog_id; // default value: current blog
+			$adv_right .= $form->renderFieldBlogs($blog_id);
+		}		
+		$adv_right .= $form->renderFieldGroupBy();
+		
+		$advanced_tab  = $form->renderTabStart('Advanced');
+		$advanced_tab .= $form->renderColumns($adv_left, $adv_right);
+		$advanced_tab .= $form->renderTabEnd();
+		
+		
+		$tabs = $basic_tab . $advanced_tab;
+		$html = '<div class="aa-tabs">'. $form->renderTabList() . $tabs .'</div>';
+		
         $html .= "\n\t".'<div class="mceActionPanel">';
 	    $html .= "\n\t".'<div style="float: left">';
 	    $html .= "\n\t".'<input type="button" id="cancel" name="cancel" value="'. __("Cancel", "Author Avatars") .'" onclick="tinyMCEPopup.close();" />';
@@ -125,9 +145,9 @@ setupAvatarSizePreview();
         $html .= "\n\t".'<div style="float: right">';
 	    $html .= "\n\t".'<input type="submit" id="insert" name="insert" value="'. __("Insert", "Author Avatars") .'" onclick="insertAuthorAvatarsCode();" />';
 	    $html .= "\n\t".'</div>';
-        $html .= "\n\t".'</div>';
+        $html .= "\n\t".'</div>';		
 
-        return '<body class="tinymce_popup">'. $html . "\n" .'</body>';
+        echo '<body class="tinymce_popup">'. $html . "\n" .'</body>';
     }
 }
 ?>
