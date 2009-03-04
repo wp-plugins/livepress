@@ -18,7 +18,7 @@
 			// Register the command so that it can be invoked by using tinyMCE.activeEditor.execCommand('mceauthoravatars');
 			ed.addCommand('mceauthoravatars', function() {
 				ed.windowManager.open({
-                    file: '/wp-admin/admin-ajax.php?action=author-avatars-editor-popup',
+                    file: 'admin-ajax.php?action=author-avatars-editor-popup',
 					width : 600 + ed.getLang('authoravatars.delta_width', 0),
 					height : 400 + ed.getLang('authoravatars.delta_height', 0),
 					inline : 1
