@@ -19,7 +19,7 @@ tinyMCEPopup.executeOnLoad('init();')
 function AA_updateFieldVisibility(evt) {
 	var selected_value = null;
 	if (evt != undefined && evt.currentTarget != undefined) {
-		selected_value = jQuery('input', evt.currentTarget);
+		selected_value = jQuery('input', evt.currentTarget).val();
 	} else {
 		selected_value = jQuery('#shortcode_type :checked').val();
 	}
