@@ -10,9 +10,7 @@ Display lists of user avatars using widgets or shortcodes.
 
 == Description ==
 
-This plugin makes it easy to *display lists of user avatars* on your (multiuser) blog. 
-
-It also allows to *insert single avatars* for blog users or any email address into a post or page. (Great for displaying an image of someone you're talking about.)
+This plugin makes it easy to *display lists of user avatars* on your (multiuser) blog. It also allows to *insert single avatars* for blog users or any email address into a post or page. (Great for displaying an image of someone you're talking about.)
 
 Avatar lists can be inserted into your sidebar by adding a widget or into posts/pages by using a [shortcode](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation). The plugin comes with a tinymce editor plugin which makes inserting shortcodes very easy. 
 
@@ -35,7 +33,7 @@ Single user avatars can be inserted using the [show_avatar shortcode](http://cod
 
 Please report bugs and provide feedback in the [wordpress support forum](http://wordpress.org/tags/author-avatars?forum_id=10#postform). (I'm following all posts with the "author-avatars" tag.)
 
-Planned Features/Ideas:
+= Planned Features/Ideas =
 
 *   User information popup on rollover
 *   Advanced user display configuration / templates
