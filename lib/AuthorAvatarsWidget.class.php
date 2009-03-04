@@ -167,14 +167,14 @@ class AuthorAvatarsWidget extends MultiWidget
 		$basic_left .= $form->renderFieldRoles($instance['roles']);
 		$basic_left .= $form->renderFieldDisplayOptions($instance['display']);
 		
-		$basic_right = $form->renderFieldAvatarSize($instance['display']['avatar_size']);
+		$basic_right = $form->renderFieldAvatarSize($instance['display']['avatar_size'], 'display][avatar_size');
 		
 		$basic  = '<h5>Basic</h5>';
 		$basic .= $form->renderColumns($basic_left, $basic_right);
 		
 		// ADVANCED TAB
-		$adv_left  = $form->renderFieldOrder($instance['display']['order']);
-		$adv_left .= $form->renderFieldLimit($instance['display']['limit']);
+		$adv_left  = $form->renderFieldOrder($instance['display']['order'], 'display][order');
+		$adv_left .= $form->renderFieldLimit($instance['display']['limit'], 'display][limit');
 		$adv_left .= $form->renderFieldHiddenUsers($instance['hiddenusers']);
 		
 		$adv_right  = $form->renderFieldBlogs($instance['blogs']);
