@@ -7,7 +7,8 @@
  */
 if (!function_exists('AA_is_wpmu')):
 function AA_is_wpmu() {
-	return function_exists('wpmu_validate_blog_signup');
+	global $wpmu_version, $wp_version;
+	return (bool) ( (isset($wpmu_version)) || (strpos($wp_version, 'wordpress-mu')) );
 }
 endif;
 
