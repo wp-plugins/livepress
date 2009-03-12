@@ -47,7 +47,7 @@ class AuthorAvatarsEditorButton {
     /**
       * Filter 'mce_external_plugins': add the authoravatars tinymce plugin
       */
-    function add_tinymce_plugin() {
+    function add_tinymce_plugin($plugin_array) {
         $plugin_array['authoravatars'] = WP_PLUGIN_URL.'/author-avatars/tinymce/editor_plugin.js';
         return $plugin_array;
     }
@@ -56,7 +56,7 @@ class AuthorAvatarsEditorButton {
       * Filter 'mce_buttons': add the authoravatars tinymce button
       */
     function add_tinymce_button($buttons) {
-        $buttons[] = "authoravatars";
+		array_push( $buttons, 'separator', 'authoravatars' );
         return $buttons;
     }
 
