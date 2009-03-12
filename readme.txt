@@ -4,7 +4,7 @@ Donate link:
 Tags: Avatar, Author, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.6
 Tested up to: 2.7.1
-Stable tag: 0.6
+Stable tag: 0.6.1
 
 Display lists of user avatars using widgets or shortcodes.
 
