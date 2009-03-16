@@ -76,12 +76,20 @@ A shortcode is a tag like <code>[authoravatars]</code> which you can insert into
 
 As of version 0.6 the plugin comes with a tinymce plugin which makes it very easy to insert shortcode(s).
 
-If you'd like to do it manually it's still simple: just add [authoravatars] into your post and hit save! There's a large number of [parameters](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) available.
+If you'd like to do it manually it's still simple: just add <code>[authoravatars]</code> into your post and hit save! There's a large number of [parameters](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) available.
 
-The plugin comes with two shortcodes: [authoravatars] for lists of avatars and [show_avatar] for single avatars.
+The plugin comes with two shortcodes: <code>[authoravatars]</code> for lists of avatars and <code>[show_avatar]</code> for single avatars.
 
 = I can't get my widget to show users from multiple blogs! =
 
 Make sure you have enabled the "blog filter" in Site Admin / Author Avatars for the blog on which you are trying to use this feature on. By default this is only enabled for the root blog (blog id = 1).
 
 And you are running [Wordpress MU](http://mu.wordpress.org/), right?
+
+= Can I upload custom pictures for users? = 
+
+No, the Author Avatars List plugin only provides ways of <strong>displaying</strong> user avatars.
+
+The plugin uses the Wordpress Core Template function <code>get_avatar()</code> to retrieve the actual avatar images. In order to display custom images you need to look for plugins which use/override WordPress' avatar features and provide respective upload features... 
+
+Have a look at the [User Photo](http://wordpress.org/extend/plugins/user-photo/) Plugin (turn on option "Override Avatar with User Photo") or the [Add Local Avatar](http://wordpress.org/extend/plugins/add-local-avatar/) Plugin.
