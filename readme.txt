@@ -63,7 +63,7 @@ Please report bugs and provide feedback in the [wordpress support forum](http://
 
 1. Very simple set up of the widget on an empty blog.
 2. The Widget configuration panel.
-3. Examples of what the [authoravatars] shortcode can do.
+3. Examples of what the <code>[authoravatars]</code> shortcode can do.
 4. Shortcode helper available from the WYSIWYG editor on the edit post page.
 
 == Frequently asked questions ==
@@ -93,3 +93,12 @@ No, the Author Avatars List plugin only provides ways of <strong>displaying</str
 The plugin uses the Wordpress Core Template function <code>get_avatar()</code> to retrieve the actual avatar images. In order to display custom images you need to look for plugins which use/override WordPress' avatar features and provide respective upload features... 
 
 Have a look at the [User Photo](http://wordpress.org/extend/plugins/user-photo/) Plugin (turn on option "Override Avatar with User Photo") or the [Add Local Avatar](http://wordpress.org/extend/plugins/add-local-avatar/) Plugin.
+
+= I get a "404 Page not found" error when I click on the avatar of a user! = 
+
+This happens when the user has not written any posts on a blog. There are two things that you should do in this situation:
+
+1. To prevent the 404 page from showing up install the [Show authors without posts](http://wordpress.org/extend/plugins/show-authors-without-posts/) Plugin. This forces WordPress to always show the user page if the user exists. 
+
+2. If not already there add a custom user/author template to your theme. Otherwise if a user has no posts their user page is going to be quite empty by default...
+You can find a [tutorial](http://codex.wordpress.org/Author_Templates) on Author Templates as well as a [Sample Template File](http://codex.wordpress.org/Author_Templates#Sample_Template_File) in the WordPress Codex.
