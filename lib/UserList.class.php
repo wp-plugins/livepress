@@ -173,13 +173,11 @@ class UserList {
 		$avatar_size = intval($this->avatar_size);
 		if (!$avatar_size) $avatar_size = false;
 
-		$user_roles = unserialize($user->meta_value);
-		$role = implode(', ', array_keys($user_roles));
 		$name = $user->display_name;
 
 		$avatar = get_avatar($user->user_email, $avatar_size);
 		$avatar = preg_replace('@alt=["\'][\w]*["\'] ?@', '', $avatar);
-		$avatar = preg_replace('@ ?\/>@', ' alt="'.$name.' ('.$role.')" title="'.$name.' ('.$role.')" />', $avatar);
+		$avatar = preg_replace('@ ?\/>@', ' alt="'.$name.'" title="'.$name.'" />', $avatar);
 
 		$divcss = array('user');
 		if ($this->show_name) $divcss[] = 'with-name';
