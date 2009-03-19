@@ -253,6 +253,7 @@ class UserList {
 				
 		$users = $wpdb->get_results( $query );
 		
+		
 		return $users;
 	}
 	
@@ -321,11 +322,14 @@ class UserList {
 			case 'display_name':
 				usort($users, array($this, '_users_cmp_name'));
 				break;
+			case 'post_count':
+				usort($users, array($this, '_user_cmp_postcount'));
+				break;
 		}
 	}
 
 	/**
-	 * Given two users, this function compares the user_ids
+	 * Given two users, this function compares the user_ids.
 	 * 
 	 * @access private
 	 * @param $a of type WP_User
@@ -337,7 +341,7 @@ class UserList {
 	}
 
 	/**
-	 * Given two users, this function compares the user_logins
+	 * Given two users, this function compares the user_logins.
 	 * 
 	 * @access private
 	 * @param $a of type WP_User
@@ -349,7 +353,7 @@ class UserList {
 	}
 
 	/**
-	 * Given two users, this function compares the user's display names
+	 * Given two users, this function compares the user's display names.
 	 * 
 	 * @access private
 	 * @param $a of type WP_User
@@ -358,6 +362,70 @@ class UserList {
 	 */
 	function _users_cmp_name($a, $b) {
 		return strcmp($a->display_name, $b->display_name);
+	}
+	
+	/**
+	 * Given two users, this function compares the user's post count.
+	 * 
+	 * @access private
+	 * @param $a of type WP_User
+	 * @param $b of type WP_User
+	 * @return result of a string compare of the user display names.
+	 */
+	function _user_cmp_postcount($a, $b) {
+		return strcmp($this->get_user_postcount($b->user_id), $this->get_user_postcount($a->user_id));
+	}
+	
+	/**
+	 * Returns the postcount for a given user. 
+	 * On WPMU sites posts are counted from all blogs in field $blogs and summed up.
+	 *
+	 * @param $user_id
+	 * @return int post count
+	 */
+	function get_user_postcount($user_id) {	
+		$total = 0;
+		if (AA_is_wpmu() && !empty($this->blogs)) {
+			$blogs = $this->blogs;
+			// all blogs -> only search the user's blogs
+			if (in_array('-1', (array)$this->blogs)) {
+				$blogs = (array) $this->get_user_blogs($user_id);
+			}
+			foreach ($blogs as $blog_id) {
+				switch_to_blog($blog_id);
+				$total += get_usernumposts($user_id);
+				restore_current_blog();
+			}
+		}
+		else {
+			$total += get_usernumposts($user_id);
+		}
+		
+		return $total;
+	}
+	
+	/**
+	 * Get blogs of user
+	 *
+	 * @param $user_id
+	 * @return array of blog ids
+	 */
+	function get_user_blogs($user_id) {
+		global $wpdb;
+		
+		$user = get_userdata( (int) $user_id );
+		if ( !$user )
+			return false;
+ 
+		$blogs = $match = array();
+		foreach ( (array) $user as $key => $value ) {
+			if ( 	false !== strpos( $key, '_capabilities') &&
+					0 === strpos( $key, $wpdb->base_prefix ) &&
+					preg_match( '/' . $wpdb->base_prefix . '(\d+)_capabilities/', $key, $match )
+			) $blogs[] = $match[1];
+		}
+		
+		return $blogs;
 	}
 	
 	/**

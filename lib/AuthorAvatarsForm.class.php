@@ -324,6 +324,7 @@ class AuthorAvatarsForm {
 			'user_id' => __('User Id'),
 			'user_login' => __('Login Name'),
 			'display_name' => __('Display Name'),
+			'post_count' => __('Number of Posts'),
 			'random' => __('Random'),
 		);
 		
