@@ -337,7 +337,8 @@ class UserList {
 	 * @return result of a string compare of the user_ids.
 	 */
 	function _users_cmp_id($a, $b) {
-		return strcmp($a->user_id, $b->user_id);
+	    if ($a->user_id == $b->user_id) return 0;
+		return ($a->user_id < $b->user_id) ? -1 : 1;
 	}
 
 	/**
@@ -373,7 +374,11 @@ class UserList {
 	 * @return result of a string compare of the user display names.
 	 */
 	function _user_cmp_postcount($a, $b) {
-		return strcmp($this->get_user_postcount($b->user_id), $this->get_user_postcount($a->user_id));
+		$ac = $this->get_user_postcount($a->user_id);
+		$bc = $this->get_user_postcount($b->user_id);
+		
+		if ($ac == $bc) return 0;
+		return ($ac > $bc) ? -1 : 1;
 	}
 	
 	/**
