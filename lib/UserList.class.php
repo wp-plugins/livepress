@@ -269,30 +269,49 @@ class UserList {
 			// array keeping track of all 'valid' user_ids
 			$user_ids = array();
 			
-			foreach($users as $id => $user) {
-				if ( (
-					// if we have set some roles to restrict by
-					is_array($this->roles) && !empty($this->roles) &&
-					// and the current user does not have one of those roles
-					count(array_intersect(array_keys(unserialize($user->meta_value)), $this->roles)) == 0)
-				|| (
+			foreach($users as $id => &$user) {
+				$add = true;
+				
+				// Check user role
+				// if we have set some roles to restrict by
+				if ( is_array($this->roles) && !empty($this->roles)) {
+					if (!isset($user->user_roles)) {
+						$user->user_roles = array_keys(unserialize($user->meta_value));
+					}
+					// if the current user does not have one of those roles
+					if (!array_in_array($user->user_roles, $this->roles)) {
+						// do not add this user
+						$add = false;
+					}
+				}
+				
+				// Hide hidden users
+				if (
 					// if we have set some users which we want to hide
 					is_array($this->hiddenusers) && !empty($this->hiddenusers) &&
 					// and the current user is one of them
-					(in_array($user->user_login, $this->hiddenusers) || in_array($user->user_id, $this->hiddenusers)) )
-				|| (
-					// if we're not grouping anything (not implemented yet)  FIXME
+					(in_array($user->user_login, $this->hiddenusers) || in_array($user->user_id, $this->hiddenusers))) {
+					// do not add this user
+					$add = false;
+				}
+				
+				// Remove duplicates
+				if (
+					// if we're not grouping anything
 					empty($this->group_by) &&
 					// and the current value has already been added
-					in_array($user->user_id, $user_ids))
-				) {
-					// then remove the current user from the array
-					unset($users[$id]);
+					in_array($user->user_id, $user_ids) ) {
+					// do not add this user
+					$add = false;
 				}
-				// else 
-				else {
-					// store the user_id for
+								
+				if ($add === true) {
+					// store current user_id for uniqueness check
 					$user_ids[] = $user->user_id;
+				}
+				else {
+					// remove the current user from the array
+					unset($users[$id]);					
 				}
 			}
 		}
