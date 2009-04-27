@@ -108,6 +108,12 @@ function insertAuthorAvatarsCode() {
 			tagtext += " order=" + order;
 		}
 		
+		// sort direction
+		var sort_dir = jQuery("#sort_direction").val() || "";
+		if (order.length > 0 && sort_dir.length > 0) {
+			tagtext += "," + sort_dir;
+		}
+		
 		// render_as_list
 		// TODO
 	}

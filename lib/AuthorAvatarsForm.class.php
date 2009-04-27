@@ -281,6 +281,7 @@ class AuthorAvatarsForm {
 		$html = '';
 		$html .= $this->renderFieldDisplayOptions($display_values, $name_base);
 		$html .= $this->renderFieldOrder($display_values['order'], $name_base .'[order]');
+		$html .= $this->renderFieldSortDirection($display_values['sort_direction'], $name_base .'[sort_direction]');
 		$html .= '<br />';
 		$html .= $this->renderFieldLimit($display_values['limit'], $name_base .'[limit]');
 		$html .= '<br />';
@@ -321,17 +322,38 @@ class AuthorAvatarsForm {
 	 */
 	function renderFieldOrder($values=array(), $name='order') {
 		$order_options = Array(
-			'user_id' => __('User Id'),
-			'user_login' => __('Login Name'),
-			'display_name' => __('Display Name'),
-			'post_count' => __('Number of Posts'),
 			'date_registered' => __('Date of Registration'),
+			'display_name' => __('Display Name'),
+			'user_login' => __('Login Name'),
+			'post_count' => __('Number of Posts'),
 			'random' => __('Random'),
+			'user_id' => __('User Id'),
 		);
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
 			'label' => 'Sorting order: ',
+		);
+		$name = $this->_getFieldName($name);
+		return '<p>'. FormHelper::choice($name, $order_options, $values, $attributes) .'</p>';
+	}
+	
+	/**
+	 * Renders the "order by" dropdown
+	 *
+	 * @param mixed $values the field values
+	 * @param string $name the field name
+	 * @return string
+	 */
+	function renderFieldSortDirection($values=array(), $name='sort_direction') {
+		$order_options = Array(
+			'asc' => __('Ascending'),
+			'desc' => __('Descending')
+		);
+		
+		$attributes = array(
+			'id' => $this->_getFieldId($name),
+			'label' => 'Sorting direction: ',
 		);
 		$name = $this->_getFieldName($name);
 		return '<p>'. FormHelper::choice($name, $order_options, $values, $attributes) .'</p>';

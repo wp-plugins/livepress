@@ -57,6 +57,12 @@ class UserList {
 	var $order = 'display_name';
 	
 	/**
+	 * The direction which the users are sorted in.
+	 * Possible values: 'ascending' / 'asc' or 'descending' / 'desc'.
+	 */
+	var $sort_direction = 'asc';
+	
+	/**
 	 * Group wrapper template
 	 * - {groups} is replaced by the list of groups
 	 */
@@ -318,6 +324,19 @@ class UserList {
 	}
 	
 	/**
+	 * Returns true if the sort order is to be reversed. 
+	 *
+	 * @access priavte
+	 * @return bool true if field $sort_direction is 'desc', false otherwise.
+	 */
+	function _sort_reverse() {
+		if ($this->sort_direction == 'desc' || $this->sort_direction == 'descending')
+			return -1;
+		else 
+			return 1;
+	}
+	
+	/**
 	 * Sorts the given array of users.
 	 * 
 	 * @access private
@@ -359,7 +378,7 @@ class UserList {
 	 */
 	function _users_cmp_id($a, $b) {
 	    if ($a->user_id == $b->user_id) return 0;
-		return ($a->user_id < $b->user_id) ? -1 : 1;
+		return $this->_sort_reverse() * ( $a->user_id < $b->user_id ? 1 : -1);
 	}
 
 	/**
@@ -371,7 +390,7 @@ class UserList {
 	 * @return result of a string compare of the user_logins.
 	 */
 	function _users_cmp_login($a, $b) {
-		return strcmp($a->user_login, $b->user_login);
+		return $this->_sort_reverse() * strcasecmp($a->user_login, $b->user_login);
 	}
 
 	/**
@@ -383,7 +402,7 @@ class UserList {
 	 * @return result of a string compare of the user display names.
 	 */
 	function _users_cmp_name($a, $b) {
-		return strcmp($a->display_name, $b->display_name);
+		return $this->_sort_reverse() * strcasecmp($a->display_name, $b->display_name);
 	}
 	
 	/**
@@ -399,7 +418,7 @@ class UserList {
 		$bc = $this->get_user_postcount($b->user_id);
 		
 		if ($ac == $bc) return 0;
-		return ($ac > $bc) ? -1 : 1;
+		return $this->_sort_reverse() * ($ac < $bc ? -1 : 1);
 	}
 	
 	/**
@@ -439,7 +458,7 @@ class UserList {
 	 * @return result of a string compare of the user's register date.
 	 */
 	function _user_cmp_regdate($a, $b) {
-		return -1 * strcmp($a->user_registered, $b->user_registered);
+		return $this->_sort_reverse() * strcasecmp($a->user_registered, $b->user_registered);
 	}
 	
 	/**

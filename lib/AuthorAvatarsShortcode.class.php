@@ -98,10 +98,22 @@ class AuthorAvatarsShortcode {
 		}
 		
 		// display order
+		$sort_direction = 'asc';
 		if (!empty($atts['order'])) {
-			$userlist->order = $atts['order'];
+			$order = $atts['order'];
+			if (strpos($order, ',') !== false) {
+				list($order, $sort_direction) = explode(',', $order, 2);
+			}
+			$userlist->order = $order;
 		}
-		
+		if (!empty($atts['sort_direction'])) {
+			$sort_direction = $atts['sort_direction'];
+		}
+		$valid_directions = array('asc', 'ascending', 'desc', 'descending');
+		if (in_array($sort_direction, $valid_directions)) {
+			$userlist->sort_direction = $sort_direction;
+		}
+				
 		// render as a list?
 		if (isset($atts['render_as_list'])) {
 			$set_to_false = ($atts['render_as_list'] == 'false');

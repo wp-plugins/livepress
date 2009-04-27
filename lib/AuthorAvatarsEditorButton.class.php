@@ -120,6 +120,7 @@ class AuthorAvatarsEditorButton {
 		
 		// ADVANCED TAB
 		$adv_left  = $form->renderFieldOrder('display_name');
+		$adv_left .= $form->renderFieldSortDirection('asc');
 		$adv_left .= $form->renderFieldLimit();
 		$adv_left .= $form->renderFieldHiddenUsers();
 		
