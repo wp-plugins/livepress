@@ -248,8 +248,8 @@ class UserList {
 			$blogs_condition = "meta_key = '". $wpdb->prefix ."capabilities'";
 		}
 		
-		$query = "SELECT user_id, user_login, display_name, user_email, meta_key, meta_value FROM $wpdb->users, $wpdb->usermeta".
-			" WHERE " . $wpdb->users . ".ID = " . $wpdb->usermeta . ".user_id AND ". $blogs_condition;
+		$query = "SELECT user_id, user_login, display_name, user_email, user_url, user_registered, meta_key, meta_value FROM $wpdb->users, $wpdb->usermeta".
+			" WHERE " . $wpdb->users . ".ID = " . $wpdb->usermeta . ".user_id AND ". $blogs_condition . " AND user_status = 0";
 				
 		$users = $wpdb->get_results( $query );
 		
@@ -311,7 +311,7 @@ class UserList {
 				}
 				else {
 					// remove the current user from the array
-					unset($users[$id]);					
+					unset($users[$id]);
 				}
 			}
 		}
@@ -344,6 +344,8 @@ class UserList {
 			case 'post_count':
 				usort($users, array($this, '_user_cmp_postcount'));
 				break;
+			case 'date_registered':
+				usort($users, array($this, '_user_cmp_regdate'));
 		}
 	}
 
@@ -426,6 +428,18 @@ class UserList {
 		}
 		
 		return $total;
+	}
+	
+	/**
+	 * Given two users, this function compares the date on which the user registered.
+	 * 
+	 * @access private
+	 * @param $a of type WP_User
+	 * @param $b of type WP_User
+	 * @return result of a string compare of the user's register date.
+	 */
+	function _user_cmp_regdate($a, $b) {
+		return -1 * strcmp($a->user_registered, $b->user_registered);
 	}
 	
 	/**

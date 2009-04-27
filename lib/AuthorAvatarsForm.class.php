@@ -325,13 +325,13 @@ class AuthorAvatarsForm {
 			'user_login' => __('Login Name'),
 			'display_name' => __('Display Name'),
 			'post_count' => __('Number of Posts'),
+			'date_registered' => __('Date of Registration'),
 			'random' => __('Random'),
 		);
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
 			'label' => 'Sorting order: ',
-			
 		);
 		$name = $this->_getFieldName($name);
 		return '<p>'. FormHelper::choice($name, $order_options, $values, $attributes) .'</p>';
