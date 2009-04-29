@@ -4,7 +4,7 @@ Donate link:
 Tags: Avatar, Author, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.6
 Tested up to: 2.7.1
-Stable tag: 0.6.2
+Stable tag: 0.7
 
 Display lists of user avatars using widgets or shortcodes.
 
@@ -12,9 +12,9 @@ Display lists of user avatars using widgets or shortcodes.
 
 This plugin makes it easy to *display lists of user avatars* on your (multiuser) blog. It also allows to *insert single avatars* for blog users or any email address into a post or page. (Great for displaying an image of someone you're talking about.)
 
-Avatar lists can be inserted into your sidebar by adding a widget or into posts/pages by using a [shortcode](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation). The plugin comes with a tinymce editor plugin which makes inserting shortcodes very easy. 
+Avatar lists can be inserted into your sidebar by adding a widget or into posts/pages by using a [shortcode](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation). The plugin comes with a tinymce editor plugin which makes inserting shortcodes very easy.
 
-Both shortcode and widget can be configured to... 
+Both shortcode and widget can be configured to...
 
 *   Show a custom title (widget only)
 *   Only show specific user groups and/or hide certain users
@@ -40,12 +40,13 @@ Please report bugs and provide feedback in the [wordpress support forum](http://
 *   I18n: provide base for translations
 *   Any ideas or suggestions? [tell us about it](mailto:b.forchhammer@mind2.de)!
 
-= Latest Changes (Version 0.6) =
+= Latest Changes (Version 0.7) =
 
-*   Implementation of new Shortcode insertion wizard (tinymce plugin)
-*   Improved handling of script files and css stylesheets
-*   New classes FormHelper AuthorAvatarsForm  for easy and consistent rendering of form fields
-*   Various Code Documentation Changes and Cleanups
+*   Implemented new sorting by "number of posts" and "date of registration"
+*   Added "sort direction" setting
+*   Fixed numeric sorting (user id)
+*   New option to link user avatars to their "website" or "blog" (wpmu)
+*   Fixed uninstall behaviour
 
 [Full Changelog](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_Changelog)
 
@@ -86,19 +87,19 @@ Make sure you have enabled the "blog filter" in Site Admin / Author Avatars for 
 
 And you are running [Wordpress MU](http://mu.wordpress.org/), right?
 
-= Can I upload custom pictures for users? = 
+= Can I upload custom pictures for users? =
 
 No, the Author Avatars List plugin only provides ways of <strong>displaying</strong> user avatars.
 
-The plugin uses the Wordpress Core Template function <code>get_avatar()</code> to retrieve the actual avatar images. In order to display custom images you need to look for plugins which use/override WordPress' avatar features and provide respective upload features... 
+The plugin uses the Wordpress Core Template function <code>get_avatar()</code> to retrieve the actual avatar images. In order to display custom images you need to look for plugins which use/override WordPress' avatar features and provide respective upload features...
 
 Have a look at the [User Photo](http://wordpress.org/extend/plugins/user-photo/) Plugin (turn on option "Override Avatar with User Photo") or the [Add Local Avatar](http://wordpress.org/extend/plugins/add-local-avatar/) Plugin.
 
-= I get a "404 Page not found" error when I click on the avatar of a user! = 
+= I get a "404 Page not found" error when I click on the avatar of a user! =
 
 This happens when the user has not written any posts on a blog. There are two things that you should do in this situation:
 
-1. To prevent the 404 page from showing up install the [Show authors without posts](http://wordpress.org/extend/plugins/show-authors-without-posts/) Plugin. This forces WordPress to always show the user page if the user exists. 
+1. To prevent the 404 page from showing up install the [Show authors without posts](http://wordpress.org/extend/plugins/show-authors-without-posts/) Plugin. This forces WordPress to always show the user page if the user exists.
 
 2. If not already there add a custom user/author template to your theme. Otherwise if a user has no posts their user page is going to be quite empty by default...
 You can find a [tutorial](http://codex.wordpress.org/Author_Templates) on Author Templates as well as a [Sample Template File](http://codex.wordpress.org/Author_Templates#Sample_Template_File) in the WordPress Codex.
