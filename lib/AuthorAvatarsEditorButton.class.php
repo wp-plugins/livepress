@@ -109,7 +109,8 @@ class AuthorAvatarsEditorButton {
 		
 		$basic_left .= '<div class="fields_type_authoravatars">';
 		$basic_left .= $form->renderFieldRoles(array('administrator', 'editor'));
-		$basic_left .= $form->renderFieldDisplayOptions(array('link_to_authorpage'));
+		$basic_left .= $form->renderFieldDisplayOptions();
+		$basic_left .= $form->renderFieldUserLink('authorpage');
 		$basic_left .= '</div>';
 		
 		$basic_right = $form->renderFieldAvatarSize();

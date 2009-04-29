@@ -30,11 +30,11 @@ class UserList {
 	 * Grouping of users. For example set to "blog" to group users by blogs.
 	 */
 	var $group_by = '';
-	
+		
 	/**
-	 * Flag whether to link user avatars to the respective user pages.
+	 * Link the user to either the "authorpage", "blog" (wpmu) or "website"
 	 */
-	var $link_to_authorpage = true;
+	var $user_link = 'authorpage';
 	
 	/**
 	 * Flag whether to show the username underneith their avatar.
@@ -188,11 +188,28 @@ class UserList {
 		$divcss = array('user');
 		if ($this->show_name) $divcss[] = 'with-name';
 		
+		$link = false;
+		switch ($this->user_link) {
+			case 'authorpage':
+				$link = get_author_posts_url($user->user_id);
+				break;
+			case 'website':
+				$link = $user->user_url;
+				if (empty($link) || $link == 'http://') $link = false;
+				break;
+			case 'blog':
+				if (AA_is_wpmu()) {
+					$blog = get_active_blog_for_user($user->user_id);
+					if (!empty($blog->siteurl)) $link = $blog->siteurl;
+				}
+				break;	
+		}
+		
 		$html = '';
-		if ($this->link_to_authorpage) $html .= '<a href="'. get_author_posts_url($user->user_id).'">';
+		if ($link) $html .= '<a href="'. $link .'">';
 		$html .= '<span class="avatar">'. $avatar .'</span>';
 		if ($this->show_name) $html .= '<span class="name">'. $name . '</span>';
-		if ($this->link_to_authorpage) $html .= '</a>';
+		if ($link) $html .= '</a>';
 		
 		$tpl_vars['{class}'] = implode($divcss, ' ');
 		$tpl_vars['{user}'] = $html;

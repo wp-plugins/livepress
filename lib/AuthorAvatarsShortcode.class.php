@@ -71,11 +71,15 @@ class AuthorAvatarsShortcode {
 		}
 		$userlist->hiddenusers = $hiddenusers;
 		
-		// link to author page?
+		// link to author page? (deprecated)
 		if (isset($atts['link_to_authorpage'])) {
 			// by default always true, has to be set explicitly to not link the users
 			$set_to_false = ($atts['link_to_authorpage'] == 'false' || (bool) $atts['link_to_authorpage'] == false);
-			if ($set_to_false) $userlist->link_to_authorpage = false;
+			if ($set_to_false) $userlist->user_link = false;
+		}
+		
+		if (!empty($atts['user_link'])) {
+			$userlist->user_link = $atts['user_link'];
 		}
 		
 		// show author name?

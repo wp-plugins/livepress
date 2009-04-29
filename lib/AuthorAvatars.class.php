@@ -258,6 +258,24 @@ class AuthorAvatars {
 		// return true if update successful
 		return true;
 	}
+	
+	/**
+	 * Do update step 0.6.2 to 0.6.3
+	 */
+	function update__062_063() {
+		$widgets = get_option('multiwidget_author_avatars');
+		foreach ($widgets as $id => &$widget) {
+			if (!empty($widget['display']) && is_array($widget['display'])) {
+				$key = array_search('link_to_authorpage', $widget['display']);
+				if ($key !== false) {
+					unset($widget['display'][$key]);
+					$widget['display']['user_link'] = 'authorpage';
+				}
+			}
+		}
+		update_option('multiwidget_author_avatars', $widgets);
+		return true;
+	}
 }
 
 ?>

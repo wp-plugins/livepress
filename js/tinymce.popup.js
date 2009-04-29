@@ -83,11 +83,11 @@ function insertAuthorAvatarsCode() {
 		if (hiddenusers.length > 0) {
 			tagtext += " hiddenusers=" + hiddenusers;
 		}
-				
-		// link_to_authorpage
-		var link_to_authorpage = jQuery("#display input[value=link_to_authorpage]").attr("checked");
-		if (link_to_authorpage != true) {
-			tagtext += " link_to_authorpage=false";
+
+		// user_link
+		var user_link = jQuery("#user_link").val() || "";
+		if (user_link.length > 0) {
+			tagtext += " user_link=" + user_link;
 		}
 		
 		// show_name

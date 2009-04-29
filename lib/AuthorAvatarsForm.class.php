@@ -280,6 +280,7 @@ class AuthorAvatarsForm {
 	function renderDisplayOptions ($display_values=array(), $name_base='display') {
 		$html = '';
 		$html .= $this->renderFieldDisplayOptions($display_values, $name_base);
+		$html .= $this->renderFieldUserLink($display_values, $name_base . '[user_link]');
 		$html .= $this->renderFieldOrder($display_values['order'], $name_base .'[order]');
 		$html .= $this->renderFieldSortDirection($display_values['sort_direction'], $name_base .'[sort_direction]');
 		$html .= '<br />';
@@ -290,7 +291,7 @@ class AuthorAvatarsForm {
 	}
 	
 	/**
-	 * Renders the display options checkbox matrix (show name?, link to author page?)
+	 * Renders the display options checkbox matrix (show name?)
 	 *
 	 * @param mixed $values the field values
 	 * @param string $name the field name
@@ -298,8 +299,7 @@ class AuthorAvatarsForm {
 	 */
 	function renderFieldDisplayOptions($values=array(), $name='display') {
 		$display_options = Array(
-			'show_name' => __('Show Name'),
-			'link_to_authorpage' => __('Link avatar to <a href="http://codex.wordpress.org/Author_Templates" target="_blank">author page</a>.'),
+			'show_name' => __('Show Name')
 		);
 		
 		$attributes = array(
@@ -336,6 +336,31 @@ class AuthorAvatarsForm {
 		);
 		$name = $this->_getFieldName($name);
 		return '<p>'. FormHelper::choice($name, $order_options, $values, $attributes) .'</p>';
+	}
+	
+	/**
+	 * Renders the "user_link" dropdown
+	 *
+	 * @param mixed $values the field values
+	 * @param string $name the field name
+	 * @return string
+	 */
+	function renderFieldUserLink($values=array(), $name='user_link') {
+		$user_link_options = Array(
+			'' => __('-'),
+			'authorpage' => __('Author Page'),
+			'website' => __('Website'),
+		);
+		if (AA_is_wpmu()) {
+			$user_link_options['blog'] = __('Blog');
+		}
+		
+		$attributes = array(
+			'id' => $this->_getFieldId($name),
+			'label' => __('Link users to') . ': ',
+		);
+		$name = $this->_getFieldName($name);
+		return '<p>'. FormHelper::choice($name, $user_link_options, $values, $attributes) .'</p>';
 	}
 	
 	/**

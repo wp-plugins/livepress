@@ -21,11 +21,11 @@ class AuthorAvatarsWidget extends MultiWidget
 			'roles' => array('administrator', 'editor'),
 			'group_by' => '',
 			'display' => array(
-				0 => 'link_to_authorpage',
 				'avatar_size' => '',
 				'limit' => '',
 				'order' => 'display_name',
 				'sort_direction' => 'asc',
+				'user_link' => 'authorpage',
 			),
 		);
 		
@@ -100,7 +100,7 @@ class AuthorAvatarsWidget extends MultiWidget
 		
 		if (is_array($instance['display'])) {
 			$userlist->show_name = in_array('show_name', $instance['display']);
-			$userlist->link_to_authorpage = in_array('link_to_authorpage', $instance['display']);
+			$userlist->user_link = $instance['display']['user_link'];
 			$userlist->avatar_size = $instance['display']['avatar_size'];
 			$userlist->limit = $instance['display']['limit'];
 			$userlist->order = $instance['display']['order'];
@@ -168,6 +168,7 @@ class AuthorAvatarsWidget extends MultiWidget
 				
 		$basic_left .= $form->renderFieldRoles($instance['roles']);
 		$basic_left .= $form->renderFieldDisplayOptions($instance['display']);
+		$basic_left .= $form->renderFieldUserLink($instance['display']['user_link'], 'display][user_link');
 		
 		$basic_right = $form->renderFieldAvatarSize($instance['display']['avatar_size'], 'display][avatar_size');
 		
