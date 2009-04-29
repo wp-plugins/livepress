@@ -3,14 +3,16 @@ function init() {
 	// init jquery tabs
 	jQuery('.aa-tabs>ol').tabs();
 	jQuery('.aa-tabs>ol').tabs('disable', 1);
-	
+
 	// hide or show fields & bind change event handler
 	jQuery('#shortcode_type label').click(AA_updateFieldVisibility);
-	
+
 	// initialise the resizable avatar preview
 	AA_init_avatarpreview(jQuery("div.avatar_size_preview"), jQuery('input.avatar_size_input'));
-	
-	// resize the tinymce popup (???)
+
+	// check visibility of sortdirection field
+  AA_check_sortdirection_status();
+
 	tinyMCEPopup.resizeToInnerSize();
 }
 tinyMCEPopup.executeOnLoad('init();')
@@ -23,7 +25,7 @@ function AA_updateFieldVisibility(evt) {
 	} else {
 		selected_value = jQuery('#shortcode_type :checked').val();
 	}
-	
+
 	if (selected_value == 'show_avatar') {
 		jQuery('.fields_type_authoravatars').hide();
 		jQuery('.fields_type_show_avatar').show();
@@ -43,7 +45,7 @@ function AA_updateFieldVisibility(evt) {
 
 function insertAuthorAvatarsCode() {
 	var error = false;
-	
+
 	// get shortcode type
 	var type = jQuery('#shortcode_type :checked').val() || '';
 	if (type.length == 0) {
@@ -53,11 +55,11 @@ function insertAuthorAvatarsCode() {
 	else {
 		jQuery('#shortcode_type').removeClass('aa-form-error');
 	}
-	
+
 	var tagtext = "[" + type;
-	
+
 	if (type == 'authoravatars') {
-		
+
 		// blogs
 		var blogs = jQuery("#blogs").val() || [];
 	    if (blogs.length > 0) {
@@ -70,7 +72,7 @@ function insertAuthorAvatarsCode() {
 	    if (group_by.length > 0) {
 	        tagtext += " group_by=" + group_by.join(',');
 	    }
-		
+
 		// roles
 		var roles = new Array();
 		jQuery("#roles :checked").each(function(i, el) { roles.push(jQuery(el).val()); });
@@ -89,37 +91,37 @@ function insertAuthorAvatarsCode() {
 		if (user_link.length > 0) {
 			tagtext += " user_link=" + user_link;
 		}
-		
+
 		// show_name
 		var show_name = jQuery("#display input[value=show_name]").attr("checked");
 		if (show_name == true) {
 			tagtext += " show_name=true";
 		}
-		
+
 		// limit
 		var limit = jQuery("#limit").val() || "";
 		if (limit.length > 0) {
 			tagtext += " limit=" + limit;
 		}
-		
+
 		// order
 		var order = jQuery("#order").val() || "";
 		if (order.length > 0) {
 			tagtext += " order=" + order;
 		}
-		
+
 		// sort direction
 		var sort_dir = jQuery("#sort_direction").val() || "";
 		if (order.length > 0 && sort_dir.length > 0) {
 			tagtext += "," + sort_dir;
 		}
-		
+
 		// render_as_list
 		// TODO
 	}
-	
+
 	if (type == 'show_avatar') {
-		
+
 		// email or id
 		var email = jQuery('#email').val() || '';
 		if (email.length > 0) {
@@ -130,27 +132,27 @@ function insertAuthorAvatarsCode() {
 			jQuery('#email').parent().parent().addClass('aa-form-error');
 			error = true;
 		}
-		
+
 		// alignment
 		var align = jQuery('#alignment :checked').val() || '';
 		if (align.length > 0) {
 			tagtext += " align=" + align;
 		}
-		
+
 	}
-	
+
 	// avatar_size
 	var avatar_size = jQuery("#avatar_size").val() || "";
 	if (avatar_size.length > 0) {
 		tagtext += " avatar_size=" + avatar_size;
 	}
-	
+
     tagtext += "]";
 
 	if (error == true) {
 		return;
 	}
-	
+
     if (window.tinyMCE) {
 		window.tinyMCE.execInstanceCommand('content', 'mceInsertContent', false, tagtext);
 		tinyMCEPopup.editor.execCommand('mceRepaint');
