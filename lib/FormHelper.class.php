@@ -81,18 +81,14 @@ class FormHelper {
 		$wrapper_attributes['id'] = !empty($attributes['id']) ? $attributes['id'] : $name;
 		$wrapper_attributes['id'] = FormHelper::cleanHtmlId($wrapper_attributes['id']);
 
-		// if we only have one choice and we're rendering radio buttons then render a checkbox instead but not use the array name []
-		if (count($choices) == 1 && $expanded) {
-			$multiple = true;
-		}
-		elseif ($multiple) {
+    if ($multiple) {
 			$name .= '[]';
 		}
 
 		if ($expanded) {
 			$row_attributes['name'] = $name;
 
-			if ($multiple) {
+			if ($multiple || count($choices) == 1) {
 				$row_attributes['type'] = 'checkbox';
 				$row_attributes['class'] = empty($row_attributes['class']) ? 'checkbox' : ' checkbox';
 			}
