@@ -293,7 +293,7 @@ class UserList {
 			$user_ids = array();
 			
 			foreach($users as $id => $usr) {
-				$user =& $users[$id];
+				$user = &$users[$id];
 				$add = true;
 				
 				// Check user role
@@ -342,12 +342,12 @@ class UserList {
 	}
 	
 	/**
-	 * Returns true if the sort order is to be reversed. 
+	 * Returns 1 if the sort direction is "ascending" and -1 if it is "descending"
 	 *
-	 * @access priavte
-	 * @return bool true if field $sort_direction is 'desc', false otherwise.
+	 * @access private
+	 * @return int '-1' if field $sort_direction is 'desc', '1' otherwise.
 	 */
-	function _sort_reverse() {
+	function _sort_direction() {
 		if ($this->sort_direction == 'desc' || $this->sort_direction == 'descending')
 			return -1;
 		else 
@@ -396,7 +396,7 @@ class UserList {
 	 */
 	function _users_cmp_id($a, $b) {
 	    if ($a->user_id == $b->user_id) return 0;
-		return $this->_sort_reverse() * ( $a->user_id < $b->user_id ? 1 : -1);
+		return $this->_sort_direction() * ( $a->user_id < $b->user_id ? 1 : -1);
 	}
 
 	/**
@@ -408,7 +408,7 @@ class UserList {
 	 * @return result of a string compare of the user_logins.
 	 */
 	function _users_cmp_login($a, $b) {
-		return $this->_sort_reverse() * strcasecmp($a->user_login, $b->user_login);
+		return $this->_sort_direction() * strcasecmp($a->user_login, $b->user_login);
 	}
 
 	/**
@@ -420,7 +420,7 @@ class UserList {
 	 * @return result of a string compare of the user display names.
 	 */
 	function _users_cmp_name($a, $b) {
-		return $this->_sort_reverse() * strcasecmp($a->display_name, $b->display_name);
+		return $this->_sort_direction() * strcasecmp($a->display_name, $b->display_name);
 	}
 	
 	/**
@@ -436,7 +436,7 @@ class UserList {
 		$bc = $this->get_user_postcount($b->user_id);
 		
 		if ($ac == $bc) return 0;
-		return $this->_sort_reverse() * ($ac < $bc ? -1 : 1);
+		return $this->_sort_direction() * ($ac < $bc ? -1 : 1);
 	}
 	
 	/**
@@ -476,7 +476,7 @@ class UserList {
 	 * @return result of a string compare of the user's register date.
 	 */
 	function _user_cmp_regdate($a, $b) {
-		return $this->_sort_reverse() * strcasecmp($a->user_registered, $b->user_registered);
+		return $this->_sort_direction() * strcasecmp($a->user_registered, $b->user_registered);
 	}
 	
 	/**
