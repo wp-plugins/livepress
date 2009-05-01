@@ -292,7 +292,8 @@ class UserList {
 			// array keeping track of all 'valid' user_ids
 			$user_ids = array();
 			
-			foreach($users as $id => &$user) {
+			foreach($users as $id => $usr) {
+				$user =& $users[$id];
 				$add = true;
 				
 				// Check user role
