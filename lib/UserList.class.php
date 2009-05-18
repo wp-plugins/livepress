@@ -181,7 +181,7 @@ class UserList {
 
 		$name = $user->display_name;
 
-		$avatar = get_avatar($user->user_email, $avatar_size);
+		$avatar = get_avatar($user->user_id, $avatar_size);
 		$avatar = preg_replace('@alt=["\'][\w]*["\'] ?@', '', $avatar);
 		$avatar = preg_replace('@ ?\/>@', ' alt="'.$name.'" title="'.$name.'" />', $avatar);
 
