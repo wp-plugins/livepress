@@ -351,6 +351,9 @@ class AuthorAvatarsForm {
 			'authorpage' => __('Author Page'),
 			'website' => __('Website'),
 		);
+		if (function_exists('bp_core_get_userurl')) {
+			$user_link_options['bp_memberpage'] = __('BP Member Page');
+		}
 		if (AA_is_wpmu()) {
 			$user_link_options['blog'] = __('Blog');
 		}

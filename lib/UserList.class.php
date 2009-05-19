@@ -202,7 +202,12 @@ class UserList {
 					$blog = get_active_blog_for_user($user->user_id);
 					if (!empty($blog->siteurl)) $link = $blog->siteurl;
 				}
-				break;	
+				break;
+			case 'bp_memberpage':
+				if (function_exists('bp_core_get_userurl')) {
+					$link = bp_core_get_userurl($user->user_id);
+				}
+				break;
 		}
 		
 		$html = '';
