@@ -1,10 +1,10 @@
 === Author Avatars List ===
 Contributors: bforchhammer, pbearne
 Donate link:
-Tags: Avatar, Author, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
+Tags: Avatar, Author, BuddyPress, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.6
 Tested up to: 2.7.1
-Stable tag: 0.7.2
+Stable tag: 0.7.3
 
 Display lists of user avatars using widgets or shortcodes.
 
@@ -47,6 +47,7 @@ Please report bugs and provide feedback in the [wordpress support forum](http://
 *   Fixed numeric sorting (user id)
 *   New option to link user avatars to their "website" or "blog" (wpmu)
 *   Fixed uninstall behaviour
+*   Added BuddyPress Compatibility
 
 [Full Changelog](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_Changelog)
 
