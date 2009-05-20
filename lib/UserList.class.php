@@ -116,14 +116,15 @@ class UserList {
 	/**
 	 * Returns the list of users.
 	 *
-	 * @return the html formatted list of users
+	 * @uses apply_filters() Calls 'aa_userlist_empty' hook
+	 * @return String the html formatted list of users
 	 */
 	function get_output() {
 		// get users
 		$users = $this->get_users();
 		
 		if (empty($users)) {
-			return '<p class="no_users">No users found.</p>';
+			return apply_filters('aa_userlist_empty', '<p class="no_users">No users found.</p>');
 		}
 		elseif (!empty($this->group_by)) {
 			return $this->format_groups($users);
@@ -136,8 +137,10 @@ class UserList {
 	/**
 	 * Formats a grouped list of users
 	 *
-	 * @param $groups Array of an array of users. The array keys are used to retrieve the group name (see _group_name())
-	 * @return the html formatted list of grouped users
+	 * @param Array $groups Array of an array of users. The array keys are used to retrieve the group name (see _group_name())
+	 * @uses apply_filters() Calls 'aa_userlist_group_wrapper_template' hook
+	 * @uses apply_filters() Calls 'aa_userlist_group_template' hook
+	 * @return String the html formatted list of grouped users
 	 */
 	function format_groups ($groups) {
 		$html = '';	
@@ -147,31 +150,33 @@ class UserList {
 				'{group}' => $this->format_users($group_users),
 			);
 			
-			$html .= str_replace(array_keys($tpl_vars), $tpl_vars, $this->group_template);
+			$html .= str_replace(array_keys($tpl_vars), $tpl_vars, apply_filters('aa_userlist_group_template', $this->group_template));
 		}
-		return str_replace('{groups}', $html, $this->group_wrapper_template);	
+		return str_replace('{groups}', $html, apply_filters('aa_userlist_group_wrapper_template', $this->group_wrapper_template));
 	}
 	
 	/**
 	 * Formats a list of users
 	 *
-	 * @param $groups An array of users.
-	 * @return the html formatted list of users
+	 * @param Array $groups An array of users.
+	 * @uses apply_filters() Calls 'aa_userlist_template' hook
+	 * @return String the html formatted list of users
 	 */
 	function format_users($users) {
 		$html = '';
 		foreach ($users as $user) {
 			$html .= $this->format_user($user);
 		}
-		return str_replace('{users}', $html, $this->userlist_template);	
+		return str_replace('{users}', $html, apply_filters('aa_userlist_template', $this->userlist_template));
 	}
 	
 	
 	/**
 	 * Formats the given user as html.
 	 *
-	 * @param $user The user to format (object of type WP_User).
-	 * @return html string
+	 * @param WP_User $user The user to format (object of type WP_User).
+ 	 * @uses apply_filters() Calls 'aa_user_template' hook
+	 * @return String html
 	 */
 	function format_user($user) {
 		$tpl_vars = array('{class}' => '', '{user}' => '');
@@ -219,7 +224,7 @@ class UserList {
 		$tpl_vars['{class}'] = implode($divcss, ' ');
 		$tpl_vars['{user}'] = $html;
 
-		return str_replace(array_keys($tpl_vars), $tpl_vars, $this->user_template);
+		return str_replace(array_keys($tpl_vars), $tpl_vars, apply_filters('aa_user_template', $this->user_template));
 	}
 	
 	/**
@@ -363,8 +368,8 @@ class UserList {
 	 * Sorts the given array of users.
 	 * 
 	 * @access private
-	 * @param $users Array of users (WP_User objects). (by reference)
-	 * @param $order The key to sort by. Can be one of the following: random, user_id, user_login, display_name.
+	 * @param Array $users Array of users (WP_User objects). (by reference)
+	 * @param String $order The key to sort by. Can be one of the following: random, user_id, user_login, display_name.
 	 * @return void
 	 */
 	function _sort(&$users, $order=false) {
@@ -395,9 +400,9 @@ class UserList {
 	 * Given two users, this function compares the user_ids.
 	 * 
 	 * @access private
-	 * @param $a of type WP_User
-	 * @param $b of type WP_User
-	 * @return result of a string compare of the user_ids.
+	 * @param WP_User $a
+	 * @param WP_User $b
+	 * @return int result of a string compare of the user_ids.
 	 */
 	function _users_cmp_id($a, $b) {
 	    if ($a->user_id == $b->user_id) return 0;
@@ -408,9 +413,9 @@ class UserList {
 	 * Given two users, this function compares the user_logins.
 	 * 
 	 * @access private
-	 * @param $a of type WP_User
-	 * @param $b of type WP_User
-	 * @return result of a string compare of the user_logins.
+	 * @param WP_User $a
+	 * @param WP_User $b
+	 * @return int result of a string compare of the user_logins.
 	 */
 	function _users_cmp_login($a, $b) {
 		return $this->_sort_direction() * strcasecmp($a->user_login, $b->user_login);
@@ -420,9 +425,9 @@ class UserList {
 	 * Given two users, this function compares the user's display names.
 	 * 
 	 * @access private
-	 * @param $a of type WP_User
-	 * @param $b of type WP_User
-	 * @return result of a string compare of the user display names.
+	 * @param WP_User $a
+	 * @param WP_User $b
+	 * @return int result of a string compare of the user display names.
 	 */
 	function _users_cmp_name($a, $b) {
 		return $this->_sort_direction() * strcasecmp($a->display_name, $b->display_name);
@@ -432,9 +437,9 @@ class UserList {
 	 * Given two users, this function compares the user's post count.
 	 * 
 	 * @access private
-	 * @param $a of type WP_User
-	 * @param $b of type WP_User
-	 * @return result of a string compare of the user display names.
+	 * @param WP_User $a
+	 * @param WP_User $b
+	 * @return int result of a string compare of the user display names.
 	 */
 	function _user_cmp_postcount($a, $b) {
 		$ac = $this->get_user_postcount($a->user_id);
@@ -448,7 +453,7 @@ class UserList {
 	 * Returns the postcount for a given user. 
 	 * On WPMU sites posts are counted from all blogs in field $blogs and summed up.
 	 *
-	 * @param $user_id
+	 * @param int $user_id
 	 * @return int post count
 	 */
 	function get_user_postcount($user_id) {	
@@ -476,9 +481,9 @@ class UserList {
 	 * Given two users, this function compares the date on which the user registered.
 	 * 
 	 * @access private
-	 * @param $a of type WP_User
-	 * @param $b of type WP_User
-	 * @return result of a string compare of the user's register date.
+	 * @param WP_User $a
+	 * @param WP_User $b
+	 * @return int result of a string compare of the user's register date.
 	 */
 	function _user_cmp_regdate($a, $b) {
 		return $this->_sort_direction() * strcasecmp($a->user_registered, $b->user_registered);
@@ -487,8 +492,8 @@ class UserList {
 	/**
 	 * Get blogs of user
 	 *
-	 * @param $user_id
-	 * @return array of blog ids
+	 * @param int $user_id
+	 * @return Array of blog ids
 	 */
 	function get_user_blogs($user_id) {
 		global $wpdb;
@@ -510,6 +515,10 @@ class UserList {
 	
 	/**
 	 * Group the given set of users if set in field "group_by"
+	 *
+	 * @param Array of WP_User objects, by reference
+	 * @access private
+	 * @return void
 	 */
 	function _group(&$users) {
 		if (empty($this->group_by)) return;
@@ -537,6 +546,13 @@ class UserList {
 		}
 	}
 	
+	/**
+	 * Retrieves the name for a group
+	 * 
+	 * @param int Group identifier
+	 * @access private
+	 * @return string
+	 */
 	function _group_name($id) {
 		$name = 'Group #'. $id;
 		if (!empty($this->group_by)) {			
