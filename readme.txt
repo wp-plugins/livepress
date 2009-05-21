@@ -59,6 +59,8 @@ Please report bugs and provide feedback in the [wordpress support forum](http://
 
 [Look at this page](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) to find out how to use the [authoravatars] shortcode.
 
+You can find information for developers [on this page](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_Developers_Guide).
+
 [Changelog](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_Changelog)
 
 == Screenshots ==
@@ -98,7 +100,7 @@ Have a look at the [User Photo](http://wordpress.org/extend/plugins/user-photo/)
 
 = I get a "404 Page not found" error when I click on the avatar of a user! =
 
-This happens when the user has not written any posts on a blog. There are two things that you should do in this situation:
+This can happens when you've choosen to link users to their "author page" and the user has not written any posts on a blog. There are two things that you should do in this situation:
 
 1. To prevent the 404 page from showing up install the [Show authors without posts](http://wordpress.org/extend/plugins/show-authors-without-posts/) Plugin. This forces WordPress to always show the user page if the user exists.
 
