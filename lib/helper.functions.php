@@ -13,9 +13,9 @@ function AA_is_wpmu() {
 endif;
 
 /**
- * Helper function which checks whether we are running wpmu
+ * Helper function which checks whether we are running buddypress
  *
- * @return bool true if we are on a wordpress mu system, false otherwise.
+ * @return bool true if we are on a system running buddypress, false otherwise.
  */
 if (!function_exists('AA_is_bp')):
 function AA_is_bp() {
