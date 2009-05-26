@@ -329,6 +329,9 @@ class AuthorAvatarsForm {
 			'random' => __('Random'),
 			'user_id' => __('User Id'),
 		);
+		if (AA_is_bp() || function_exists('get_memberlastvisit') ) {
+			$order_options['recent_activity'] = __('Recent Activity');
+		}
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),

@@ -13,6 +13,17 @@ function AA_is_wpmu() {
 endif;
 
 /**
+ * Helper function which checks whether we are running wpmu
+ *
+ * @return bool true if we are on a wordpress mu system, false otherwise.
+ */
+if (!function_exists('AA_is_bp')):
+function AA_is_bp() {
+	return defined('BP_CORE_VERSION');
+}
+endif;
+
+/**
  * Case insensitive version of in_array().
  *
  * @see http://us2.php.net/manual/en/function.in-array.php#88844
