@@ -260,10 +260,10 @@ class AuthorAvatars {
 	}
 
 	/**
-	 * Do update step 0.6.2 to 0.6.3
+	 * Do update step 0.6.2 to 0.7
 	 */
 	function update__062_07() {
-		$widgets = get_option('multiwidget_author_avatars');
+		$widgets = (array) get_option('multiwidget_author_avatars');
 		foreach ($widgets as $id => $widget) {
 			if (!empty($widget['display']) && is_array($widget['display'])) {
 				$key = array_search('link_to_authorpage', $widget['display']);
