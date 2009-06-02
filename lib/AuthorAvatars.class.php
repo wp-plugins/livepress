@@ -45,8 +45,20 @@ class AuthorAvatars {
 
 		// include settings file
 		require_once('AuthorAvatarsSettings.class.php');
-
-		// no initialisation needed as that's done on the fly when used the first time..
+		
+		// load translation domain on init action
+		add_action('init', array($this, 'load_translation_domain'));
+	}
+	
+	/**
+	 * Loads the translation domain for ngettext calls
+	 *
+	 * @see http://codex.wordpress.org/User:Nbachiyski/I18n_for_WordPress_Developers#I18n_for_theme_and_plugin_developers
+	 */
+	function load_translation_domain() {
+		// load translation file
+		$plugin_dir = basename(dirname(dirname(__FILE__)));
+		load_plugin_textdomain( 'author-avatars', false, $plugin_dir . '/translations' );
 	}
 
 	/**
