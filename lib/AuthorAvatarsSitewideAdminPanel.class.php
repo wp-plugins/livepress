@@ -32,7 +32,7 @@ class AuthorAvatarsSitewideAdminPanel {
 	function add_submenu() {
 		get_currentuserinfo();
 		if (!is_site_admin()) return false; // only for site admins
-		add_submenu_page('wpmu-admin.php', __('Sitewide Author Avatars Configuration'), __('Author Avatars List'), 10, 'wpmu_author_avatars', array(&$this,'config_page'));
+		add_submenu_page('wpmu-admin.php', __('Sitewide Author Avatars Configuration', 'author-avatars'), __('Author Avatars List', 'author-avatars'), 10, 'wpmu_author_avatars', array(&$this,'config_page'));
 	}
 	
 	/**
@@ -57,23 +57,23 @@ class AuthorAvatarsSitewideAdminPanel {
 		echo '<div class="wrap">';
 		
 		if ($updated === true) {
-			echo '<div id="message" class="updated fade"><p>'. __('Options saved.') .'</p></div>';
+			echo '<div id="message" class="updated fade"><p>'. __('Options saved.', 'author-avatars') .'</p></div>';
 		}
 		elseif (is_array($updated)) {
 			echo '<div class="error"><p>'. implode('<br />',$updated) .'</p></div>';
 		}
 		
-		echo '<h2>'. __('Sitewide Author Avatars Options') .'</h2>';
+		echo '<h2>'. __('Sitewide Author Avatars Options', 'author-avatars') .'</h2>';
 		
 		echo '<form method="post" id="wpmu_author_avatars_settings" action="">';
-		echo '<h3>'. __('Avatar list settings') .'</h3>';
+		echo '<h3>'. __('Avatar list settings', 'author-avatars') .'</h3>';
 		echo '<table class="form-table">';
 		$this->_render_blogfilter_active_setting();
 
 		echo '</table>';
 		echo FormHelper::input('hidden', 'action', 'update');
 		echo '<p class="submit">';
-		echo FormHelper::input('submit', 'wpmu_author_avatars_settings_save', __('Save Changes'));
+		echo FormHelper::input('submit', 'wpmu_author_avatars_settings_save', __('Save Changes', 'author-avatars'));
 		echo '</p>';
 		echo '</form>';
 		echo '</div>';
@@ -83,14 +83,14 @@ class AuthorAvatarsSitewideAdminPanel {
 		require_once('AuthorAvatarsForm.class.php');
 
 		echo '<tr valign="top">';
-		echo '<th scope="row">'. __('Enable blog filter') . '</th><td>';
+		echo '<th scope="row">'. __('Enable blog filter', 'author-avatars') . '</th><td>';
 		echo FormHelper::choice(
 			'settings_sitewide[blog_filters_enabled]',
 			AuthorAvatarsForm::_getAllBlogs(),
 			$this->settings->get_sitewide('blog_filters_enabled'),
 			array(
 				'multiple' => true,
-				'label' => __('Select the blogs which you would like the blog filter to be enabled. Only blogs selected here can display users from other blogs.'),
+				'label' => __('Select the blogs which you would like the blog filter to be enabled. Only blogs selected here can display users from other blogs.', 'author-avatars'),
 			)
 		);
 		echo '</td>';

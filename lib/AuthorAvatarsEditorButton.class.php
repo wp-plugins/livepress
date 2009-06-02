@@ -80,7 +80,7 @@ class AuthorAvatarsEditorButton {
     function render_tinymce_popup_head() {
         echo '<head>';
 		
-        echo "\n\t".'<title>'. __('Author avatars shortcodes') . '</title>';
+        echo "\n\t".'<title>'. __('Author avatars shortcodes', 'author-avatars') . '</title>';
         echo "\n\t".'<meta http-equiv="Content-Type" content="'. get_bloginfo('html_type').'; charset='. get_option('blog_charset').'" />';
 		
         wp_print_scripts(array('jquery', 'jquery-ui-resizable', 'tinymce-popup', 'author-avatars-tinymce-popup'));
@@ -115,7 +115,7 @@ class AuthorAvatarsEditorButton {
 		
 		$basic_right = $form->renderFieldAvatarSize();
 		
-		$basic_tab  = $form->renderTabStart(__('Basic'));
+		$basic_tab  = $form->renderTabStart(__('Basic', 'author-avatars'));
 		$basic_tab .= $form->renderColumns($basic_left, $basic_right);
 		$basic_tab .= $form->renderTabEnd();
 		
@@ -132,7 +132,7 @@ class AuthorAvatarsEditorButton {
 		}		
 		$adv_right .= $form->renderFieldGroupBy();
 		
-		$advanced_tab  = $form->renderTabStart(__('Advanced'));
+		$advanced_tab  = $form->renderTabStart(__('Advanced', 'author-avatars'));
 		$advanced_tab .= $form->renderColumns($adv_left, $adv_right);
 		$advanced_tab .= $form->renderTabEnd();
 		

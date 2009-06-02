@@ -10,13 +10,13 @@ class AuthorAvatars {
 	 */
 	function AuthorAvatars() {
 		if (!$this->system_check()) {
-			echo __('Author avatars: system check failed.');
+			echo __('Author avatars: system check failed.', 'author-avatars');
 		}
 		elseif(!$this->install_check()) {
-			echo __('Author avatars: install check failed.');
+			echo __('Author avatars: install check failed.', 'author-avatars');
 		}
 		elseif(!$this->update_check()) {
-			echo __('Author avatars: update check failed.');
+			echo __('Author avatars: update check failed.', 'author-avatars');
 		}
 		else {
 			$this->init_settings();
@@ -237,7 +237,7 @@ class AuthorAvatars {
 		$new_widget = $old_widget;
 		foreach ($new_widget as $id => $widget) {
 			$new_widget[$id]['__multiwidget'] = $id;
-			$new_widget[$id]['title'] = __('Blog Authors');
+			$new_widget[$id]['title'] = __('Blog Authors', 'author-avatars');
 		}
 
 		delete_option('widget_blogauthors');

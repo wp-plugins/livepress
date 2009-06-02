@@ -301,7 +301,7 @@ class ExampleMultiWidget extends MultiWidget
     $this->MultiWidget(
         'example-multi', // id_base
         'ExampleMulti', // name
-        array('description'=>__('Widget which allows multiple instances'))
+        array('description'=>__('Widget which allows multiple instances', 'author-avatars'))
       );
   }
 

@@ -116,8 +116,8 @@ class AuthorAvatarsForm {
 			$html .= '<p>' . FormHelper::choice($name, Array(-1 => "All") + $this->_getAllBlogs(), $values, array(
 				'id' => $id,
 				'multiple' => true, 
-				'label' => '<strong>'. __('Show users from blogs') .':</strong><br />',
-				'help' => '<br/><small>'. __('If no blog is selected only users from the current blog are displayed.') .'</small>',
+				'label' => '<strong>'. __('Show users from blogs', 'author-avatars') .':</strong><br />',
+				'help' => '<br/><small>'. __('If no blog is selected only users from the current blog are displayed.', 'author-avatars') .'</small>',
 			)) . '</p>';
 		}
 		return $html;
@@ -158,7 +158,7 @@ class AuthorAvatarsForm {
 	function renderFieldGroupBy($values=array(), $name='group_by') {
 		$group_by_options = Array();
 		if ($this->settings->blog_selection_allowed()) {
-			$group_by_options['blog'] = __('Group by blogs');
+			$group_by_options['blog'] = __('Group by blogs', 'author-avatars');
 		}
 		
 		$html = '';
@@ -168,7 +168,7 @@ class AuthorAvatarsForm {
 			$attributes['expanded'] = true;
 			
 			if (count($group_by_options) > 1) {
-				$attributes['label'] = __('User list grouping'). ': <br/>';
+				$attributes['label'] = __('User list grouping', 'author-avatars'). ': <br/>';
 			}
 			else {
 				$attributes['wrapper_tag'] = 'p';
@@ -197,7 +197,7 @@ class AuthorAvatarsForm {
 				'expanded' => true,
 				'multiple' => true,
 				'wrapper_tag' => 'p',
-				'label' => '<strong>'. __('Show roles') .':</strong><br/>',
+				'label' => '<strong>'. __('Show roles', 'author-avatars') .':</strong><br/>',
 			);
 			$name = $this->_getFieldName($name);
 			$html .= FormHelper::choice($name, $roles, $values, $attributes);
@@ -246,8 +246,8 @@ class AuthorAvatarsForm {
 	function renderFieldHiddenUsers($value='', $name='hiddenusers') {
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => '<strong>'. __('Hidden users') .':</strong><br/>',
-			'help' => '<br/><small>('. __('Comma separate list of user login ids'). ')</small>',
+			'label' => '<strong>'. __('Hidden users', 'author-avatars') .':</strong><br/>',
+			'help' => '<br/><small>('. __('Comma separate list of user login ids', 'author-avatars'). ')</small>',
 			'rows' => 2,
 			'style' => 'width:95%;'
 		);
@@ -285,14 +285,14 @@ class AuthorAvatarsForm {
 	 */
 	function renderFieldDisplayOptions($values=array(), $name='display') {
 		$display_options = Array(
-			'show_name' => __('Show Name')
+			'show_name' => __('Show Name', 'author-avatars')
 		);
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
 			'expanded' => true,
 			'multiple' => true,
-			'label' => '<strong>'. __('Display options') .'</strong><br/>',
+			'label' => '<strong>'. __('Display options', 'author-avatars') .'</strong><br/>',
 			'wrapper_tag' => 'p',
 		);
 		$name = $this->_getFieldName($name);
@@ -308,20 +308,20 @@ class AuthorAvatarsForm {
 	 */
 	function renderFieldOrder($values=array(), $name='order') {
 		$order_options = Array(
-			'date_registered' => __('Date of Registration'),
-			'display_name' => __('Display Name'),
-			'user_login' => __('Login Name'),
-			'post_count' => __('Number of Posts'),
-			'random' => __('Random'),
-			'user_id' => __('User Id'),
+			'date_registered' => __('Date of Registration', 'author-avatars'),
+			'display_name' => __('Display Name', 'author-avatars'),
+			'user_login' => __('Login Name', 'author-avatars'),
+			'post_count' => __('Number of Posts', 'author-avatars'),
+			'random' => __('Random', 'author-avatars'),
+			'user_id' => __('User Id', 'author-avatars'),
 		);
 		if (AA_is_bp() || function_exists('get_memberlastvisit') ) {
-			$order_options['recent_activity'] = __('Recent Activity');
+			$order_options['recent_activity'] = __('Recent Activity', 'author-avatars');
 		}
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => __('Sorting order') . ': ',
+			'label' => __('Sorting order', 'author-avatars') . ': ',
 		);
 		$name = $this->_getFieldName($name);
 		return '<p>'. FormHelper::choice($name, $order_options, $values, $attributes) .'</p>';
@@ -336,20 +336,20 @@ class AuthorAvatarsForm {
 	 */
 	function renderFieldUserLink($values=array(), $name='user_link') {
 		$user_link_options = Array(
-			'' => __('-'),
-			'authorpage' => __('Author Page'),
-			'website' => __('Website'),
+			'' => '-',
+			'authorpage' => __('Author Page', 'author-avatars'),
+			'website' => __('Website', 'author-avatars'),
 		);
 		if (function_exists('bp_core_get_userurl')) {
-			$user_link_options['bp_memberpage'] = __('BP Member Page');
+			$user_link_options['bp_memberpage'] = __('BP Member Page', 'author-avatars');
 		}
 		if (AA_is_wpmu()) {
-			$user_link_options['blog'] = __('Blog');
+			$user_link_options['blog'] = __('Blog', 'author-avatars');
 		}
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => __('Link users to') . ': ',
+			'label' => __('Link users to', 'author-avatars') . ': ',
 		);
 		$name = $this->_getFieldName($name);
 		return '<p>'. FormHelper::choice($name, $user_link_options, $values, $attributes) .'</p>';
@@ -364,13 +364,13 @@ class AuthorAvatarsForm {
 	 */
 	function renderFieldSortDirection($values=array(), $name='sort_direction') {
 		$order_options = Array(
-			'asc' => __('Ascending'),
-			'desc' => __('Descending')
+			'asc' => __('Ascending', 'author-avatars'),
+			'desc' => __('Descending', 'author-avatars')
 		);
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => __('Sorting direction') . ': ',
+			'label' => __('Sorting direction', 'author-avatars') . ': ',
 		);
 		$name = $this->_getFieldName($name);
 		return '<p>'. FormHelper::choice($name, $order_options, $values, $attributes) .'</p>';
@@ -386,7 +386,7 @@ class AuthorAvatarsForm {
 	function renderFieldLimit($value='', $name='limit') {
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => __('Max. number of avatars shown') . ': ',
+			'label' => __('Max. number of avatars shown', 'author-avatars') . ': ',
 			'size' => '5'
 		);
 		$name = $this->_getFieldName($name);
@@ -403,7 +403,7 @@ class AuthorAvatarsForm {
 	function renderFieldAvatarSize($value='', $name='avatar_size', $preview=true) {
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => __('Avatar Size') . ': ',
+			'label' => __('Avatar Size', 'author-avatars') . ': ',
 			'help' => 'px',
 			'class' => 'avatar_size_input',
 			'size' => '5'
@@ -427,13 +427,13 @@ class AuthorAvatarsForm {
 	 */
 	function renderFieldShortcodeType($values=array(), $name='shortcode_type') {
 		$type_options = array(
-			'show_avatar' => __('Single Avatar'),
-			'authoravatars' => __('List of Users'),
+			'show_avatar' => __('Single Avatar', 'author-avatars'),
+			'authoravatars' => __('List of Users', 'author-avatars'),
 		);
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => '<strong>' . __('Shortcode Type') . ':</strong><br/>',
+			'label' => '<strong>' . __('Shortcode Type', 'author-avatars') . ':</strong><br/>',
 			'expanded' => true,
 			'inline' => true,
 		);
@@ -452,7 +452,7 @@ class AuthorAvatarsForm {
 	function renderFieldEmail($value='', $name='email') {
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => '<strong>' . __('Email address or user id') . ':</strong><br/>',
+			'label' => '<strong>' . __('Email address or user id', 'author-avatars') . ':</strong><br/>',
 			'style' => 'width: 95%;',
 		);
 		$name = $this->_getFieldName($name);
@@ -468,15 +468,15 @@ class AuthorAvatarsForm {
 	 */
 	function renderFieldAlignment($values='', $name='alignment') {
 		$alignment_options = array(
-			'' => __('None'),
-			'left' => __('Left'),
-			'center' => __('Center'),
-			'right' => __('Right'),
+			'' => __('None', 'author-avatars'),
+			'left' => __('Left', 'author-avatars'),
+			'center' => __('Center', 'author-avatars'),
+			'right' => __('Right', 'author-avatars'),
 		);
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => '<strong>' . __('Alignment') . '</strong><br/>',
+			'label' => '<strong>' . __('Alignment', 'author-avatars') . '</strong><br/>',
 			'expanded' => true,
 			'inline' => true,
 			'class' => 'alignment',
