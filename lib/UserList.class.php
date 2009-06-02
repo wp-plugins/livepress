@@ -124,7 +124,7 @@ class UserList {
 		$users = $this->get_users();
 		
 		if (empty($users)) {
-			return apply_filters('aa_userlist_empty', '<p class="no_users">No users found.</p>');
+			return apply_filters('aa_userlist_empty', '<p class="no_users">'. __('No users found.'). '</p>');
 		}
 		elseif (!empty($this->group_by)) {
 			return $this->format_groups($users);

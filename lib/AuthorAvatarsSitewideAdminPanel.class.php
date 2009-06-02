@@ -32,7 +32,7 @@ class AuthorAvatarsSitewideAdminPanel {
 	function add_submenu() {
 		get_currentuserinfo();
 		if (!is_site_admin()) return false; // only for site admins
-		add_submenu_page('wpmu-admin.php', 'Sitewide Author Avatars Configuration', 'Author Avatar', 10, 'wpmu_author_avatars', array(&$this,'config_page'));
+		add_submenu_page('wpmu-admin.php', __('Sitewide Author Avatars Configuration'), __('Author Avatars List'), 10, 'wpmu_author_avatars', array(&$this,'config_page'));
 	}
 	
 	/**
@@ -83,7 +83,7 @@ class AuthorAvatarsSitewideAdminPanel {
 		require_once('AuthorAvatarsForm.class.php');
 
 		echo '<tr valign="top">';
-		echo '<th scope="row">Enable blog filter</th><td>';
+		echo '<th scope="row">'. __('Enable blog filter') . '</th><td>';
 		echo FormHelper::choice(
 			'settings_sitewide[blog_filters_enabled]',
 			AuthorAvatarsForm::_getAllBlogs(),

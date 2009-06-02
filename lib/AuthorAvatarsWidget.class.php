@@ -160,7 +160,7 @@ class AuthorAvatarsWidget extends MultiWidget
 	
 		// widget title
 		$widget_title = '<p>'. FormHelper::input('text', $this->get_field_name('title'), $instance['title'],
-			array( 'label' => '<strong>Title:</strong> ', 'class' => 'widefat', 'id' => $this->get_field_id('title'),)
+			array( 'label' => '<strong>'. __('Title'). ':</strong> ', 'class' => 'widefat', 'id' => $this->get_field_id('title'),)
 		) .'</p>';
 		
 		// BASIC TAB
@@ -172,7 +172,7 @@ class AuthorAvatarsWidget extends MultiWidget
 		
 		$basic_right = $form->renderFieldAvatarSize($instance['display']['avatar_size'], 'display][avatar_size');
 		
-		$basic  = '<h5>Basic</h5>';
+		$basic  = '<h5>'. __('Basic') .'</h5>';
 		$basic .= $form->renderColumns($basic_left, $basic_right);
 		
 		// ADVANCED TAB
@@ -184,7 +184,7 @@ class AuthorAvatarsWidget extends MultiWidget
 		$adv_right  = $form->renderFieldBlogs($instance['blogs']);
 		$adv_right .= $form->renderFieldGroupBy($instance['group_by']);
 		
-		$advanced  = '<h5>Advanced</h5>';
+		$advanced  = '<h5>'. __('Advanced') .'</h5>';
 		$advanced .= $form->renderColumns($adv_left, $adv_right);
 		
 		echo '<div class="aa-widget-control-panel">'. $basic . $advanced .'</div>';

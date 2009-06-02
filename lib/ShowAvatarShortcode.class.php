@@ -60,7 +60,7 @@ class ShowAvatarShortcode {
 			$avatar = get_avatar($id, $avatar_size);
 		}
 		else {
-			$avatar = "[show_author shortcode: please set id/email attribute]";
+			$avatar = __("[show_author shortcode: please set id/email attribute]");
 		}
 	
 		if (!empty($style)) $style = ' style="'. $style .'"';

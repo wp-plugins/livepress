@@ -116,8 +116,8 @@ class AuthorAvatarsForm {
 			$html .= '<p>' . FormHelper::choice($name, Array(-1 => "All") + $this->_getAllBlogs(), $values, array(
 				'id' => $id,
 				'multiple' => true, 
-				'label' => '<strong>Show users from blogs:</strong><br />',
-				'help' => '<br/><small>If no blog is selected only users from the current blog are displayed. </small>',
+				'label' => '<strong>'. __('Show users from blogs') .':</strong><br />',
+				'help' => '<br/><small>'. __('If no blog is selected only users from the current blog are displayed.') .'</small>',
 			)) . '</p>';
 		}
 		return $html;
@@ -132,33 +132,19 @@ class AuthorAvatarsForm {
 	 * @see http://codex.wordpress.org/WPMU_Functions/get_blog_list
 	 * @access private
 	 * @return Array of blog names
-	 * @todo move this to helpers function file (?)
 	 */
 	function _getAllBlogs() {
 		global $wpdb;
 
-		$blogs = get_site_option( "author_avatars_blog_list_cache" );
-		$update = false;
-		if( !is_array( $blogs ) || ( $blogs['time'] + 60 ) < time() ) { // cache for 60 seconds.
-			$update = true;
-		}
+		$blogs = $wpdb->get_results( $wpdb->prepare("SELECT blog_id, path FROM $wpdb->blogs WHERE site_id = %d AND public = '1' AND archived = '0' AND mature = '0' AND spam = '0' AND deleted = '0'", $wpdb->siteid), ARRAY_A );
 
-		if( $update == true ) {
-			$blogs = $wpdb->get_results( $wpdb->prepare("SELECT blog_id, path FROM $wpdb->blogs WHERE site_id = %d AND public = '1' AND archived = '0' AND mature = '0' AND spam = '0' AND deleted = '0'", $wpdb->siteid), ARRAY_A );
-
-			$blog_list = array();
-			foreach ( (array) $blogs as $details ) {
-				$blog_list[ $details['blog_id'] ] = get_blog_option( $details['blog_id'], 'blogname', $details['path']) .' ('. $details['blog_id'] .')';
-			}
-			asort($blog_list);
-			
-			$blogs = $blog_list;
-			unset($blog_list);
-			
-			update_site_option( "author_avatars_blog_list_cache", $blogs );			
+		$blog_list = array();
+		foreach ( (array) $blogs as $details ) {
+			$blog_list[ $details['blog_id'] ] = get_blog_option( $details['blog_id'], 'blogname', $details['path']) .' ('. $details['blog_id'] .')';
 		}
+		asort($blog_list);
 		
-		return $blogs;
+		return $blog_list;
 	}
 		
 	
@@ -182,7 +168,7 @@ class AuthorAvatarsForm {
 			$attributes['expanded'] = true;
 			
 			if (count($group_by_options) > 1) {
-				$attributes['label'] = 'User list grouping: <br/>';
+				$attributes['label'] = __('User list grouping'). ': <br/>';
 			}
 			else {
 				$attributes['wrapper_tag'] = 'p';
@@ -211,7 +197,7 @@ class AuthorAvatarsForm {
 				'expanded' => true,
 				'multiple' => true,
 				'wrapper_tag' => 'p',
-				'label' => '<strong>Show roles:</strong><br/>',
+				'label' => '<strong>'. __('Show roles') .':</strong><br/>',
 			);
 			$name = $this->_getFieldName($name);
 			$html .= FormHelper::choice($name, $roles, $values, $attributes);
@@ -260,8 +246,8 @@ class AuthorAvatarsForm {
 	function renderFieldHiddenUsers($value='', $name='hiddenusers') {
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => '<strong>Hidden users:</strong><br/>',
-			'help' => '<br/><small>(Comma separate list of user login ids)</small>',
+			'label' => '<strong>'. __('Hidden users') .':</strong><br/>',
+			'help' => '<br/><small>('. __('Comma separate list of user login ids'). ')</small>',
 			'rows' => 2,
 			'style' => 'width:95%;'
 		);
@@ -306,7 +292,7 @@ class AuthorAvatarsForm {
 			'id' => $this->_getFieldId($name),
 			'expanded' => true,
 			'multiple' => true,
-			'label' => '<strong>Display options</strong><br/>',
+			'label' => '<strong>'. __('Display options') .'</strong><br/>',
 			'wrapper_tag' => 'p',
 		);
 		$name = $this->_getFieldName($name);
@@ -335,7 +321,7 @@ class AuthorAvatarsForm {
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => 'Sorting order: ',
+			'label' => __('Sorting order') . ': ',
 		);
 		$name = $this->_getFieldName($name);
 		return '<p>'. FormHelper::choice($name, $order_options, $values, $attributes) .'</p>';
@@ -384,7 +370,7 @@ class AuthorAvatarsForm {
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => 'Sorting direction: ',
+			'label' => __('Sorting direction') . ': ',
 		);
 		$name = $this->_getFieldName($name);
 		return '<p>'. FormHelper::choice($name, $order_options, $values, $attributes) .'</p>';
@@ -400,7 +386,7 @@ class AuthorAvatarsForm {
 	function renderFieldLimit($value='', $name='limit') {
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => 'Max. number of avatars shown: ',
+			'label' => __('Max. number of avatars shown') . ': ',
 			'size' => '5'
 		);
 		$name = $this->_getFieldName($name);
@@ -417,7 +403,7 @@ class AuthorAvatarsForm {
 	function renderFieldAvatarSize($value='', $name='avatar_size', $preview=true) {
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => 'Avatar Size: ',
+			'label' => __('Avatar Size') . ': ',
 			'help' => 'px',
 			'class' => 'avatar_size_input',
 			'size' => '5'
@@ -441,13 +427,13 @@ class AuthorAvatarsForm {
 	 */
 	function renderFieldShortcodeType($values=array(), $name='shortcode_type') {
 		$type_options = array(
-			'show_avatar' => 'Single Avatar',
-			'authoravatars' => 'List of Users',
+			'show_avatar' => __('Single Avatar'),
+			'authoravatars' => __('List of Users'),
 		);
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => '<strong>Shortcode Type:</strong><br/>',
+			'label' => '<strong>' . __('Shortcode Type') . ':</strong><br/>',
 			'expanded' => true,
 			'inline' => true,
 		);
@@ -466,7 +452,7 @@ class AuthorAvatarsForm {
 	function renderFieldEmail($value='', $name='email') {
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => '<strong>Email address or user id:</strong><br/>',
+			'label' => '<strong>' . __('Email address or user id') . ':</strong><br/>',
 			'style' => 'width: 95%;',
 		);
 		$name = $this->_getFieldName($name);
@@ -482,15 +468,15 @@ class AuthorAvatarsForm {
 	 */
 	function renderFieldAlignment($values='', $name='alignment') {
 		$alignment_options = array(
-			'' => 'None',
-			'left' => 'Left',
-			'center' => 'Center',
-			'right' => 'Right'
+			'' => __('None'),
+			'left' => __('Left'),
+			'center' => __('Center'),
+			'right' => __('Right'),
 		);
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
-			'label' => '<strong>Alignment</strong><br/>',
+			'label' => '<strong>' . __('Alignment') . '</strong><br/>',
 			'expanded' => true,
 			'inline' => true,
 			'class' => 'alignment',

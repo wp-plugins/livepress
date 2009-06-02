@@ -10,13 +10,13 @@ class AuthorAvatars {
 	 */
 	function AuthorAvatars() {
 		if (!$this->system_check()) {
-			echo 'Author avatars: system check failed.';
+			echo __('Author avatars: system check failed.');
 		}
 		elseif(!$this->install_check()) {
-			echo 'Author avatars: install check failed.';
+			echo __('Author avatars: install check failed.');
 		}
 		elseif(!$this->update_check()) {
-			echo 'Author avatars: update check failed.';
+			echo __('Author avatars: update check failed.');
 		}
 		else {
 			$this->init_settings();
