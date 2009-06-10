@@ -1,6 +1,6 @@
 === Author Avatars List ===
 Contributors: bforchhammer, pbearne
-Donate link:
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5UP2FUQ8QMHJU&lc=GB&item_name=Wordpress%20Development&item_number=Author%20Avatars%20List%20Plugin&currency_code=GBP&bn=PP%2dDonationsBF%3abtn_donateCC_LG_global%2egif%3aNonHosted
 Tags: Avatar, Author, BuddyPress, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.6
 Tested up to: 2.7.1
@@ -106,3 +106,13 @@ This can happens when you've choosen to link users to their "author page" and th
 
 2. If not already there add a custom user/author template to your theme. Otherwise if a user has no posts their user page is going to be quite empty by default...
 You can find a [tutorial](http://codex.wordpress.org/Author_Templates) on Author Templates as well as a [Sample Template File](http://codex.wordpress.org/Author_Templates#Sample_Template_File) in the WordPress Codex.
+
+= How can I change the styling of the avatar lists? =
+
+The styling of the widget is controlled by the styles defined in [css/widgets.css](http://plugins.trac.wordpress.org/browser/author-avatars/trunk/css/widget.css), avatars on posts/pages (using the shortcode) are styled by code in [css/shortcode.css](http://plugins.trac.wordpress.org/browser/author-avatars/trunk/css/shortcode.css).
+
+You can override the styles in that file by copying a style block to your theme's `style.css` and adjusting respectively. For example add the following to remove the padding from avatars displayed in a widget:
+
+`html .multiwidget_author_avatars .author-list .user {
+  padding: 0;
+}`
