@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.8
+//Live+Press_2.1.9
 
 
 require_once("lpextras.php");
@@ -47,7 +47,8 @@ function append_Linkback ($tmpevent, $postmeta, $postid) {
 	$tmpevent .= '<tr><td style="border-right: 1px solid #000; text-align:right; padding-left: 10px;"></td>';
 	$tmpevent .= '<td style="padding: 0 15px;">';
 	$tmpevent .= 'Originally published at ';
-	$tmpevent .= '<a href="' . get_settings('home') . '">' . $postmeta['unt_lj_linkbacktext']['value'] . '</a>.';
+	#$tmpevent .= '<a href="' . get_settings('home') . '">' . $postmeta['unt_lj_linkbacktext']['value'] . '</a>.';
+	$tmpevent .= '<a href="' . get_permalink($postid) . '">' . $postmeta['unt_lj_linkbacktext']['value'] . '</a>.';
 
 	if ($postmeta['unt_lj_nocomment']['value'] == "checked") {
 	    $tmpevent .= '<br /><a href="' . get_permalink($postid) . '">&raquo; Click here &laquo;</a> to leave any comments.';
@@ -322,21 +323,27 @@ fwrite($fh, $stringData);
 		    } else {
 			$the_event = $the_post->post_content;
 		    }
-		    if (function_exists("giggle_autolink")) {
-	       		$the_event .= giggle_autolink($the_event,-1,1);
-		    }
+		# No idea what this is.  Removed to simplify.  11/29/08
+		#    if (function_exists("giggle_autolink")) {
+	       	#	$the_event .= giggle_autolink($the_event,-1,1);
+		#    }
 		    $the_event .= '<br /><br />';
 
 		    // Add the LinkBack
 		    if (strcmp($lj_meta['unt_lj_linkback']['value'], 'notchecked')) {
 			$the_event = append_Linkback($the_event, $lj_meta, $post_ID);
 		    }
-		    $the_event = preg_replace("/(\r\n|\n|\r)/", "\n", $the_event); // cross-platform newlines
+		# removed to troubleshoot problem with breaks and paragraph breaks 11/29/08 
+		#    $the_event = preg_replace("/(\r\n|\n|\r)/", "\n", $the_event); // cross-platform newlines
 
 		    // Fix lj-tags hack
+		# removed to troubleshoot problem with breaks and paragraph breaks 11/29/08 
 		    $the_event = preg_replace('/([[\{<~])(\/?lj-cut.*)([]\}>~])/i', '<\2>' , $the_event);
 		    $the_event = preg_replace("/[^\x20-\x7f\t\n\r]+/", "", $the_event);
 		    $the_event = convert_chars($the_event, 'html');
+
+		    #$the_event = apply_filters('the_content', $the_event);
+		    $the_event = utf8_encode($the_event);
 
 	 	    $client = new IXR_client("www.livejournal.com", "/interface/xmlrpc", 80);
 		    if (!$client->query('LJ.XMLRPC.getchallenge')) {
@@ -351,11 +358,10 @@ fwrite($fh, $stringData);
 		    $msg_array['auth_method'] = utf8_encode('challenge');
 		    $msg_array['auth_challenge'] = utf8_encode($challenge);
 		    $msg_array['auth_response'] = md5($challenge . $msgpass);
-		    $msg_array['event'] = utf8_encode($the_event);
+		    $msg_array['event'] = $the_event;
 		    $msg_array['subject'] = utf8_encode(stripslashes($the_post->post_title));
 		    $msg_array['lineendings'] = utf8_encode('unix');
-		    //$msg_array['usejournals'] = utf8_encode($lj_meta['unt_lj_journal']['value']);
-		    //$msg_array['event'] = apply_filters('the_content', $the_event);
+		    $msg_array['usejournals'] = utf8_encode($lj_meta['unt_lj_journal']['value']);
 
 		    if ($lj_meta['unt_lj_securitylevel']['value'] == 'friends') {
 			$msg_array['security'] = utf8_encode('usemask');
@@ -424,7 +430,7 @@ function test_LJ (){
 	    || (strpos($_SERVER['PHP_SELF'],'edit.php') != false)) {
 
 		add_action('publish_phone', 'publish_phone_LJ', 5);
-		add_action('edit_post', 'synch_LJ');
+#		add_action('edit_post', 'synch_LJ');
 		add_action('publish_post', 'synch_LJ', 5);
 		add_action('delete_post', 'delete_post_LJ');
 
