@@ -1,6 +1,10 @@
 Live+Press
 supported by Tania Morell
 
+v2.1.9 06.10.2009
+- Bugfix : Saving a draft on WP publishes a post on LJ
+- Changed : Blog linkback from LJ points to post uri instead of blog url
+
 v2.1.8 11.18.2008
 - Bugfix : Livejournal.com site down results on broken blog
 
