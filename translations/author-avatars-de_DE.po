@@ -243,7 +243,7 @@ msgstr "Titel"
 
 #: lib/FormHelper.class.php:56
 msgid "Sorry, no choices available."
-msgstr ""
+msgstr "Sorry, keine Auswahlmöglichkeiten verfügbar."
 
 #: lib/ShowAvatarShortcode.class.php:63
 msgid "[show_author shortcode: please set id/email attribute]"
@@ -259,7 +259,7 @@ msgstr ""
 
 #. Description of an extension
 msgid "Display lists of user avatars using <a href=\"widgets.php\">widgets</a> or <a href=\"http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation\">shortcodes</a>."
-msgstr ""
+msgstr "Erlaubt die Auflistung von Benutzer Avataren mit Hilfe von <a href=\"widgets.php\">Widgets</a> oder <a href=\"http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation\">Shortcodes</a>."
 
 #. Author of an extension
 msgid "<a href=\"http://mind2.de\">Benedikt Forchhammer</a>, Idea: <a href=\"http://bearne.com\">Paul Bearne</a>"
