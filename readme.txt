@@ -3,7 +3,7 @@ Contributors: bforchhammer, pbearne
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5UP2FUQ8QMHJU&lc=GB&item_name=Wordpress%20Development&item_number=Author%20Avatars%20List%20Plugin&currency_code=GBP&bn=PP%2dDonationsBF%3abtn_donateCC_LG_global%2egif%3aNonHosted
 Tags: Avatar, Author, BuddyPress, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.6
-Tested up to: 2.7.1
+Tested up to: 2.8
 Stable tag: 0.7.3
 
 Display lists of user avatars using widgets or shortcodes.
@@ -40,17 +40,6 @@ Please report bugs and provide feedback in the [wordpress support forum](http://
 *   I18n: provide base for translations
 *   Any ideas or suggestions? [tell us about it](mailto:b.forchhammer@mind2.de)!
 
-= Latest Changes (Version 0.7) =
-
-*   Implemented new sorting by "number of posts" and "date of registration"
-*   Added "sort direction" setting
-*   Fixed numeric sorting (user id)
-*   New option to link user avatars to their "website" or "blog" (wpmu)
-*   Fixed uninstall behaviour
-*   Added BuddyPress Compatibility
-
-[Full Changelog](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_Changelog)
-
 == Installation ==
 
 1. Upload the `author-avatars` folder to the `/wp-content/plugins/` directory
@@ -69,6 +58,86 @@ You can find information for developers [on this page](http://codex.wordpress.or
 2. The Widget configuration panel.
 3. Examples of what the <code>[authoravatars]</code> shortcode can do.
 4. Shortcode helper available from the WYSIWYG editor on the edit post page.
+
+== Changelog ==
+
+= 0.7.4 =
+*   Added support for translations
+*   German translation (by myself)
+
+= 0.7.3 =
+*   Added filters to allow modification of userlist templates
+*   Added "BuddyPress? Member Page" to the list of pages which a user can be linked to
+*   Changed get_avatar() call so that it works with buddypress
+
+= 0.7.2 =
+*   Fixed a spelling mistake which prevented the plugin from loading
+
+= 0.7.1 =
+*   Improved inline function documentation
+*   Fixed bug which caused a faulty name attribute for checkbox lists with only one choice. Now the "show name" option is working as exptected again.
+*   Removed by-reference variable which causes PHP 4 parse errors
+
+= 0.7 =
+*   Removed invalid characters from uninstall.php (fixes uninstall behaviour).
+*   New feature to link users to their website or blog (wpmu).
+*   Added new feature to allow specification of a sort direction for sorted user lists. 
+*   Changed string-based sorting to case-insensitive (strcmp -> strcasecmp).
+*   Added feature to sort users by date of registration.
+*   Optimised UserList filtering.
+*   Fixed numeric sorting issues (user_id and post count)
+*   Added "order by number of posts" feature
+*   Removed user role from avatar title.
+
+= 0.6.2 =
+*   Fixed bug which caused the plugin to crash in PHP 4.
+*   Added uninstall.php to remove plugin related data when the plugin is deleted.
+
+= 0.6.1 =
+*   Fixed bug which caused other tinymce plugins to stop working. 
+*   Improved way of detecting a wpmu install.
+
+= 0.6 =
+*   Implementation of tinymce plugin.
+*   Removed personalised jquery ui script and added just the packed ui.resizable.
+*   Changed script and stylesheet handling (using register&enqueue functions with proper dependencies).
+*   Refactored the "resizable avatar preview" script code into separate file.
+*   FormHelper: Added option to generate textareas.
+*   FormHelper: Added option to show expanded choice fields "inline".
+*   Added improved function for cleaning up a value to be used as html id attribute.
+*   AuthorAvatarsForm: added methods to ease generation of tabs and two-column panes.
+*   AuthorAvatarsForm: added new renderField methods for shortcode type, email and alignment (used in show_avatar wizard).
+*   Various Documentation updates and cleanups.
+*   Refactored widget form field generation into new AuthorAvatarsForm.class.php to ease devevlopment of shortcode wizard.
+*   Refactored form field generation code into new FormHelper.class.php.
+*   Fixed size and position of blog selection box on sitewide admin page. Changed the name of is_wpmu() function to safer name AA_is_wpmu().
+*   Removed "Group by blogs" checkbox for users without the blog selection filter.
+
+= 0.5.1 =
+*   Fixed method chaining error that caused a critical syntax error on PHP 4 
+
+= 0.5 =
+*    Added "show_avatar" shortcode
+*    Small MultiWidget fix by [Dan Cole](http://blog.firetree.net/2008/11/30/wordpress-multi-widget/#comment-24976)
+*    Refactored [show_avatar] shortcode into new file ShowAvatarShortcode.class.php to keep it all nice and tidy.
+*    Added basic blog filtering feature.
+*    Added classes for settings and sitewide admin
+*    Added sitewide setting for the blog filter
+*    Updated update mechanism in AuthorAvatars.class.php
+*    Added "Group by blog" feature
+
+= 0.4 =
+*    Added new [shortcode](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) feature.
+*    Fixed small bug in update procedure (version 0.1 to 0.2)
+
+= 0.3 =
+*    Fixed error that broke some javascript on "edit post" pages in wordpress 2.7
+
+= 0.2 =
+*    Widget: added avatar preview image to the control panel
+*    Widget: added option to link the user/avatar to their respective "author page"
+*    Widget: hiddenusers also allows user ids now (e.g. 1 for "admin")
+*    Refactored the plugin to use [Alex Tingle's "MultiWidget" class](http://blog.firetree.net/2008/11/30/wordpress-multi-widget/)
 
 == Frequently asked questions ==
 
