@@ -66,10 +66,10 @@ function AA_check_sortdirection_status(container) {
 
     switch(jQuery(this).val()){
       case 'random':
-        if (element.css('display') != 'none') element.slideUp();
+        if (element.is("not(:animated)") && !element.is(":hidden")) element.slideUp();
         break;
       default:
-        if (element.css('display') == 'none') element.slideDown();
+        if (element.is("not(:animated)") && element.is(":hidden")) element.slideDown();
     }
   };
 
