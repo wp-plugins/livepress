@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5UP2F
 Tags: Avatar, Author, BuddyPress, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.6
 Tested up to: 2.8
-Stable tag: 0.7.3
+Stable tag: 0.7.4
 
 Display lists of user avatars using widgets or shortcodes.
 
@@ -37,7 +37,6 @@ Please report bugs and provide feedback in the [wordpress support forum](http://
 
 *   User information popup on rollover
 *   Advanced user display configuration / templates
-*   I18n: provide base for translations
 *   Any ideas or suggestions? [tell us about it](mailto:b.forchhammer@mind2.de)!
 
 == Installation ==
@@ -62,8 +61,10 @@ You can find information for developers [on this page](http://codex.wordpress.or
 == Changelog ==
 
 = 0.7.4 =
-*   Added support for translations
-*   German translation (by myself)
+*   Fixed javascript issues with widget settings page and shortcode wizard in WordPress 2.8
+*   Fixed support for translations
+*   Added German translation
+*   Added feature to sort by recent user activity (requires Buddypress)
 
 = 0.7.3 =
 *   Added filters to allow modification of userlist templates
