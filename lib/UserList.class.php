@@ -511,8 +511,8 @@ class UserList {
 	/**
 	 * Returns the time of last activity for a given user. 
 	 *
-	 * This requires that either BuddyPress or the WP-UserOnline plugin is installed.
-	 * If neither is available the function returns an empty string.
+	 * This requires that BuddyPress is installed.
+	 * If it's not available the function returns an empty string.
 	 *
 	 * @param int $user_id
 	 * @return string last activity date
@@ -520,9 +520,6 @@ class UserList {
 	function get_user_last_activity($user_id) {
 		if (AA_is_bp()) {
 			return gmdate( 'Y-m-d H:i:s', (int)get_usermeta( $user_id, 'last_activity' ) );
-		}
-		if (function_exists('get_memberlastvisit') ) {
-			return gmdate( 'Y-m-d H:i:s', (int)get_user_option( 'member_last_login', $user_id ));
 		}
 		return "";
 	}
