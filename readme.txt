@@ -49,8 +49,6 @@ Please report bugs and provide feedback in the [wordpress support forum](http://
 
 You can find information for developers [on this page](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_Developers_Guide).
 
-[Changelog](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_Changelog)
-
 == Screenshots ==
 
 1. Very simple set up of the widget on an empty blog.
