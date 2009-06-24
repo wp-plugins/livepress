@@ -33,7 +33,8 @@
 	background-color: white;
 	color:#333333;
 }
-.aa-tabs .ui-tabs-nav li.ui-tabs-disabled {
+.aa-tabs .ui-tabs-nav li.ui-tabs-disabled,
+.aa-tabs .ui-tabs-nav li.ui-state-disabled {
 	display: none !important;
 }
 
@@ -89,6 +90,21 @@
 .aa-widget-control-panel .aa-colums {
 	margin-bottom: 1.3em;
 }
+
+/* Resizable
+----------------------------------*/
+.avatar_size_preview .ui-resizable { position: relative;}
+.avatar_size_preview .ui-resizable-handle { position: absolute;font-size: 0.1px;z-index: 99999; display: block; background-color:#F2F2F2; border: 1px solid #808080;}
+.avatar_size_preview .ui-resizable-disabled .ui-resizable-handle,
+.avatar_size_preview .ui-resizable-autohide .ui-resizable-handle { display: none;}
+.avatar_size_preview .ui-resizable-n { cursor: n-resize; height: 7px; width: 100%; top: -5px; left: 0px; }
+.avatar_size_preview .ui-resizable-s { cursor: s-resize; height: 7px; width: 100%; bottom: -5px; left: 0px; }
+.avatar_size_preview .ui-resizable-e { cursor: e-resize; width: 7px; right: -5px; top: 0px; height: 100%; }
+.avatar_size_preview .ui-resizable-w { cursor: w-resize; width: 7px; left: -5px; top: 0px; height: 100%; }
+.avatar_size_preview .ui-resizable-se { cursor: se-resize; width: 9px; height: 9px; right: -5px; bottom: -5px; }
+.avatar_size_preview .ui-resizable-sw { cursor: sw-resize; width: 9px; height: 9px; left: -5px; bottom: -5px; }
+.avatar_size_preview .ui-resizable-nw { cursor: nw-resize; width: 9px; height: 9px; left: -5px; top: -5px; }
+.avatar_size_preview .ui-resizable-ne { cursor: ne-resize; width: 9px; height: 9px; right: -5px; top: -5px;}
 
 /* initially hide everything (shortcode wizard)*/
 .fields_type_authoravatars,

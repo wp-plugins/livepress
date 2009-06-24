@@ -1,8 +1,10 @@
+var AA_Tabs = null;
+
 //resize the popup to fit form
 function init() {
 	// init jquery tabs
-	jQuery('.aa-tabs>ol').tabs();
-	jQuery('.aa-tabs>ol').tabs('disable', 1);
+	AA_Tabs = jQuery('.aa-tabs,.aa-tabs>ul').tabs({ tabTemplate: '<li><a href="#{href}">#{label}</a></li>' });
+	AA_Tabs.tabs('disable', 1);
 
 	// hide or show fields & bind change event handler
 	jQuery('#shortcode_type label').click(AA_updateFieldVisibility);
@@ -11,7 +13,7 @@ function init() {
 	AA_init_avatarpreview(jQuery("div.avatar_size_preview"), jQuery('input.avatar_size_input'));
 
 	// check visibility of sortdirection field
-  AA_check_sortdirection_status();
+	AA_check_sortdirection_status();
 
 	tinyMCEPopup.resizeToInnerSize();
 }
@@ -29,17 +31,17 @@ function AA_updateFieldVisibility(evt) {
 	if (selected_value == 'show_avatar') {
 		jQuery('.fields_type_authoravatars').hide();
 		jQuery('.fields_type_show_avatar').show();
-		jQuery('.aa-tabs>ol').tabs('disable', 1);
+		AA_Tabs.tabs('disable', 1);
 	}
 	else if (selected_value == 'authoravatars' ) {
 		jQuery('.fields_type_show_avatar').hide();
 		jQuery('.fields_type_authoravatars').show();
-		jQuery('.aa-tabs>ol').tabs('enable', 1);
+		AA_Tabs.tabs('enable', 1);
 	}
 	else {
 		jQuery('.fields_type_show_avatar').hide();
 		jQuery('.fields_type_authoravatars').hide();
-		jQuery('.aa-tabs>ol').tabs('disable', 1);
+		AA_Tabs.tabs('disable', 1);
 	}
 }
 

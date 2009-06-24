@@ -28,7 +28,7 @@ function AA_init_avatarpreview(preview_node, input_node, options) {
 			}
 
 			// update size of resizable container
-			var img_container = jQuery('.ui-resizable-knob', preview_node);
+			var img_container = jQuery('.ui-resizable-knob, .ui-wrapper', preview_node);
 			if (img_container.length > 0) {
 				img_container.width(size);
 				img_container.height(size);
@@ -59,21 +59,19 @@ function AA_init_avatarpreview(preview_node, input_node, options) {
 }
 
 function AA_check_sortdirection_status(container) {
-  var checkSortDirectionStatus = function() {
-    var container = jQuery(this).parent().parent().parent();
-    var element = jQuery("select[id$='sort_direction']", container)
-      .parent().parent();
+	var checkSortDirectionStatus = function() {
+		var container = jQuery(this).parent().parent().parent();
+		var element = jQuery("select[id$='sort_direction']", container).parent().parent();
+		switch(jQuery(this).val()){
+			case 'random':
+				if (!element.is(":animated") && !element.is(":hidden")) element.slideUp();
+				break;
+			default:
+				if (!element.is(":animated") && element.is(":hidden")) element.slideDown();
+		}
+	};
 
-    switch(jQuery(this).val()){
-      case 'random':
-        if (element.is("not(:animated)") && !element.is(":hidden")) element.slideUp();
-        break;
-      default:
-        if (element.is("not(:animated)") && element.is(":hidden")) element.slideDown();
-    }
-  };
-
-  jQuery("select[id$='order']", jQuery(container))
-    .bind('change', checkSortDirectionStatus)
-    .each(checkSortDirectionStatus);
+	jQuery("select[id$='order']", jQuery(container))
+		.bind('change', checkSortDirectionStatus)
+		.each(checkSortDirectionStatus);
 }

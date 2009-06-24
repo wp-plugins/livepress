@@ -526,11 +526,11 @@ class AuthorAvatarsForm {
 			return;
 		}
 		
-		$html = "\n".'<ol>';
+		$html = "\n".'<ul>';
 		foreach ($this->tabs as $id => $title) {
 			$html .= "\n\t".'<li><a href="#'. $id .'">'. $title .'</a></li>';
 		}
-		$html .= "\n".'</ol>';
+		$html .= "\n".'</ul>';
 		
 		return $html;
 	}
