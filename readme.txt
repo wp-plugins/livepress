@@ -12,7 +12,7 @@ Display lists of user avatars using widgets or shortcodes.
 
 This plugin makes it easy to *display lists of user avatars* on your (multiuser) blog. It also allows to *insert single avatars* for blog users or any email address into a post or page. (Great for displaying an image of someone you're talking about.)
 
-Avatar lists can be inserted into your sidebar by adding a widget or into posts/pages by using a [shortcode](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation). The plugin comes with a tinymce editor plugin which makes inserting shortcodes very easy.
+Avatar lists can be inserted into your sidebar by adding a widget or into posts/pages by using a [shortcode](http://authoravatars.wordpress.com/documentation/authoravatars-shortcode/). The plugin comes with a tinymce editor plugin which makes inserting shortcodes very easy.
 
 Both shortcode and widget can be configured to...
 
@@ -26,7 +26,7 @@ Both shortcode and widget can be configured to...
 
 The plugin makes use of built in wordpress (core) functions to retrieve user information and get avatars.
 
-Single user avatars can be inserted using the [show_avatar shortcode](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation#The.C2.A0.5Bshow_avatar.5D_shortcode) and configured to...
+Single user avatars can be inserted using the [show_avatar shortcode](http://authoravatars.wordpress.com/documentation/show_avatar-shortcode/) and configured to...
 
 *   Adjust the size of the user avatar.
 *   Align the avatar left, centered or right.
@@ -47,7 +47,7 @@ Please report bugs and provide feedback in the [wordpress support forum](http://
 
 [Look at this page](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) to find out how to use the [authoravatars] shortcode.
 
-You can find information for developers [on this page](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_Developers_Guide).
+You can find information for developers [on this page](http://authoravatars.wordpress.com/documentation/developers-guide/).
 
 == Screenshots ==
 
@@ -126,7 +126,7 @@ You can find information for developers [on this page](http://codex.wordpress.or
 *    Added "Group by blog" feature
 
 = 0.4 =
-*    Added new [shortcode](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) feature.
+*    Added new [shortcode](http://authoravatars.wordpress.com/documentation/authoravatars-shortcode/) feature.
 *    Fixed small bug in update procedure (version 0.1 to 0.2)
 
 = 0.3 =
@@ -148,7 +148,7 @@ A shortcode is a tag like <code>[authoravatars]</code> which you can insert into
 
 As of version 0.6 the plugin comes with a tinymce plugin which makes it very easy to insert shortcode(s).
 
-If you'd like to do it manually it's still simple: just add <code>[authoravatars]</code> into your post and hit save! There's a large number of [parameters](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) available.
+If you'd like to do it manually it's still simple: just add <code>[authoravatars]</code> into your post and hit save! There's a large number of [parameters](http://authoravatars.wordpress.com/documentation/authoravatars-shortcode/) available.
 
 The plugin comes with two shortcodes: <code>[authoravatars]</code> for lists of avatars and <code>[show_avatar]</code> for single avatars.
 
