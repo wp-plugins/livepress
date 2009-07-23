@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: Author Avatars List
-Plugin URI: http://wordpress.org/extend/plugins/author-avatars/
+Plugin URI: http://authoravatars.wordpress.com/
 Description: Display lists of user avatars using <a href="widgets.php">widgets</a> or <a href="http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation">shortcodes</a>.
-Version: 0.7.4
+Version: 0.7.5-dev
 Author: <a href="http://mind2.de">Benedikt Forchhammer</a>, Idea: <a href="http://bearne.com">Paul Bearne</a>
 Text Domain: author-avatars
 Domain Path: /translations/
