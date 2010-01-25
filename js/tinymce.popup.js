@@ -106,6 +106,12 @@ function insertAuthorAvatarsCode() {
 			tagtext += " limit=" + limit;
 		}
 
+		// min post count
+		var min_post_count = jQuery("#min_post_count").val() || "";
+		if (min_post_count.length > 0) {
+			tagtext += " min_post_count=" + min_post_count;
+		}
+
 		// order
 		var order = jQuery("#order").val() || "";
 		if (order.length > 0) {

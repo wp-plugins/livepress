@@ -271,6 +271,8 @@ class AuthorAvatarsForm {
 		$html .= $this->renderFieldSortDirection($display_values['sort_direction'], $name_base .'[sort_direction]');
 		$html .= '<br />';
 		$html .= $this->renderFieldLimit($display_values['limit'], $name_base .'[limit]');
+                $html .= '<br />';
+                $html .= $this->renderFieldMinPostCount($display_values['min_post_count'], $name_base .'[min_post_count]');
 		$html .= '<br />';
 		$html .= $this->renderFieldAvatarSize($display_values['avatar_size'], $name_base . '[avatar_size]');
 		return $html;
@@ -387,6 +389,24 @@ class AuthorAvatarsForm {
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
 			'label' => __('Max. number of avatars shown', 'author-avatars') . ': ',
+			'size' => '5'
+		);
+		$name = $this->_getFieldName($name);
+		return '<p>'. FormHelper::input('text', $name, $value, $attributes) .'</p>';
+	}
+
+
+	/**
+	 * Renders the "min_post_count" input field
+	 *
+	 * @param string $value the field value
+	 * @param string $name the field name
+	 * @return string
+	 */
+	function renderFieldMinPostCount($value='', $name='min_post_count') {
+		$attributes = array(
+			'id' => $this->_getFieldId($name),
+			'label' => __('Required minimum number of posts', 'author-avatars') . ': ',
 			'size' => '5'
 		);
 		$name = $this->_getFieldName($name);

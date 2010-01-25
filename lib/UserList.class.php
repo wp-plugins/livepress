@@ -50,6 +50,11 @@ class UserList {
 	 * Maximum number of users.
 	 */
 	var $limit = 0;
+
+        /**
+         * Minimum number of posts which a user needs to have in order to be shown in the listing
+         */
+        var $min_post_count = 0;
 	
 	/**
 	 * The order which the users are shown in.
@@ -338,6 +343,16 @@ class UserList {
 					// do not add this user
 					$add = false;
 				}
+
+                                // Remove users with zero posts
+                                if (
+                                        // if the flag is set to remove respective users
+                                        $this->min_post_count > 0 &&
+                                        // and they have zero posts
+                                        $this->get_user_postcount($user->user_id) < $this->min_post_count ) {
+                                        // do not add this user
+                                        $add = false;
+                                }
 								
 				if ($add === true) {
 					// store current user_id for uniqueness check
