@@ -57,4 +57,18 @@ function array_in_array($needle, $haystack) {
 }
 endif;
 
+/**
+ * A simple implementation of "array_slice()" which preserves array keys.
+ *
+ * @see http://www.php.net/manual/en/function.array-slice.php#75865
+ * @param $a array
+ * @param $num number of items which to limit the array to
+ * @return array with $num
+ */
+if (!function_exists('')):
+function atrim( $a, $num ) {
+    while( sizeof( $a ) > $num ) array_pop( $a );
+    return $a;
+}
+endif;
 ?>

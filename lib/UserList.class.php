@@ -252,7 +252,7 @@ class UserList {
 		
 		// and limit the number
 		if (intval($this->limit) > 0) {
-			$users = array_slice($users, 0, intval($this->limit), true);
+			$users = atrim($users, intval($this->limit));
 		}
 		
 		return $users;
