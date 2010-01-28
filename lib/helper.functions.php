@@ -65,7 +65,7 @@ endif;
  * @param $num number of items which to limit the array to
  * @return array with $num
  */
-if (!function_exists('')):
+if (!function_exists('atrim')):
 function atrim( $a, $num ) {
     while( sizeof( $a ) > $num ) array_pop( $a );
     return $a;
