@@ -40,6 +40,16 @@ class UserList {
 	 * Flag whether to show the username underneith their avatar.
 	 */
 	var $show_name = false;
+
+	/**
+	 * Flag wether to show the post count for each user after the username.
+	 */
+	var $show_postcount = false;
+
+	/**
+	 * Flag whether to show a user's biography
+	 */
+	var $show_biography = false;
 	
 	/**
 	 * Size of avatars.
@@ -51,10 +61,10 @@ class UserList {
 	 */
 	var $limit = 0;
 
-        /**
-         * Minimum number of posts which a user needs to have in order to be shown in the listing
-         */
-        var $min_post_count = 0;
+	/**
+	 * Minimum number of posts which a user needs to have in order to be shown in the listing
+	 */
+	var $min_post_count = 0;
 	
 	/**
 	 * The order which the users are shown in.
@@ -190,6 +200,7 @@ class UserList {
 		if (!$avatar_size) $avatar_size = false;
 
 		$name = $user->display_name;
+		$alt = $title = $name;
 
 		$divcss = array('user');
 		if ($this->show_name) $divcss[] = 'with-name';
@@ -216,6 +227,20 @@ class UserList {
 				break;
 		}
 
+		if ($this->show_postcount) {
+			$postcount = $this->get_user_postcount($user->user_id);
+			$name .= sprintf(' (%d)', $postcount);
+			$title .= ' ('. sprintf(_n("%d post", "%d posts", $postcount, 'author-avatars'), $postcount) .')';
+		}
+
+		$biography = false;
+		if ($this->show_biography) {
+			$biography = get_the_author_meta('description', $user->user_id);
+			$divcss[] = 'with-biography';
+			$name = '<strong>'. $name .'</strong>';
+			if (empty($biography)) $divcss[] = 'biography-missing';
+		}
+
 		$avatar = get_avatar($user->user_id, $avatar_size);
 
 		/* Strip all existing links (a tags) from the get_avatar() code to
@@ -228,13 +253,14 @@ class UserList {
 		$avatar = preg_replace('@alt=["\'][\w]*["\'] ?@', '', $avatar);
 		$avatar = preg_replace('@title=["\'][\w]*["\'] ?@', '', $avatar);
 		/* insert alt and title parameters */
-		$avatar = preg_replace('@ ?\/>@', ' alt="'.$name.'" title="'.$name.'" />', $avatar);
+		$avatar = preg_replace('@ ?\/>@', ' alt="'.$alt.'" title="'.$title.'" />', $avatar);
 
 		$html = '';
 		if ($link) $html .= '<a href="'. $link .'">';
 		$html .= '<span class="avatar">'. $avatar .'</span>';
 		if ($this->show_name) $html .= '<span class="name">'. $name . '</span>';
 		if ($link) $html .= '</a>';
+		if ($biography) $html .= '<div class="biography">'. $biography .'</div>';
 		
 		$tpl_vars['{class}'] = implode($divcss, ' ');
 		$tpl_vars['{user}'] = $html;

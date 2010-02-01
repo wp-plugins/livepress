@@ -2,8 +2,8 @@
 Contributors: bforchhammer, pbearne
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5UP2FUQ8QMHJU&lc=GB&item_name=Wordpress%20Development&item_number=Author%20Avatars%20List%20Plugin&currency_code=GBP&bn=PP%2dDonationsBF%3abtn_donateCC_LG_global%2egif%3aNonHosted
 Tags: Avatar, Author, BuddyPress, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
-Requires at least: 2.6
-Tested up to: 2.8
+Requires at least: 2.8
+Tested up to: 2.9.1
 Stable tag: 0.7.4
 
 Display lists of user avatars using widgets or shortcodes.

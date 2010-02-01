@@ -100,6 +100,18 @@ function insertAuthorAvatarsCode() {
 			tagtext += " show_name=true";
 		}
 
+		// show_postcount
+		var show_postcount = jQuery("#display input[value=show_postcount]").attr("checked");
+		if (show_postcount == true) {
+			tagtext += " show_postcount=true";
+		}
+
+		// show_biography
+		var show_biography = jQuery("#display input[value=show_biography]").attr("checked");
+		if (show_biography == true) {
+			tagtext += " show_biography=true";
+		}
+
 		// limit
 		var limit = jQuery("#limit").val() || "";
 		if (limit.length > 0) {

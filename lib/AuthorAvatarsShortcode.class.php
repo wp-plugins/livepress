@@ -88,6 +88,20 @@ class AuthorAvatarsShortcode {
 			if ($set_to_false) $userlist->show_name = false;
 			else $userlist->show_name = true;
 		}
+
+		// show post count?
+		if (isset($atts['show_postcount'])) {
+			$set_to_false = ($atts['show_postcount'] == 'false');
+			if ($set_to_false) $userlist->show_postcount = false;
+			else $userlist->show_postcount = true;
+		}
+
+		// show biography?
+		if (isset($atts['show_biography'])) {
+			$set_to_false = ($atts['show_biography'] == 'false');
+			if ($set_to_false) $userlist->show_biography = false;
+			else $userlist->show_biography = true;
+		}
 		
 		// avatar size
 		if (!empty($atts['avatar_size'])) {
