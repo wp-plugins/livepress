@@ -218,16 +218,16 @@ class UserList {
 
 		$avatar = get_avatar($user->user_id, $avatar_size);
 
-                /* Strip all existing links (a tags) from the get_avatar() code to
-                 * remove e.g. the link which is added by the add-local-avatar plugin
-                 * @see http://wordpress.org/support/topic/309878 */
-                if (!empty($link)) {
-                    $avatar = preg_replace('@<\s*\/?\s*[aA]\s*.*?>@', '', $avatar);
-                }
-                /* strip alt and title parameter */
+		/* Strip all existing links (a tags) from the get_avatar() code to
+		* remove e.g. the link which is added by the add-local-avatar plugin
+		* @see http://wordpress.org/support/topic/309878 */
+		if (!empty($link)) {
+			$avatar = preg_replace('@<\s*\/?\s*[aA]\s*.*?>@', '', $avatar);
+		}
+		/* strip alt and title parameter */
 		$avatar = preg_replace('@alt=["\'][\w]*["\'] ?@', '', $avatar);
-                $avatar = preg_replace('@title=["\'][\w]*["\'] ?@', '', $avatar);
-                /* insert alt and title parameters */
+		$avatar = preg_replace('@title=["\'][\w]*["\'] ?@', '', $avatar);
+		/* insert alt and title parameters */
 		$avatar = preg_replace('@ ?\/>@', ' alt="'.$name.'" title="'.$name.'" />', $avatar);
 
 		$html = '';
