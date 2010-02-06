@@ -1,4 +1,3 @@
-
 function AA_init_avatarpreview(preview_node, input_node, options) {
 	var defaults = {
 		minimum_size: 25,
@@ -54,7 +53,7 @@ function AA_init_avatarpreview(preview_node, input_node, options) {
 				}
 			});
 			preview_node.addClass('is_resizable');
-		};
+		}
 	});
 }
 
