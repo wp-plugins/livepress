@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5UP2F
 Tags: Avatar, Author, BuddyPress, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.8
 Tested up to: 2.9.1
-Stable tag: 0.7.4
+Stable tag: 0.8
 
 Display lists of user avatars using widgets or shortcodes.
 
@@ -21,6 +21,7 @@ Both shortcode and widget can be configured to...
 *   Limit the number of users shown
 *   Change the sort order of users or show in random order
 *   Adjust the size of user avatars
+*   Optionally show a user's name or biography
 *   Show users from the current blog, all blogs or a selection of blogs (on WPMU)
 *   Group users by their blog (when showing from multiple blogs), and show the blog name above each grouping (experimental feature).
 
@@ -55,8 +56,15 @@ You can find information for developers [on this page](http://authoravatars.word
 2. The Widget configuration panel.
 3. Examples of what the <code>[authoravatars]</code> shortcode can do.
 4. Shortcode helper available from the WYSIWYG editor on the edit post page.
+5. List of users with name and biography
 
 == Changelog ==
+
+= 0.8 =
+*   Added feature to show a user's biography next to the avatar
+*   Added feature to limit shown users by a minimum number of posts
+*   Added feature to show a user's number of posts
+*   Added Italian translation (by Gianni Diurno)
 
 = 0.7.4 =
 *   Fixed javascript issues with widget settings page and shortcode wizard in WordPress 2.8
@@ -174,6 +182,10 @@ This can happens when you've choosen to link users to their "author page" and th
 
 2. If not already there add a custom user/author template to your theme. Otherwise if a user has no posts their user page is going to be quite empty by default...
 You can find a [tutorial](http://codex.wordpress.org/Author_Templates) on Author Templates as well as a [Sample Template File](http://codex.wordpress.org/Author_Templates#Sample_Template_File) in the WordPress Codex.
+
+= Can I use html in user biographies?
+
+Wordpress Core unforunately strips all html from the user biography field when entered. Install the plugin [Weasel's HTML Bios](http://wordpress.org/extend/plugins/weasels-html-bios/) if you want to use html...
 
 = How can I change the styling of the avatar lists? =
 
