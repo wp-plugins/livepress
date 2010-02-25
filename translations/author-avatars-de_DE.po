@@ -8,13 +8,13 @@ msgstr ""
 "Project-Id-Version: Author Avatars List 0.8\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/author-avatars\n"
 "POT-Creation-Date: 2010-02-22 17:42+0000\n"
-"PO-Revision-Date: 2010-02-22 17:54-0000\n"
+"PO-Revision-Date: 2010-02-25 22:54-0000\n"
 "Last-Translator: Benedikt Forchhammer <b.forchhammer@mind2.de>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
 
 #: lib/AuthorAvatars.class.php:13
 msgid "Author avatars: system check failed."
@@ -265,6 +265,7 @@ msgstr "[show_author shortcode: bitte Id/Email Attribute setzen]"
 msgid "No users found."
 msgstr "Keine Benutzer gefunden."
 
+#nplurals=INTEGER
 #: lib/UserList.class.php:233
 #, php-format
 msgid "%d post"
