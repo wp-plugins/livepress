@@ -1,10 +1,10 @@
 <?php
-//Live+Press_2.1.8
+//Live+Press_2.1.10
 
 function parse_lj_tags($text)
 {
 global $id, $unt_livepress_options, $single;
-$siteurl = get_settings('siteurl');
+$siteurl = get_option('siteurl');
 if ($unt_livepress_options['tags']['parse_cut'] = True)
 {
 	preg_match_all("/([[\{<~](lj-cut)( text=\"(.+)\")?[\]\}>~])(.*)([[\{<~]\/\\2[\]\}>~])/isU", $text, $matches);

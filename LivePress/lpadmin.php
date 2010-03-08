@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.8
+//Live+Press_2.1.10
 
 require_once('lpextras.php');
 //require_once('jquery-1.2.6.min.js');
@@ -800,9 +800,16 @@ echo"
     }
 }
 
-get_LJ_login_data();
-add_action('admin_menu', 'unt_livepress_admin');
-add_action('admin_head', 'journal_Switcher');
-add_action('admin_footer', 'init_LJ_Extras_GUI');
+//if (strpos($_SERVER['PHP_SELF'],'wp-admin/plugins.php') || strpos($_SERVER['REQUEST_URI'],'wp-admin/options-general.php?page=livepress/LivePress')) {
+if (strpos($_SERVER['PHP_SELF'],'wp-admin')) {
+
+	//add_action('admin_head', 'journal_Switcher');
+	add_action('admin_menu', 'unt_livepress_admin');
+	add_action('admin_footer', 'init_LJ_Extras_GUI');
+}
+
+//if (strpos($_SERVER['REQUEST_URI'],'wp-admin/options-general.php?page=livepress/LivePress')) {
+//	get_LJ_login_data();
+//}
 
 ?>

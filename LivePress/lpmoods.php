@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.8
+//Live+Press_2.1.10
 
 $ljmoods = $unt_livepress_options['moods']['file'];
 $ljmoods = file($ljmoods, 1);
@@ -93,7 +93,7 @@ function LJ_Moods_Style() {
 
 if( $unt_livepress_options['general']['usemoods'])
 {	
-	add_action('wp_head', 'LJ_Moods_Style');
+	//add_action('wp_head', 'LJ_Moods_Style');
 	add_filter ($unt_livepress_options['moods']['location'], 'add_mood');
 }
 ?>

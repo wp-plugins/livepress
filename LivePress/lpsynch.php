@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.9
+//Live+Press_2.1.10
 
 
 require_once("lpextras.php");
@@ -77,7 +77,7 @@ function delete_post_LJ ($post_ID) {
 
 	$client = new IXR_client("www.livejournal.com", "/interface/xmlrpc", 80);
 	if (!$client->query('LJ.XMLRPC.getchallenge')) {
-	    //wp_die('Something went wrong - '.$client->getErrorCode().' : '.$client->getErrorMessage());
+	    wp_die('Something went wrong - '.$client->getErrorCode().' : '.$client->getErrorMessage());
 	}
 	$response = $client->getResponse();
 	$challenge = $response['challenge'];

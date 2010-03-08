@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.8
+//Live+Press_2.1.10
 
 function add_music ($text)
 {
@@ -37,7 +37,7 @@ function LJ_Music_Style() {
 
 
 if($unt_livepress_options['general']['usemusic']){
-	add_action('wp_head', 'LJ_Music_Style');
+	//add_action('wp_head', 'LJ_Music_Style');
 	add_filter ($unt_livepress_options['music']['location'], 'add_music');
 }
 ?>
