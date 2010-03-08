@@ -1,6 +1,9 @@
 Live+Press
 supported by Tania Morell
 
+v2.1.10 03.07.2009
+- Bugfix : Removed unecessary calls to lpextras.php which connects to LJ XMLRPC interface
+
 v2.1.9 06.10.2009
 - Bugfix : Saving a draft on WP publishes a post on LJ
 - Changed : Blog linkback from LJ points to post uri instead of blog url
