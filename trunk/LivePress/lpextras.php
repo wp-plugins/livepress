@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.8
+//Live+Press_2.1.10
 
 require_once(ABSPATH . 'wp-admin/admin-functions.php');
 
@@ -83,6 +83,8 @@ function get_LJ_login_data() {
 	global $unt_livepress_options, $unt_lp_clientid, $user_login, $journals;
 
 	require_once(ABSPATH . '/wp-includes/class-IXR.php');
+	require(ABSPATH . '/wp-includes/version.php');
+
 
 	if (!empty($journals)) {
 	    foreach(array_keys($journals) as $type) {
@@ -92,9 +94,11 @@ function get_LJ_login_data() {
 		    echo "invalid journal type";
 		}
 		$client = new IXR_client($jurl, "/interface/xmlrpc", 80);
-		$client->debug = false;
+		//$client = new IXR_client("http://www.livejournal.com/interface/xmlrpc");
+		//$client->debug = true;
+//print "A getChallege in lpextras\n";
 		if (!$client->query('LJ.XMLRPC.getchallenge')) {
-		    //wp_die('Something went wrong - '.$client->getErrorCode().' : '.$client->getErrorMessage());
+		//    wp_die('Something went wrong - '.$client->getErrorCode().' : '.$client->getErrorMessage());
 		}
 		$response = $client->getResponse();
 		$challenge = $response['challenge'];
@@ -109,6 +113,7 @@ echo '</pre>';
 	      foreach(array_keys($journals[$type]) as $name) {
 
 		$msg_array = array();
+		$msg_array['mode'] = 'login'; //new
 		$msg_array['username'] = utf8_encode($name);
 		$msg_array['auth_method'] = utf8_encode('challenge');
 		$msg_array['auth_challenge'] = utf8_encode($challenge);
@@ -117,6 +122,8 @@ echo '</pre>';
 		$msg_array['getpickws'] = utf8_encode('1');
 		$msg_array['getpickwurls'] = utf8_encode('1');
 
+		//if (!$client->query('LJ.XMLRPC.login', $msg_array)) { //removing mode ' login'
+//print "A login in lpextras\n";
 		if (!$client->query('LJ.XMLRPC.login', $msg_array)) {
 		    return false;
 		}
@@ -251,7 +258,7 @@ function place_LJ_Extras_GUI () {
 	print '<script language="JavaScript" type="text/javascript">';
 	echo "\n";
 
-	if ($_GET['action'] == 'edit' || get_settings('advanced_edit')) {
+	if ($_GET['action'] == 'edit' || get_option('advanced_edit')) {
 	    echo 'var submitButtonPara = document.getElementById("save").parentNode;';
 	} else {
 	    echo 'var submitButtonPara = document.getElementById("saveasdraft").parentNode;';
@@ -288,7 +295,7 @@ function save_LJ_meta($lj_meta, $name, $value, $post_ID)
 
 
 
-            if (array_key_exists('unt_lj_error', $lj_meta)) {
+            if (array_key_exists('unt_lj_rror', $lj_meta)) {
                 update_meta($lj_meta['unt_lj_error']['id'], 'unt_lj_error', $metavalue);
             } else {
                 $metakey = 'unt_lj_error';
@@ -642,24 +649,29 @@ function init_LJ_Extras_GUI()
 
 if (strpos($_SERVER['PHP_SELF'],'wp-admin/post-new.php') 
 	|| strpos($_SERVER['PHP_SELF'],'wp-admin/post.php') 
+	|| strpos($_SERVER['PHP_SELF'],'LivePress/lpadmin.php')
+	|| strpos($_SERVER['REQUEST_URI'],'wp-admin/options-general.php?page=livepress/LivePress')
 	|| strpos($_SERVER['PHP_SELF'],'wp-admin/bookmarklet.php'))
 { 
 
-    get_LJ_login_data();
+$tempself = $_SERVER['PHP_SELF'] ;
 
+	get_LJ_login_data();
+	//print "Called LJ_login_data because PHP_SELF is $tempself \n";
+}
+
+
+if (strpos($_SERVER['SCRIPT_URI'],'wp-admin'))
+{
     //add_action('admin_head', 'LJ_Extras_Style');
     //add_action('admin_footer', 'build_LJ_Extras_GUI');
     //add_action('admin_footer', 'place_LJ_Extras_GUI');
-    add_action('admin_head', 'journal_Switcher');
+    //add_action('admin_head', 'journal_Switcher');
     add_action('admin_footer', 'init_LJ_Extras_GUI');
     add_action('edit_post', 'save_LJ_Extras');
     add_action('publish_post', 'save_LJ_Extras', 5);
     add_action('simple_edit_form', 'build_LJ_Extras_GUI');
     add_action('edit_form_advanced', 'build_LJ_Extras_GUI');
-
-} elseif (strpos($_SERVER['PHP_SELF'],'LivePress/lpadmin.php')) {
-
-//    get_LJ_login_data();
 
 }
 
