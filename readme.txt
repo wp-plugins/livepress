@@ -3,8 +3,8 @@ Contributors: Tania Morell (aka "digsite")
 Donate link: none
 Tags: crossposting, cross post, livejournal, livepress
 Requires at least: 2.3
-Tested up to: 2.7.1
-Stable tag: 2.1.9
+Tested up to: 2.9.2
+Stable tag: 2.1.10
 
 Crosspost blog entries to LiveJournal automatically or on a post by post basis. Crosspostable options include user pic, current music, current mood, security "friends" group, with ability to disable comments on LJ side, and insert a linkback to original wordpress post.
 
@@ -42,21 +42,23 @@ Using FTP
     * download the plugin to your local computer
     * Extract the plugin archive
     * ftp the entire livepress/ directory to your wordpress plugin directory
+    * Go to your WordPress Dashboard -> General -> Writing and make sure XML-RPC is enabled.
     * Go to your plugins admin page and activate the LivePress plugin
-    * Go To the Settings -> LivePress to configure your plugin on the admin page 
+    * Go to the Settings -> LivePress to configure your plugin on the admin page 
 
 Using shell access
 
     * cd to your wp-contents/plugins directory of your wordpress installation
     * download the plugin archive directly
-    * wget http://livepress.googlecode.com/files/livepress_2.x.x.tar.gz
-    * untar the files
-    * tar -xvzf livepress_2.x.x.tar.gz
+    * # wget http://downloads.wordpress.org/plugin/livepress.x.x.x.zip
+    * unzip the files
+    * unzip livepress.x.x.x.zip
     * If you ran this as root, you may need to fix file ownerships
     * chown -R <wpuser> livepress
     * again, check file ownership
+    * Go to your WordPress Dashboard -> General -> Writing and make sure XML-RPC is enabled.
     * Go to your plugins admin page and activate the LivePress plugin
-    * Go To the Settings -> LivePress to configure your plugin on the admin page 
+    * Go to the Settings -> LivePress to configure your plugin on the admin page 
 
 
 == Screenshots ==
@@ -71,11 +73,13 @@ Q: How do I crosspost an excerpt.
 A: Type in an excerpt in the "exerpt" section of wordpress' new-post page then select "excerpt only" in the lj extras section of the page.
 
 == Releases ==
-Current version: 2.1.9
+Current version: 2.1.10
 
 Older Versions:
 
 _by digsite_
+  * 2.1.10
+	- too many connection attempts by the plugin cause livejournal to block the source IP.
   * 2.1.9
 	- LiveJournal linkback links directly to the post page instead of the blog main page.
 	- fixed problem where saving a draft would result in a published post to livejournal.
