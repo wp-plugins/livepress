@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.10
+//Live+Press_2.1.11
 
 require_once(ABSPATH . 'wp-admin/admin-functions.php');
 
@@ -667,6 +667,7 @@ if (strpos($_SERVER['SCRIPT_URI'],'wp-admin'))
     //add_action('admin_footer', 'build_LJ_Extras_GUI');
     //add_action('admin_footer', 'place_LJ_Extras_GUI');
     //add_action('admin_head', 'journal_Switcher');
+
     add_action('admin_footer', 'init_LJ_Extras_GUI');
     add_action('edit_post', 'save_LJ_Extras');
     add_action('publish_post', 'save_LJ_Extras', 5);

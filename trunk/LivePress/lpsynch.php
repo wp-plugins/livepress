@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.10
+//Live+Press_2.1.11
 
 
 require_once("lpextras.php");
@@ -77,7 +77,7 @@ function delete_post_LJ ($post_ID) {
 
 	$client = new IXR_client("www.livejournal.com", "/interface/xmlrpc", 80);
 	if (!$client->query('LJ.XMLRPC.getchallenge')) {
-	    wp_die('Something went wrong - '.$client->getErrorCode().' : '.$client->getErrorMessage());
+	   // wp_die('Something went wrong - '.$client->getErrorCode().' : '.$client->getErrorMessage());
 	}
 	$response = $client->getResponse();
 	$challenge = $response['challenge'];
@@ -430,9 +430,17 @@ function test_LJ (){
 	    || (strpos($_SERVER['PHP_SELF'],'edit.php') != false)) {
 
 		add_action('publish_phone', 'publish_phone_LJ', 5);
-#		add_action('edit_post', 'synch_LJ');
-		add_action('publish_post', 'synch_LJ', 5);
+		add_action('edit_post', 'synch_LJ');
+		add_action('publish_post', 'synch_LJ');
+		add_action('trash_post', 'delete_post_LJ');
 		add_action('delete_post', 'delete_post_LJ');
+		add_action('untrash_post', 'synch_LJ');
+
+
+
+                //add_action('new_to_publish', 'synch_LJ');
+                //add_action('draft_to_publish', 'synch_LJ');
+                //add_action('future_to_publish', 'synch_LJ'); /// future publish
 
 		//add_action('wp_insert_post', 'test_LJ');
 		//add_action('insertPost-omatic', 'test_LJ');

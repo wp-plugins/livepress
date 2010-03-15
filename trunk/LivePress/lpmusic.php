@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.10
+//Live+Press_2.1.11
 
 function add_music ($text)
 {

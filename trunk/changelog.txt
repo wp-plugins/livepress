@@ -1,6 +1,9 @@
 Live+Press
 supported by Tania Morell
 
+v2.1.11 03.15.2009
+- Bugfix : fixed unpopulated dropdowns, Uncommented Switcher 
+
 v2.1.10 03.07.2009
 - Bugfix : Removed unecessary calls to lpextras.php which connects to LJ XMLRPC interface
 

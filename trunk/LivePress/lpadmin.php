@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.10
+//Live+Press_2.1.11
 
 require_once('lpextras.php');
 //require_once('jquery-1.2.6.min.js');
@@ -23,7 +23,7 @@ echo ' </script>';
 function unt_livepress_admin() 
 {
 	if (function_exists('add_options_page')) {
-	    add_options_page('Live Press+2', 'Live+Press', 5, __FILE__, 'unt_livepress_admin_display');
+	    add_options_page('Live+Press', 'LivePress', 5, __FILE__, 'unt_livepress_admin_display');
 	}
 }
 
@@ -801,9 +801,10 @@ echo"
 }
 
 //if (strpos($_SERVER['PHP_SELF'],'wp-admin/plugins.php') || strpos($_SERVER['REQUEST_URI'],'wp-admin/options-general.php?page=livepress/LivePress')) {
-if (strpos($_SERVER['PHP_SELF'],'wp-admin')) {
+////if (strpos($_SERVER['PHP_SELF'],'wp-admin')) {
+if (is_admin()) {
 
-	//add_action('admin_head', 'journal_Switcher');
+	add_action('admin_head', 'journal_Switcher');
 	add_action('admin_menu', 'unt_livepress_admin');
 	add_action('admin_footer', 'init_LJ_Extras_GUI');
 }
