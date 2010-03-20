@@ -1,0 +1,123 @@
+
+.inside {
+	width: 97%;
+}
+.unt_lp_extras {
+	width: 350px;
+	line-height: 2.1em;
+	font-size: 12px;
+}
+.unt_lp_extras select {
+	float: right;
+}
+
+.unt_lp_moods{
+}
+
+.unt_lp_music{
+}
+
+.cutid {
+}
+
+.ljuser {
+}
+
+.ljuserinfo {
+}
+
+.ljusertagimg {
+}
+
+.reset p {
+    text-align: right;
+}
+
+.unt_lp_moods{
+}
+
+.unt_lp_music{
+}
+
+.cutid {
+}
+
+.ljuser {
+}
+
+.ljuserinfo {
+}
+
+.ljusertagimg {
+}
+
+.reset p {
+    text-align: right;
+}
+
+	table.jlist {
+	width: 50%;
+	border: 0px;
+	margin: 0px;
+	float:left;
+	top: 0;
+	}
+
+        form.jlist {
+        border: 0px;
+        margin: 0px;
+        float: left;
+        }
+
+        table.jlist tr {
+        }
+
+        table.jsublist {
+            border: 1px solid #ccc;
+            margin: 2px;
+            width: 300px;
+        }
+
+        table.jlist tr td, table.jlist tr th {
+        border: 0px;
+        margin: 0px;
+        padding: 0px;
+        }
+
+        table.jnew {
+        border: 1px solid #ccc;
+        padding:0px;
+        margin: 0px;
+        width: 320px;
+        }
+
+        table.jnew td, table.jnew tr {
+        padding:0px;
+        margin: 0px;
+        }
+
+        td#lpjbutton {
+        text-align: left;
+        padding-right: 15px;
+        }
+
+        table.jmoods, table.jmusic {
+        padding:0px;
+        margin: 0px;
+        width: 450px;
+        }
+
+        table.jmoods td, table.jmoods tr,table.jmusic td, table.jmusic tr {
+        padding:0px;
+        margin: 0px;
+        }
+
+        table.jmoods tr td input, table.jmusic tr td input {
+		width : 250px;
+	}
+
+
+#lp-admin-table tr th, #lp-admin-table tr {
+	background-color: #EAF3FA;
+	border: 3px solid white;
+}
