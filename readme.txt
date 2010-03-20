@@ -1,12 +1,13 @@
 === Live+Press ===
 Contributors: Tania Morell (aka "digsite")
-Donate link: none
-Tags: crossposting, cross post, livejournal, livepress
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=YPPLF9T3ZFT28
+Tags: crossposting, cross post, livejournal, livepress, crosspost
 Requires at least: 2.3
 Tested up to: 2.9.2
-Stable tag: 2.1.11
+Stable tag: 2.2
 
 Crosspost blog entries to LiveJournal automatically or on a post by post basis. Crosspostable options include user pic, current music, current mood, security "friends" group, with ability to disable comments on LJ side, and insert a linkback to original wordpress post.
+
 
 == Description ==
 
@@ -14,9 +15,7 @@ Livepress is a plugin for wordpress which allows the user to crosspost journal e
 
 You can crosspost blog entries automatically or on a post by post basis. Crosspostable options include user pic, current music, current mood, security "friends" group, with ability to disable comments on LJ side, and insert a linkback to original wordpress post.
 
-This fork of the plugin is licensed under GPLv3. All contributions and suggestions are welcome.
-
-Originally written by <a href="http://jason.goldsmith.us/>Jason Goldsmith (aka "unteins")</a>
+This plugin is licensed under GPLv3. All contributions and suggestions are welcome.
 
 Please report bugs to the <a href="http://groups.google.com/group/livepressplugin">Support Forum</a>
 
@@ -27,12 +26,18 @@ Current version features list:
 
     * cross posting full posts or exerpts with lj_cuts tags
     * cross posting of User Pics, Moods, Music, and Tags
-    * choose LJ security level and custom friends lists
+    * choose LiveJournal security level and custom friends lists
     * enable / disable comments on livejournal side
     * include a link back to the original wordpress post
-    * (new with 2.0) cross posts Tags instead of Categories
-    * (new with 2.0) post delete also deletes livejournal post
-    * (new with 2.0) automatic crosspost email and cell phone text and multimedia posts 
+    * cross posts either Tags or Categories as tags on LiveJournal
+    * post delete also deletes livejournal post
+    * automatic crosspost email and cell phone text and multimedia posts 
+    * non-roman alphabet support: Ie, Cyrillic, Kanji, Sanskrit, Greek, Arabic, Hebrew, etc
+
+
+== Known Caveats ==
+
+    * Quick edits will not update a crossposted entry
 
 
 == Installation ==
@@ -72,12 +77,22 @@ Using shell access
 Q: How do I crosspost an excerpt.
 A: Type in an excerpt in the "exerpt" section of wordpress' new-post page then select "excerpt only" in the lj extras section of the page.
 
+
 == Releases ==
-Current version: 2.1.11
+Current version: 2.2
 
 Older Versions:
 
-_by digsite_
+_by Tania Morell (aka "digsite")_
+  * 2.2
+	- LJ logins beyond the first one failed to authenticate.
+	- Saving a draft no longer triggers a crosspost.
+	- Replaced SCRIPT_URI with is_admin in two places in lpextras.php
+	- A broken LJ site no longer affects LP or WP as a result of LP
+	- Added CSS style formatting on the admin page to make options easier to follow
+	- Changed how LP processes post content before crossposting - using apply_filters
+	- Added support for Cyrillic alphabet / Russian language
+	- Addressed complaints with apostrophes, commas, slashes in the body and title
   * 2.1.11
 	- fixed unpopulated dropdowns, uncommented switcher.
   * 2.1.10
@@ -109,7 +124,7 @@ _by digsite_
 _by creepigurl_
   * 1.99.9 
 
-_by unteins_
+_by Jason Goldsmith (aka "unteins")_
   * 1.99
   * 1.5.2
   * 1.5.1.3

@@ -1,7 +1,11 @@
 <?php
-//Live+Press_2.1.11
+//Live+Press_2.2
 
-require_once(ABSPATH . 'wp-admin/admin-functions.php');
+/////require_once(ABSPATH . 'wp-admin/admin-functions.php');
+require_once(ABSPATH . '/wp-includes/class-IXR.php');
+require_once(ABSPATH . '/wp-includes/version.php');
+require_once(ABSPATH . '/wp-includes/post.php');
+
 
 
 if (!function_exists('array_combine')) 
@@ -82,26 +86,34 @@ function checkbit($number, $bit) {
 function get_LJ_login_data() {
 	global $unt_livepress_options, $unt_lp_clientid, $user_login, $journals;
 
-	require_once(ABSPATH . '/wp-includes/class-IXR.php');
-	require(ABSPATH . '/wp-includes/version.php');
 
+	$jurl = "www.livejournal.com";
+	//$jurl = "www.livejournal2.com";
 
-	if (!empty($journals)) {
-	    foreach(array_keys($journals) as $type) {
-		if (!strcmp($type, 'livejournal')) {
-		    $jurl = "www.livejournal.com";
-		} else {
-		    echo "invalid journal type";
-		}
+/*
+echo '<pre>';
+print_r($journals);
+echo '</pre>';
+*/
+
+	   foreach ($journals as $type => $account) {
+	      foreach(array_keys($account) as $name) {
+
+/*
+echo '<pre>';
+print_r($name);
+echo '</pre>';
+
+echo 'TYPE in login loop:'. $type.' <br>';
+echo 'NAME in login loop:'. $name.' <br>';
+*/
+
 		$client = new IXR_client($jurl, "/interface/xmlrpc", 80);
-		//$client = new IXR_client("http://www.livejournal.com/interface/xmlrpc");
 		//$client->debug = true;
-//print "A getChallege in lpextras\n";
-		if (!$client->query('LJ.XMLRPC.getchallenge')) {
-		//    wp_die('Something went wrong - '.$client->getErrorCode().' : '.$client->getErrorMessage());
-		}
+		$client->query('LJ.XMLRPC.getchallenge');
 		$response = $client->getResponse();
-		$challenge = $response['challenge'];
+                $challenge = $response['challenge'];
+
 /*
 echo '<br>reponse : <pre>'. $response;
 print_r($response);
@@ -110,7 +122,6 @@ echo '<br>challenge : '. $challenge;
 print_r($challenge);
 echo '</pre>';
 */
-	      foreach(array_keys($journals[$type]) as $name) {
 
 		$msg_array = array();
 		$msg_array['mode'] = 'login'; //new
@@ -122,16 +133,22 @@ echo '</pre>';
 		$msg_array['getpickws'] = utf8_encode('1');
 		$msg_array['getpickwurls'] = utf8_encode('1');
 
-		//if (!$client->query('LJ.XMLRPC.login', $msg_array)) { //removing mode ' login'
 //print "A login in lpextras\n";
+
+		//$client->debug = true;
 		if (!$client->query('LJ.XMLRPC.login', $msg_array)) {
-		    return false;
+		//    return false;
 		}
 		$journals[$type][$name]['data'] = $client->getResponse();
 
+/*
+echo '<br>journals : <pre>'. $response;
+print_r($journals);
+echo '</pre>';
+*/
+
  	      }
-	   }
-	}
+ 	 }
 }
 
 
@@ -140,7 +157,13 @@ function user_pics($lj_meta) {
 	$userpics_text = $unt_livepress_options['userpics']['text'];
 	$text .= $userpics_text;
 	$text .= '<select id="ljuserpics" name="ljuserpics" class="LJExtras_userpics"></select>';
- 
+
+/*
+echo "<pre>";
+print_r($journals);
+echo "</pre>";
+*/ 
+
 	if (!empty($journals)) {
 	foreach ($journals as $type => $login) {
 	foreach ($journals[$type] as $key => $value) {
@@ -247,9 +270,11 @@ function get_LJ_meta($post_ID) {
 	    }
 	  }
 	}
+
 //echo "<pre>";
 //print_r($meta_array);
 //echo "</pre>";
+
 	return $meta_array;
 }
 
@@ -337,6 +362,7 @@ function save_LJ_Extras ($post_ID)
 	    //save_LJ_meta($lj_meta, 'unt_lj_synchall', $_POST['ljsynchall'], $post_ID);
 	    save_LJ_meta($lj_meta, 'unt_lj_synchop', $_POST['lj_synch_op'], $post_ID);
 	    //save_LJ_meta($lj_meta, 'unt_lj_cattags', $_POST['lj_synch_cattags'], $post_ID);
+
 /*
 	    if (!strcmp($_POST['lj_synch_op'], 'synchexcerpt') )
 	    if ($_POST['ljexcerptonly'] != '') 
@@ -441,11 +467,13 @@ function build_LJ_Extras_GUI()
 	$nocommentbackop	= $unt_livepress_options['synch']['nocommentdefault'];
 	$userpics_text		= $unt_livepress_options['userpics']['text'];
 	$unt_lp_settings	= $unt_livepress_options;
+
 /*
 echo "<pre> unt_livepress_options \n";
 print_r($unt_livepress_options['synch']);
 echo "</pre>";
 */
+
 	$lj_meta = get_LJ_meta($_GET['post']);
 	if (!empty($lj_meta['unt_lj_linkback']['value'])) {
 	    $insertlinkbackop = $lj_meta['unt_lj_linkback']['value'];
@@ -472,6 +500,7 @@ echo "</pre>";
 	if (isset($lj_meta['unt_lj_synchop']['value']) && !empty($lj_meta['unt_lj_synchop']['value'])) {
 	    $synchoption = $lj_meta['unt_lj_synchop']['value'];
 	}
+
 /*
 	echo '<br>ljnosynch '. $_POST['ljnosynch'];
 	echo '<br>ljsynchall '. $_POST['ljsynchall'];
@@ -484,22 +513,23 @@ echo "<pre>unt_livepress_options synch <br>";
 print_r($unt_livepress_options['synch']);
 echo "</pre>";
 */
+
 	/* Display excertp only option box  */ 
 	echo '<form>';
 	echo '<strong>Syncing Options &raquo;&raquo;</strong>';
 	echo '&nbsp;&nbsp;&nbsp;&nbsp; ';
 	echo '<input id="ljnosynch" name="lj_synch_op" type="radio" value="nosynch" ';
 	echo (strcmp($synchoption, "nosynch") ? '' : 'checked');
-	echo ' /> No Synch,';
+	echo ' /> No Synch';
 
 	echo '&nbsp;&nbsp;&nbsp;&nbsp; ';
         echo '<input id="ljexcerptonly" name="lj_synch_op" type="radio" value="synchexcerpt"';
 	echo (strcmp($synchoption, "synchexcerpt") ? '' : 'checked');
-	echo  '/> Excerpt Only, ';
+	echo  '/> Excerpt Only ';
 
 	echo '&nbsp;&nbsp;&nbsp;&nbsp; ';
 	echo '<input id="ljsynchall" name="lj_synch_op" type="radio" value="synchall" ';
-        echo (!strcmp($synchoption, "synchall") ? 'checked' : '') . '/> Entire Post.';
+        echo (!strcmp($synchoption, "synchall") ? 'checked' : '') . '/> Entire Post';
         echo '<hr size=1px; /><br/>';
 	echo '</form>';
 
@@ -584,6 +614,8 @@ echo "</pre>";
 
 function journal_Switcher()
 {
+	echo '<link rel="stylesheet" href="../wp-content/plugins/livepress/LivePress/LivePress.css" type="text/css" />';
+	//echo '<link rel="stylesheet" href="./LivePress.css" type="text/css" />';
 	echo '<script language="JavaScript">
 function swapLists(theList) {
 	var replacement = theList.options[theList.selectedIndex].value;
@@ -657,11 +689,11 @@ if (strpos($_SERVER['PHP_SELF'],'wp-admin/post-new.php')
 $tempself = $_SERVER['PHP_SELF'] ;
 
 	get_LJ_login_data();
-	//print "Called LJ_login_data because PHP_SELF is $tempself \n";
+//print "Called LJ_login_data because PHP_SELF is $tempself \n";
 }
 
 
-if (strpos($_SERVER['SCRIPT_URI'],'wp-admin'))
+if (is_admin())
 {
     //add_action('admin_head', 'LJ_Extras_Style');
     //add_action('admin_footer', 'build_LJ_Extras_GUI');
