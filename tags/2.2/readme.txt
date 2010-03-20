@@ -20,7 +20,7 @@ This plugin is licensed under GPLv3. All contributions and suggestions are welco
 Please report bugs to the <a href="http://groups.google.com/group/livepressplugin">Support Forum</a>
 
 
-== Features ==
+= Features =
 
 Current version features list:
 
@@ -35,7 +35,7 @@ Current version features list:
     * non-roman alphabet support: Ie, Cyrillic, Kanji, Sanskrit, Greek, Arabic, Hebrew, etc
 
 
-== Known Caveats ==
+= Known Caveats =
 
     - Quick edits will not update a crossposted entry
 
@@ -94,7 +94,9 @@ A: Type in an excerpt in the "exerpt" section of wordpress' new-post page then s
 	- Addressed complaints with apostrophes, commas, slashes in the body and title
 
 
+
 = Older Versions: =
+
 
 _by Tania Morell (aka "digsite")_
 
@@ -104,35 +106,34 @@ _by Tania Morell (aka "digsite")_
 = 2.1.10 =
 * too many connection attempts by the plugin cause livejournal to block the source IP.
 
-  = 2.1.9 =
+= 2.1.9 =
+* LiveJournal linkback links directly to the post page instead of the blog main page.
+* fixed problem where saving a draft would result in a published post to livejournal.
 
-	- LiveJournal linkback links directly to the post page instead of the blog main page.
-	- fixed problem where saving a draft would result in a published post to livejournal.
+= 2.1.8 =
+* fixed problem with breaking blog when lj is down
 
-  = 2.1.8 =
+= 2.1.7 =
 
-	- fixed problem with breaking blog when lj is down
+= 2.1.6 =
 
-  = 2.1.7 =
+* fixed problem getting and storing postid from LJ when posting via email.
+* fixed missing linkbacktext from email post.
 
-  = 2.1.6 =
-	* fixed problem getting and storing postid from LJ when posting via email.
-	* fixed missing linkbacktext from email post.
-
-  = 2.1.5 =
-  = 2.1.4 =
-  = 2.1.3 =
-  = 2.1.2 =
-  = 2.1.1 =
-  = 2.1.0 =
-  = 2.0.7 =
-  = 2.0.6 =
-  = 2.0.5 =
-  = 2.0.4 =
-  = 2.0.3 =
-  = 2.0.2 =
-  = 2.0.1 =
-  = 2.0 =
+= 2.1.5 =
+= 2.1.4 =
+= 2.1.3 =
+= 2.1.2 =
+= 2.1.1 =
+= 2.1.0 =
+= 2.0.7 =
+= 2.0.6 =
+= 2.0.5 =
+= 2.0.4 =
+= 2.0.3 =
+= 2.0.2 =
+= 2.0.1 =
+= 2.0 =
 
 
 _by creepigurl_
