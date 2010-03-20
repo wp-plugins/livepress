@@ -78,34 +78,44 @@ Q: How do I crosspost an excerpt.
 A: Type in an excerpt in the "exerpt" section of wordpress' new-post page then select "excerpt only" in the lj extras section of the page.
 
 
-== Releases ==
-Current version: 2.2
+== Change Log ==
+==Current version: 2.2==
 
-Older Versions:
+2.2
+
+	* LJ logins beyond the first one failed to authenticate.
+	* Saving a draft no longer triggers a crosspost.
+	* Replaced SCRIPT_URI with is_admin in two places in lpextras.php
+	* A broken LJ site no longer affects LP or WP as a result of LP
+	* Added CSS style formatting on the admin page to make options easier to follow
+	* Changed how LP processes post content before crossposting - using apply_filters
+	* Added support for Cyrillic alphabet / Russian language
+	* Addressed complaints with apostrophes, commas, slashes in the body and title
+
+
+==Older Versions:==
 
 _by Tania Morell (aka "digsite")_
-  * 2.2
-	- LJ logins beyond the first one failed to authenticate.
-	- Saving a draft no longer triggers a crosspost.
-	- Replaced SCRIPT_URI with is_admin in two places in lpextras.php
-	- A broken LJ site no longer affects LP or WP as a result of LP
-	- Added CSS style formatting on the admin page to make options easier to follow
-	- Changed how LP processes post content before crossposting - using apply_filters
-	- Added support for Cyrillic alphabet / Russian language
-	- Addressed complaints with apostrophes, commas, slashes in the body and title
+
   * 2.1.11
 	- fixed unpopulated dropdowns, uncommented switcher.
+
   * 2.1.10
 	- too many connection attempts by the plugin cause livejournal to block the source IP.
+
   * 2.1.9
 	- LiveJournal linkback links directly to the post page instead of the blog main page.
 	- fixed problem where saving a draft would result in a published post to livejournal.
+
   * 2.1.8
 	- fixed problem with breaking blog when lj is down
+
   * 2.1.7
+
   * 2.1.6
 	- fixed problem getting and storing postid from LJ when posting via email.
 	- fixed missing linkbacktext from email post.
+
   * 2.1.5
   * 2.1.4
   * 2.1.3
