@@ -74,7 +74,8 @@ Using shell access
 
 == Frequently Asked Questions ==
 
-Q: How do I crosspost an excerpt.
+Q: How do I crosspost an excerpt?
+
 A: Type in an excerpt in the "exerpt" section of wordpress' new-post page then select "excerpt only" in the lj extras section of the page.
 
 
