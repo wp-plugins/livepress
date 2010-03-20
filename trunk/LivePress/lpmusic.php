@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.11
+//Live+Press_2.2
 
 function add_music ($text)
 {
@@ -31,12 +31,13 @@ function add_music ($text)
         return $text;
 }
 
-function LJ_Music_Style() {
+function LJ_Music_Style()
+{
 	echo '<link rel="stylesheet" href="wp-content/plugins/livepress/LivePress/LivePress.css" type="text/css" />';
 }
 
 
-if($unt_livepress_options['general']['usemusic']){
+if($unt_livepress_options['general']['usemusic']) {
 	//add_action('wp_head', 'LJ_Music_Style');
 	add_filter ($unt_livepress_options['music']['location'], 'add_music');
 }

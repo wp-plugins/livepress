@@ -1,8 +1,6 @@
 <?php
-//Live+Press_2.1.11
+//Live+Press_2.2
 
-require_once('lpextras.php');
-//require_once('jquery-1.2.6.min.js');
 
 function RemoveLogin($journal, $name)
 {
@@ -23,7 +21,7 @@ echo ' </script>';
 function unt_livepress_admin() 
 {
 	if (function_exists('add_options_page')) {
-	    add_options_page('Live+Press', 'LivePress', 5, __FILE__, 'unt_livepress_admin_display');
+	    add_options_page('Live+Press', 'Live+Press', 5, __FILE__, 'unt_livepress_admin_display');
 	}
 }
 
@@ -113,55 +111,6 @@ function unt_livepress_admin_display()
 	$unt_livepress_options = get_option('unt_livepress_options');
 	$unt_livepress_logins = get_option('unt_livepress_logins');
 	global $journals;
-?>
-
-        <style  type="text/css">
-	table.jlist {
-        border: 0px;
-        margin: 0px;
-	float: right;
-	}
-
-	form.jlist {
-        border: 0px;
-        margin: 0px;
-	float: left;
-	}
-
-	table.jlist tr {
-	}
-
-	table.jsublist {
-	    border: 1px solid #ccc;
-	    margin: 2px;
-	    width: 440px;
-	}
-
-	table.jlist tr td, table.jlist tr th {
-        border: 0px;
-        margin: 0px;
-	padding: 0px;
-	}
-
-	table.jnew {
-	border: 1px solid #ccc; 
-	padding:0px; 
-	margin: 0px;
-	width: 320px;
-	}
-
-	table.jnew td, table.jnew tr {
-	padding:0px; 
-	margin: 0px;
-	}
-
-	td#lpjbutton {
-	text-align: left;
-	padding-right: 15px;
-	}
-	</style>
-
-<?php
 
 	if ( ($_GET['resetLP'] == true ) || ($_GET['installLP'] == true) )  {
 	    delete_option('unt_livepress_options');
@@ -445,10 +394,10 @@ function remove_login(delinfo)
 		    <?php } ?>
 		    </div>
 
-		    <table class="form-table">
+		    <table class="form-table" id="lp-admin-table">
 		    <tbody>
 		    <tr class="options" valign="top">
-			<th scope="row">LiveJournal Configuration</th>
+			<th scope="row">LiveJournal Account Configuration</th>
 			<td id="journals">
 
 
@@ -608,70 +557,99 @@ echo "
         </tr>
         <tr valign=\"top\" class=\"options\">
             <th scope=\"row\">Live+Press Moods</th>
-	    <td><ul>
+	    <td><table class='jmoods'><tbody>
+	    <tr><td>
 	    <label for=\"unt_lp_options[moods][position]\">Mood Position:</label> 
+	    </td><td>
 	    <select name=\"unt_lp_options[moods][position]\">
             <option value=\"before\" " . ($unt_livepress_options['moods']['position'] == "before" ? "selected=\"selected\"" : "") . ">Before</option>
             <option value=\"after\" " . ($unt_livepress_options['moods']['position'] == "after" ? "selected=\"selected\"" : "") . ">After</option>
             </select>
-	    <br>
+	    </td></tr>
+	    <tr><td>
             <label for=\"unt_lp_options[moods][location]\">Mood Location: </label>
+	    </td><td>
             <select name=\"unt_lp_options[moods][location]\"
             <option value=\"the_content\" " . ($unt_livepress_options['moods']['location'] == "the_content" ? "selected=\"selected\"" : "") . ">the_content</option>
             <option value=\"the_date\" " . ($unt_livepress_options['moods']['location'] == "the_date" ? "selected=\"selected\"" : "") . ">the_date</option>
             <option value=\"the_time\" " . ($unt_livepress_options['moods']['location'] == "the_time" ? "selected=\"selected\"" : "") . ">the_time</option>
             </select>
-	    <br>
+	    </td></tr>
+	    <tr><td>
             <label for=\"unt_lp_options[moods][xhtml]\">XHTML Wrapper: </label>
+	    </td><td>
             <input type=\"text\" value=\"".$unt_livepress_options['moods']['xhtml']."\" name=\"unt_lp_options[moods][xhtml]\"> 
-	    <br>
+	    </td></tr>
+	    <tr><td>
             <label for=\"unt_lp_options[moods][theme]\">Mood Theme: </label>
+	    </td><td>
             <input type=\"text\" value=\"".$unt_livepress_options['moods']['theme']."\" name=\"unt_lp_options[moods][theme]\">
-	    <br>
+	    </td></tr>
+	    <tr><td>
             <label for=\"unt_lp_options[moods][text]\">Mood Text: </label>
+	    </td><td>
             <input type=\"text\" value=\"".$unt_livepress_options['moods']['text']."\" name=\"unt_lp_options[moods][text]\">
-	    <br>
+	    </td></tr>
+	    <tr><td>
             <label for=\"unt_lp_options[moods][file]\">Mood Source File: </label>
+	    </td><td>
             <input type=\"text\" value=\"".$unt_livepress_options['moods']['file']."\" name=\"unt_lp_options[moods][file]\">
-	    <br>
+	    </td></tr>
+	    <tr><td>
 	    <label for=\"unt_lp_options[moods][imagebaseurl]\">Image Base URL: </label>
-            <input type=\"text\" value=\"".$unt_livepress_options['moods']['imagebaseurl']."\" name=\"unt_lp_options[moods][imagebaseurl]\" size=\"30\"></ul></td>
-        </tr>
+	    </td><td>
+            <input type=\"text\" value=\"".$unt_livepress_options['moods']['imagebaseurl']."\" name=\"unt_lp_options[moods][imagebaseurl]\" size=\"30\">
+	</td> </tr>
+	</tbody></table>
+	</td> </tr>
         <tr valign=\"top\" class=\"options\">
             <th scope=\"row\">Live+Press Music</th>
-            <td><ul><label for=\"unt_lp_options[music][position]\">Music Position: </label>
+            <td>
+	    <table class='jmusic'><tbody>
+	    <tr><td>
+	    <label for=\"unt_lp_options[music][position]\">Music Position: </label>
+	    </td><td>
             <select name=\"unt_lp_options[music][position]\">
             <option value=\"before\" " . ($unt_livepress_options['music']['position'] == "before" ? "selected=\"selected\"" : "") . ">Before</option>
             <option value=\"after\" " . ($unt_livepress_options['music']['position'] == "after" ? "selected=\"selected\"" : "") . ">After</option>
             </select>
-	    <br>
+	    </td></tr>
+	    <tr><td>
             <label for=\"unt_lp_options[music][location]\">Music Location: </label>
+	    </td><td>
             <select name=\"unt_lp_options[music][location]\">
             <option value=\"the_content\" " . ($unt_livepress_options['music']['location'] == "the_content" ? "selected=\"selected\"" : "") . ">the_content</option>
             <option value=\"the_date\" " . ($unt_livepress_options['music']['location'] == "the_date" ? "selected=\"selected\"" : "") . ">the_date</option>
             <option value=\"the_time\" " . ($unt_livepress_options['music']['location'] == "the_time" ? "selected=\"selected\"" : "") . ">the_time</option>
             </select>
-	    <br>
+	    </td></tr>
+	    <tr><td>
             <label for=\"unt_lp_options[music][xhtml]\">XHTML Wrapper: </label>
+	    </td><td>
             <input type=\"text\" value=\"" . $unt_livepress_options['music']['xhtml'] . "\" name=\"unt_lp_options[music][xhtml]\">
-	    <br>
+	    </td></tr>
+	    <tr><td>
             <label for=\"unt_lp_options[music][text]\">Music Text: </label>
-            <input type=\"text\" value=\"" . $unt_livepress_options['music']['text'] . "\" name=\"unt_lp_options[music][text]\" size=\"30\"></ul></td>
+	    </td><td>
+            <input type=\"text\" value=\"" . $unt_livepress_options['music']['text'] . "\" name=\"unt_lp_options[music][text]\" size=\"30\">
+	   </td></tr>
+	</tbody></table>
         </tr>
         <tr valign=\"top\" class=\"options\">
             <th scope=\"row\">Live+Press Synch Defaults</th>
-	    <td> <ul>";
+	    <td> 
+	   <ul>";
 
             echo 'Default Synch Options<br>';
             echo '&nbsp;&nbsp;&nbsp;&nbsp; ';
             echo '<input id="ljnosynch" name="lj_synch_default_op" type="radio" value="nosynch" ';
-            echo (!strcmp($unt_livepress_options['synch']['nosynch'], "checked") ? 'checked' : '').'/> No Synch,';
+            echo (!strcmp($unt_livepress_options['synch']['nosynch'], "checked") ? 'checked' : '').'/> No Synch';
             echo '&nbsp;&nbsp;&nbsp;&nbsp; ';
             echo '<input id="ljexcerptonly" name="lj_synch_default_op" type="radio" value="synchexcerpt" ';
-            echo (!strcmp($unt_livepress_options['synch']['excerpt'], "checked") ? 'checked' : '').'/> Excerpt Only, ';
+            echo (!strcmp($unt_livepress_options['synch']['excerpt'], "checked") ? 'checked' : '').'/> Excerpt Only ';
             echo '&nbsp;&nbsp;&nbsp;&nbsp; ';
             echo '<input id="ljsynchall" name="lj_synch_default_op" type="radio" value="synchall" ';
-            echo (!strcmp($unt_livepress_options['synch']['synchall'], "checked") ? 'checked' : '') . '/> Entire Post.';
+            echo (!strcmp($unt_livepress_options['synch']['synchall'], "checked") ? 'checked' : '') . '/> Entire Post';
             //echo '<hr size=1px; />';
 	    echo '<br/>';
 	    echo '<br/>';
@@ -716,13 +694,14 @@ echo "
         <tr valign=\"top\" class=\"options\">
             <th scope=\"row\">Live+Press User Pics</th>
             <td><ul><label for=\"unt_lp_options[userpics][text]\">User Pics Text: </label>
-            <input type=\"text\" value=\"" . $unt_livepress_options['userpics']['text'] . "\" name=\"unt_lp_options[userpics][text]\" size=\"30\"></ul></td>
+            <input type=\"text\" value=\"" . $unt_livepress_options['userpics']['text'] . "\" name=\"unt_lp_options[userpics][text]\" ></ul></td>
         </tr>
 	<tr>
 	    <th scope=\"row\">Live+Press Email Crossposting</th>
 	    <td>
-	    <ul>
-	    <div id='unt_lj_extras'>
+	    <table><tbody>
+	    <tr><td>
+	    <div id=\"unt_lj_extras\" class='unt_lp_extras'>
 ";
 
 	    $tmp_meta['unt_lj_userpic']['value'] = $unt_livepress_options['email']['userpic'];
@@ -733,13 +712,13 @@ echo "
             echo 'Auto-Sync Options<br>';
             echo '&nbsp;&nbsp;&nbsp;&nbsp; ';
             echo '<input id="ljnosynch" name="lj_synch_op" type="radio" value="" ';
-	    echo (!strcmp($unt_livepress_options['email']['nosynch'], "checked") ? 'checked' : '').'/> No Synch,';
+	    echo (!strcmp($unt_livepress_options['email']['nosynch'], "checked") ? 'checked' : '').'/> No Synch';
             echo '&nbsp;&nbsp;&nbsp;&nbsp; ';
             echo '<input id="ljexcerptonly" name="lj_synch_op" type="radio" value="synchexcerpt" ';
-	    echo (!strcmp($unt_livepress_options['email']['excerpt'], "checked") ? 'checked' : '').'/> Excerpt Only, ';
+	    echo (!strcmp($unt_livepress_options['email']['excerpt'], "checked") ? 'checked' : '').'/> Excerpt Only ';
             echo '&nbsp;&nbsp;&nbsp;&nbsp; ';
             echo '<input id="ljsynch" name="lj_synch_op" type="radio" value="synchall" ';
-            echo (!strcmp($unt_livepress_options['email']['synchall'], "checked") ? 'checked' : '') . '/> Entire Post.';
+            echo (!strcmp($unt_livepress_options['email']['synchall'], "checked") ? 'checked' : '') . '/> Entire Post';
             //echo '<hr size=1px; />';
 	    echo '<br/>';
 	    echo '<br/>';
@@ -749,23 +728,23 @@ echo "
 	    <label for=\"unt_lp_options[email][linkback]\">Include Linkback </label> <br>
 
 	    <input type='checkbox' '".(strcmp($unt_livepress_options['email']['nocomment'], 'notchecked') ? "value='checked' 'checked'" : "value='notchecked'")."' name='ljnocomment'>
-	    <label for='unt_lp_options[email][nocomment]'>Disable Remote Comments </label> <br>
-";
+	    <label for='unt_lp_options[email][nocomment]'>Disable Remote Comments </label> <br>";
 
-//	    get_LJ_login_data();
-echo"
-	    <label for=\"unt_lp_options[email][security]\"><br>Default Friends List: </label>
+
+
+echo "
+            <label for=\"unt_lp_options[email][security]\"><br>Default Friends List: </label>
             " . friend_groups($tmp_meta);
 
         echo '<br>Post to: ' . user_journals($lj_meta);
         echo ' &nbsp;&nbsp;&nbsp; ';
 
         echo '<br>Username: <select id="ljusername" name="ljusername" class="LJExtras_username" onChange="swapLists(this);">';
-	if (!empty($journals)) {
+        if (!empty($journals)) {
         foreach ($journals as $type => $login) {
             foreach ($login as $key => $value) {
-        	echo '<option ' . (strcmp($unt_livepress_options['email']['user'],$key) ? '' : 'selected');
-		echo ' value="' . $key . '">' . $key . '</option>';
+                echo '<option ' . (strcmp($unt_livepress_options['email']['user'],$key) ? '' : 'selected');
+                echo ' value="' . $key . '">' . $key . '</option>';
             }
         }
         }
@@ -774,12 +753,16 @@ echo"
 
         /* User Pic Drop down box. */
         echo '<br>'.user_pics($tmp_meta);
-        echo '<br /><br />';
+        //echo '<br /><br />';
 
-	echo "
-</div>
-	    </ul>
-	   </td>
+
+//echo"</td></tr><tr><td> ";
+
+
+	echo"</div>";
+	echo " </td></tr></tbody></table>";
+	echo"
+ 	  </td>
 	  </tr>
 	 </tbody>
 	</table>
@@ -788,8 +771,17 @@ echo"
         <p class=\"eeset\"><a href=\"".current_uri()."&resetLP=true\">Reset Plugin Settings</a></p>
         <p class=\"reset\"><a href=\"".current_uri()."&resetLPlogins=true\">Wipe out Journal Logins</a></p>
 
+<form action=\"https://www.paypal.com/cgi-bin/webscr\" method=\"post\">
+<input type=\"hidden\" name=\"cmd\" value=\"_s-xclick\">
+<input type=\"hidden\" name=\"hosted_button_id\" value=\"YPPLF9T3ZFT28\">
+<input type=\"image\" src=\"https://www.paypal.com/en_US/i/btn/btn_donate_SM.gif\" border=\"0\" name=\"submit\" alt=\"PayPal - The safer, easier way to pay online!\">
+<img alt=\"\" border=\"0\" src=\"https://www.paypal.com/en_US/i/scr/pixel.gif\" width=\"1\" height=\"1\">
+</form>
+
         </form>
+
         </div>
+
 	";
 
 	//  THE END OF THE REST OF THE MESS  //
@@ -801,16 +793,12 @@ echo"
 }
 
 //if (strpos($_SERVER['PHP_SELF'],'wp-admin/plugins.php') || strpos($_SERVER['REQUEST_URI'],'wp-admin/options-general.php?page=livepress/LivePress')) {
-////if (strpos($_SERVER['PHP_SELF'],'wp-admin')) {
+
 if (is_admin()) {
 
 	add_action('admin_head', 'journal_Switcher');
 	add_action('admin_menu', 'unt_livepress_admin');
 	add_action('admin_footer', 'init_LJ_Extras_GUI');
 }
-
-//if (strpos($_SERVER['REQUEST_URI'],'wp-admin/options-general.php?page=livepress/LivePress')) {
-//	get_LJ_login_data();
-//}
 
 ?>

@@ -1,8 +1,9 @@
 <?php
-//Live+Press_2.1.11
+//Live+Press_2.2
 
 
-require_once("lpextras.php");
+require_once(ABSPATH . '/wp-includes/post.php');
+
 
 /*
 function addLinkBack($postID) {
@@ -48,7 +49,7 @@ function append_Linkback ($tmpevent, $postmeta, $postid) {
 	$tmpevent .= '<td style="padding: 0 15px;">';
 	$tmpevent .= 'Originally published at ';
 	#$tmpevent .= '<a href="' . get_settings('home') . '">' . $postmeta['unt_lj_linkbacktext']['value'] . '</a>.';
-	$tmpevent .= '<a href="' . get_permalink($postid) . '">' . $postmeta['unt_lj_linkbacktext']['value'] . '</a>.';
+	$tmpevent .= '<a href="' . get_permalink($postid) . '">' . $postmeta['unt_lj_linkbacktext']['value'] . '</a>';
 
 	if ($postmeta['unt_lj_nocomment']['value'] == "checked") {
 	    $tmpevent .= '<br /><a href="' . get_permalink($postid) . '">&raquo; Click here &laquo;</a> to leave any comments.';
@@ -88,8 +89,10 @@ function delete_post_LJ ($post_ID) {
 	$msg_array['auth_method'] = utf8_encode('challenge');
 	$msg_array['auth_challenge'] = utf8_encode($challenge);
 	$msg_array['auth_response'] = md5($challenge . $msgpass);
-        $msg_array['event'] = utf8_encode($the_event);
-	$msg_array['subject'] = utf8_encode(stripslashes($the_post->post_title));
+        //$msg_array['event'] = utf8_encode($the_event);
+        $msg_array['event'] = $the_event;
+	//$msg_array['subject'] = utf8_encode(stripslashes($the_post->post_title));
+	$msg_array['subject'] = apply_filters('the_title',$the_post->post_title);
         $msg_array['lineendings'] = utf8_encode('unix');
         $msg_array['usejournals'] = utf8_encode($lj_meta['unt_lj_journal']['value']);
 
@@ -100,6 +103,7 @@ $stringData = "\n  - - - -- - -  - - - \n";
 $stringData .= "msg_array['event']\n";
 $stringData .= $the_event;
 */
+
         if (array_key_exists('unt_lj_entry', $lj_meta) && $lj_meta['unt_lj_entry']['value'] != '') {
             $msg_array['itemid'] = utf8_encode($lj_meta['unt_lj_entry']['value']);
             $xmlrpc_method = 'LJ.XMLRPC.editevent';
@@ -206,8 +210,10 @@ function publish_phone_LJ ($post_ID){
 	$msg_array['auth_method'] = utf8_encode('challenge');
 	$msg_array['auth_challenge'] = utf8_encode($challenge);
 	$msg_array['auth_response'] = md5($challenge . $msgpass);
-	$msg_array['event'] = utf8_encode($the_event);
-	$msg_array['subject'] = utf8_encode(stripslashes($the_post->post_title));
+	//$msg_array['event'] = utf8_encode($the_event);
+	$msg_array['event'] = $the_event;
+	//$msg_array['subject'] = utf8_encode(stripslashes($the_post->post_title));
+	$msg_array['subject'] = apply_filters('the_title',$the_post->post_title);
 	$msg_array['lineendings'] = utf8_encode('unix');
 	$msg_array['usejournals'] = utf8_encode($lj_meta['unt_lj_journal']['value']);
 
@@ -268,7 +274,6 @@ foreach ($return_values as $tk=>$tg)  {
 }
 */
 	$metavalue = $wpdb->escape( stripslashes( trim($return_values['itemid']) ) );
-//$stringData .= "metavalue: \n$metavalue\n";
         if (array_key_exists('unt_lj_entry', $lj_meta)) {
 	    update_meta($lj_meta['unt_lj_entry']['id'], 'unt_lj_entry', $metavalue);
 	} else {
@@ -297,8 +302,11 @@ $stringData .= $lj_meta['unt_lj_synchop']['value'];
 $stringData .= "\n before the second if \n";
 fwrite($fh, $stringData);
 */
+	   $the_post = get_post($post_ID);
+
 	   if (strcmp($lj_meta['unt_lj_synchop']['value'],'nosynch')
-		&& $lj_meta['unt_lj_username']['value'] != '') {
+		&& $lj_meta['unt_lj_username']['value'] != ''
+		&& strcmp($the_post->post_status,'draft')) {
 /*
 $stringData = "\n in the  second if \n";
 fwrite($fh, $stringData);
@@ -310,23 +318,22 @@ fwrite($fh, $stringData);
 $stringData = "\n in the third if \n";
 fwrite($fh, $stringData);
 */
-		    $the_post = get_post($post_ID);
+
+//print_r($the_post);
 
 		    if (!strcmp($lj_meta['unt_lj_synchop']['value'], 'synchexcerpt'))
 		    {
 			if (empty($the_post->post_excerpt))
 		        {
-			    $the_event = substr($the_post->post_content, 0, $unt_livepress_options['synch']['excerptlength']);
+			    $the_content_exerpt = apply_filters('the_content',$the_post->post_content);
+			    $the_event = substr($the_content_exerpt, 0, $unt_livepress_options['synch']['excerptlength']);
 			} else {
-			    $the_event = $the_post->post_excerpt;
+			    $the_event = apply_filters('the_exerpt',$the_post->post_excerpt);
 			}
 		    } else {
-			$the_event = $the_post->post_content;
+			$the_event = apply_filters('the_content',$the_post->post_content);
+			
 		    }
-		# No idea what this is.  Removed to simplify.  11/29/08
-		#    if (function_exists("giggle_autolink")) {
-	       	#	$the_event .= giggle_autolink($the_event,-1,1);
-		#    }
 		    $the_event .= '<br /><br />';
 
 		    // Add the LinkBack
@@ -337,13 +344,13 @@ fwrite($fh, $stringData);
 		#    $the_event = preg_replace("/(\r\n|\n|\r)/", "\n", $the_event); // cross-platform newlines
 
 		    // Fix lj-tags hack
-		# removed to troubleshoot problem with breaks and paragraph breaks 11/29/08 
-		    $the_event = preg_replace('/([[\{<~])(\/?lj-cut.*)([]\}>~])/i', '<\2>' , $the_event);
-		    $the_event = preg_replace("/[^\x20-\x7f\t\n\r]+/", "", $the_event);
-		    $the_event = convert_chars($the_event, 'html');
-
-		    #$the_event = apply_filters('the_content', $the_event);
-		    $the_event = utf8_encode($the_event);
+	//	# removed to troubleshoot problem with breaks and paragraph breaks 11/29/08 
+	//	    $the_event = preg_replace('/([[\{<~])(\/?lj-cut.*)([]\}>~])/i', '<\2>' , $the_event);
+	//	    $the_event = preg_replace("/[^\x20-\x7f\t\n\r]+/", "", $the_event);
+	//	    $the_event = convert_chars($the_event, 'html');
+	//
+	//	    #$the_event = apply_filters('the_content', $the_event);
+	//	    $the_event = utf8_encode($the_event);
 
 	 	    $client = new IXR_client("www.livejournal.com", "/interface/xmlrpc", 80);
 		    if (!$client->query('LJ.XMLRPC.getchallenge')) {
@@ -359,7 +366,8 @@ fwrite($fh, $stringData);
 		    $msg_array['auth_challenge'] = utf8_encode($challenge);
 		    $msg_array['auth_response'] = md5($challenge . $msgpass);
 		    $msg_array['event'] = $the_event;
-		    $msg_array['subject'] = utf8_encode(stripslashes($the_post->post_title));
+		    //$msg_array['subject'] = utf8_encode(stripslashes($the_post->post_title));
+		    $msg_array['subject'] = apply_filters('the_title',$the_post->post_title);
 		    $msg_array['lineendings'] = utf8_encode('unix');
 		    $msg_array['usejournals'] = utf8_encode($lj_meta['unt_lj_journal']['value']);
 
@@ -383,6 +391,7 @@ fwrite($fh, $stringData);
 		    $msg_array['props'] = $props;
 
 		    if (array_key_exists('unt_lj_entry', $lj_meta) && $lj_meta['unt_lj_entry']['value'] != ''){
+//			&& $the_post->post_status != 'trash'){
 			$msg_array['itemid'] = utf8_encode($lj_meta['unt_lj_entry']['value']);
 			$xmlrpc_method = 'LJ.XMLRPC.editevent';
 		    } else {
@@ -428,7 +437,13 @@ function test_LJ (){
 	    || (strpos($_SERVER['PHP_SELF'],'wp-admin/bookmarklet.php')!= false )
 	    || (strpos($_SERVER['PHP_SELF'],'wp-mail.php') != false )
 	    || (strpos($_SERVER['PHP_SELF'],'edit.php') != false)) {
-
+/*
+$the_post = get_post($post_ID);
+$p = $the_post->post_status;
+echo '<br> post status is : '.$p.'<br><pre>';
+print_r($the_post);
+echo '</pre>';
+*/
 		add_action('publish_phone', 'publish_phone_LJ', 5);
 		add_action('edit_post', 'synch_LJ');
 		add_action('publish_post', 'synch_LJ');
@@ -436,11 +451,12 @@ function test_LJ (){
 		add_action('delete_post', 'delete_post_LJ');
 		add_action('untrash_post', 'synch_LJ');
 
-
-
-                //add_action('new_to_publish', 'synch_LJ');
-                //add_action('draft_to_publish', 'synch_LJ');
-                //add_action('future_to_publish', 'synch_LJ'); /// future publish
+		// future_post_hook
+		//add_action('new_to_publish', 'synch_LJ', 5, 1);
+		//add_action('draft_to_publish', 'synch_LJ', 5, 1);
+		//add_action('pending_to_publish', 'synch_LJ', 5, 1);
+		//add_action('future_to_publish', 'synch_LJ', 5, 1);
+		//add_action('publish_to_publish', 'synch_LJ', 5, 1);
 
 		//add_action('wp_insert_post', 'test_LJ');
 		//add_action('insertPost-omatic', 'test_LJ');

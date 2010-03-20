@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.1.11
+//Live+Press_2.2
 
 $ljmoods = $unt_livepress_options['moods']['file'];
 $ljmoods = file($ljmoods, 1);
@@ -48,6 +48,7 @@ function add_mood ($text)
         return $text;
 }
 
+
 function list_moods($num='') {
 	//lists all moods in file by text and number
 	global $ljmoods;
@@ -65,6 +66,7 @@ function list_moods($num='') {
 	}
 	return $content;
 }
+
 
 function get_mood($num) {
 	//returns the markup for the text and image of mood $num
@@ -90,6 +92,7 @@ function get_mood($num) {
 function LJ_Moods_Style() {
 	echo '<link rel="stylesheet" href="wp-content/plugins/livepress/LivePress/LivePress.css" type="text/css" />';
 }
+
 
 if( $unt_livepress_options['general']['usemoods'])
 {	
