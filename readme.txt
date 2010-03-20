@@ -81,9 +81,9 @@ A: Type in an excerpt in the "exerpt" section of wordpress' new-post page then s
 
 == Change Log ==
 
-=Current version:=
+= Current version: =
 
-=2.2=
+= 2.2 =
 	- LJ logins beyond the first one failed to authenticate.
 	- Saving a draft no longer triggers a crosspost.
 	- Replaced SCRIPT_URI with is_admin in two places in lpextras.php
@@ -94,55 +94,55 @@ A: Type in an excerpt in the "exerpt" section of wordpress' new-post page then s
 	- Addressed complaints with apostrophes, commas, slashes in the body and title
 
 
-=Older Versions:=
+= Older Versions: =
 
 _by Tania Morell (aka "digsite")_
 
-  =2.1.11=
+  = 2.1.11 =
 	- fixed unpopulated dropdowns, uncommented switcher.
 
-  =2.1.10=
+  = 2.1.10 =
 	- too many connection attempts by the plugin cause livejournal to block the source IP.
 
-  =2.1.9=
+  = 2.1.9 =
 	- LiveJournal linkback links directly to the post page instead of the blog main page.
 	- fixed problem where saving a draft would result in a published post to livejournal.
 
-  =2.1.8=
+  = 2.1.8 =
 	- fixed problem with breaking blog when lj is down
 
-  =2.1.7=
+  = 2.1.7 =
 
-  =2.1.6=
+  = 2.1.6 =
 	- fixed problem getting and storing postid from LJ when posting via email.
 	- fixed missing linkbacktext from email post.
 
-  =2.1.5=
-  =2.1.4=
-  =2.1.3=
-  =2.1.2=
-  =2.1.1=
-  =2.1.0=
-  =2.0.7=
-  =2.0.6=
-  =2.0.5=
-  =2.0.4=
-  =2.0.3=
-  =2.0.2=
-  =2.0.1=
-  =2.0=
+  = 2.1.5 =
+  = 2.1.4 =
+  = 2.1.3 =
+  = 2.1.2 =
+  = 2.1.1 =
+  = 2.1.0 =
+  = 2.0.7 =
+  = 2.0.6 =
+  = 2.0.5 =
+  = 2.0.4 =
+  = 2.0.3 =
+  = 2.0.2 =
+  = 2.0.1 =
+  = 2.0 =
 
 
 _by creepigurl_
 
-  =1.99.9=
+  = 1.99.9 =
 
 
 _by Jason Goldsmith (aka "unteins")_
 
-  =1.99=
-  =1.5.2=
-  =1.5.1.3=
-  =1.2.0=
+  = 1.99 =
+  = 1.5.2 =
+  = 1.5.1.3 =
+  = 1.2.0 =
 
 
