@@ -39,6 +39,11 @@ Current version features list:
 
     - Quick edits will not update a crossposted entry
 
+== Upgrade Notice ==
+
+= 2.2 =
+Upgrade because it's shiny and new!  And because it has 5 bug fixes and 2 enhancements!
+
 
 == Installation ==
 
@@ -74,9 +79,9 @@ Using shell access
 
 == Frequently Asked Questions ==
 
-Q: How do I crosspost an excerpt.
+= How do I crosspost an excerpt? =
 
-A: Type in an excerpt in the "exerpt" section of wordpress' new-post page then select "excerpt only" in the lj extras section of the page.
+Type in an excerpt in the "exerpt" section of wordpress' new-post page then select "excerpt only" in the lj extras section of the page.
 
 
 == Change Log ==
@@ -84,21 +89,18 @@ A: Type in an excerpt in the "exerpt" section of wordpress' new-post page then s
 = Current version: =
 
 = 2.2 =
-	- LJ logins beyond the first one failed to authenticate.
-	- Saving a draft no longer triggers a crosspost.
-	- Replaced SCRIPT_URI with is_admin in two places in lpextras.php
-	- A broken LJ site no longer affects LP or WP as a result of LP
-	- Added CSS style formatting on the admin page to make options easier to follow
-	- Changed how LP processes post content before crossposting - using apply_filters
-	- Added support for Cyrillic alphabet / Russian language
-	- Addressed complaints with apostrophes, commas, slashes in the body and title
-
-
+*	LJ logins beyond the first one failed to authenticate.
+*	Saving a draft no longer triggers a crosspost.
+*	Replaced SCRIPT_URI with is_admin in two places in lpextras.php
+*	A broken LJ site no longer affects LP or WP as a result of LP
+*	Added CSS style formatting on the admin page to make options easier to follow
+*	Changed how LP processes post content before crossposting - using apply_filters
+*	Added support for Cyrillic alphabet / Russian language
+*	Addressed complaints with apostrophes, commas, slashes in the body and title
 
 = Older Versions: =
 
-
-_by Tania Morell (aka "digsite")_
+= _by Tania Morell (aka "digsite")_ =
 
 = 2.1.11 =
 * fixed unpopulated dropdowns, uncommented switcher.
@@ -116,7 +118,6 @@ _by Tania Morell (aka "digsite")_
 = 2.1.7 =
 
 = 2.1.6 =
-
 * fixed problem getting and storing postid from LJ when posting via email.
 * fixed missing linkbacktext from email post.
 
@@ -136,16 +137,16 @@ _by Tania Morell (aka "digsite")_
 = 2.0 =
 
 
-_by creepigurl_
+- _by creepigurl_ =
   = 1.99.9 =
 
 
 
-_by Jason Goldsmith (aka "unteins")_
+= _by Jason Goldsmith (aka "unteins")_ =
 
-  = 1.99 =
-  = 1.5.2 =
-  = 1.5.1.3 =
-  = 1.2.0 =
+= 1.99 =
+= 1.5.2 =
+= 1.5.1.3 =
+= 1.2.0 =
 
 
