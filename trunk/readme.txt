@@ -11,9 +11,9 @@ Crosspost blog entries to LiveJournal automatically or on a post by post basis. 
 
 == Description ==
 
-Livepress is a plugin for wordpress which allows the user to crosspost journal entries to a LiveJournal blog account.
+Live+Press allows you to crosspost Wordpress entries to a LiveJournal account either automatically or on a post by post basis. Crosspostable options include user pic, current music, current mood, custom friends lists, disable or enable comments, and insertion of a link back to the original wordpress entry.  
 
-You can crosspost blog entries automatically or on a post by post basis. Crosspostable options include user pic, current music, current mood, security "friends" group, with ability to disable comments on LJ side, and insert a linkback to original wordpress post.
+== Support ==
 
 This plugin is licensed under GPLv3. All contributions and suggestions are welcome.
 
@@ -89,7 +89,7 @@ Type in an excerpt in the "exerpt" section of wordpress' new-post page then sele
 = Current version: =
 
 = 2.2 =
-*	LJ logins beyond the first one failed to authenticate.
+* 	LJ logins beyond the first one failed to authenticate.
 *	Saving a draft no longer triggers a crosspost.
 *	Replaced SCRIPT_URI with is_admin in two places in lpextras.php
 *	A broken LJ site no longer affects LP or WP as a result of LP
@@ -137,9 +137,9 @@ Type in an excerpt in the "exerpt" section of wordpress' new-post page then sele
 = 2.0 =
 
 
-- _by creepigurl_ =
-  = 1.99.9 =
+= _by creepigurl_ =
 
+= 1.99.9 =
 
 
 = _by Jason Goldsmith (aka "unteins")_ =
