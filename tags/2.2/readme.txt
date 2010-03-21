@@ -13,6 +13,7 @@ Crosspost blog entries to LiveJournal automatically or on a post by post basis. 
 
 Live+Press allows you to crosspost Wordpress entries to a LiveJournal account either automatically or on a post by post basis. Crosspostable options include user pic, current music, current mood, custom friends lists, disable or enable comments, and insertion of a link back to the original wordpress entry.  
 
+
 = Support =
 
 This plugin is licensed under GPLv3. All contributions and suggestions are welcome.
@@ -35,9 +36,11 @@ Current version features list:
     * non-roman alphabet support: Ie, Cyrillic, Kanji, Sanskrit, Greek, Arabic, Hebrew, etc
 
 
+
 = Known Caveats =
 
-    - Quick edits will not update a crossposted entry
+*	Quick edits will not update a crossposted entry
+
 
 == Upgrade Notice ==
 
@@ -137,9 +140,11 @@ Type in an excerpt in the "exerpt" section of wordpress' new-post page then sele
 = 2.0 =
 
 
+
 = _by creepigurl_ =
 
 = 1.99.9 =
+
 
 
 = _by Jason Goldsmith (aka "unteins")_ =
