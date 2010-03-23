@@ -76,7 +76,8 @@ Using shell access
 
 Crossposting Text Via Email
 
-    * Configure wordpress to use email to post to the blog (http://codex.wordpress.org/Post_to_your_blog_using_email)
+    * Configure wordpress to use email to post to the blog
+    (http://codex.wordpress.org/Post_to_your_blog_using_email)
     * Configure the "Email Crossposting" section in the LP admin page
 
 Crossposting Image/Video Via Email 
