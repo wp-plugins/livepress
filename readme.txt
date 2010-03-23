@@ -32,7 +32,8 @@ Current version features list:
     * include a link back to the original wordpress post
     * cross posts either Tags or Categories as tags on LiveJournal
     * post delete also deletes livejournal post
-    * automatic crosspost email and cell phone text (multimedia posts possible with PostMaster plugin)    
+    * automatic crosspost email and cell phone text
+    (multimedia posts possible with PostMaster plugin)    
     * non-roman alphabet support: Ie, Cyrillic, Kanji, Sanskrit, Greek, Arabic, Hebrew, etc
 
 
