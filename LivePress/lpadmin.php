@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.2
+//Live+Press_2.2.1
 
 
 function RemoveLogin($journal, $name)
@@ -141,7 +141,7 @@ function unt_livepress_admin_display()
 	    } else {
 		if (isset($_POST['unt_lp_options'])) {
 		    update_option("unt_livepress_options", $_POST['unt_lp_options']);
-		    $unt_livepress_options = get_option("unt_livepress_options");
+		    $unt_livepress_options = stripslashes_deep(get_option("unt_livepress_options"));
 
                     if (!strcmp($_POST['lj_synch_default_op'], 'synchall') ) {
                         $unt_livepress_options['synch']['synchall'] = 'checked';
@@ -213,6 +213,7 @@ function unt_livepress_admin_display()
 		    }
 
 		    update_option("unt_livepress_options", $unt_livepress_options);
+		    $unt_livepress_options = stripslashes_deep($unt_livepress_options);
 		}
 		if (!empty($_POST['editjournal']))  { 
 			//&& ($_POST['editjournal']['name']) != ''
@@ -410,6 +411,7 @@ function remove_login(delinfo)
 	    // LIST JOURNAL ENTRIES //
 
 	    $unt_livepress_logins = get_option('unt_livepress_logins');
+
 	    if (isset($unt_livepress_logins) && (!empty($unt_livepress_logins))) {
 
 		foreach ($unt_livepress_logins as $journal => $login) {
@@ -691,10 +693,11 @@ echo "
             <input type=\"checkbox\" value=\"true\" " . ($unt_livepress_options['tags']['parse_user'] == true ? "checked=\"checked\"" : "") . " name=\"unt_lp_options[tags][parse_user]\">
             <label for=\"unt_lp_options[tags][parse_user]\">Parse User Tags</label></ul></td>           
         </tr>
-        <tr valign=\"top\" class=\"options\">
+<!--        <tr valign=\"top\" class=\"options\">
             <th scope=\"row\">Live+Press User Pics</th>
             <td><ul><label for=\"unt_lp_options[userpics][text]\">User Pics Text: </label>
             <input type=\"text\" value=\"" . $unt_livepress_options['userpics']['text'] . "\" name=\"unt_lp_options[userpics][text]\" ></ul></td>
+-->
         </tr>
 	<tr>
 	    <th scope=\"row\">Live+Press Email Crossposting</th>

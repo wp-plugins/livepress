@@ -1,7 +1,7 @@
 <?php
-//Live+Press_2.2
+//Live+Press_2.2.1
 
-/////require_once(ABSPATH . 'wp-admin/admin-functions.php');
+require_once(ABSPATH . 'wp-admin/admin-functions.php');
 require_once(ABSPATH . '/wp-includes/class-IXR.php');
 require_once(ABSPATH . '/wp-includes/version.php');
 require_once(ABSPATH . '/wp-includes/post.php');
@@ -155,7 +155,7 @@ echo '</pre>';
 function user_pics($lj_meta) {
 	global $unt_livepress_options, $journals;
 	$userpics_text = $unt_livepress_options['userpics']['text'];
-	$text .= $userpics_text;
+	$text .= 'Userpic:';
 	$text .= '<select id="ljuserpics" name="ljuserpics" class="LJExtras_userpics"></select>';
 
 /*
@@ -263,12 +263,15 @@ function get_LJ_meta($post_ID) {
 	$meta_array = array();
 
 	if (is_numeric($post_ID)) {
+
 	  $metadata = has_meta($post_ID);
+
 	  if (isset($metadata)) {
 	    foreach($metadata as $meta) {
 		$meta_array[$meta['meta_key']] = array('id' => $meta['meta_id'], 'value' => $meta['meta_value']);
 	    }
 	  }
+
 	}
 
 //echo "<pre>";
@@ -461,6 +464,7 @@ function mood_list($meta)
 function build_LJ_Extras_GUI()
 {
 	global $unt_livepress_options, $journals;
+	$unt_livepress_options	= stripslashes_deep($unt_livepress_options);
 	$unt_lp_music_text	= $unt_livepress_options['music']['text'];
 	$excerpt_by_default	= $unt_livepress_options['synch']['excerpt'];
 	$insertlinkbackop	= $unt_livepress_options['synch']['insertlinkback'];
