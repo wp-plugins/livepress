@@ -1,6 +1,11 @@
 Live+Press
 supported by Tania Morell (aka "digsite")
 
+v2.2.1 03.22.2010
+- Bugfix : Added stripslashes to LP data on its way out of the database to prevent recursive backslashes
+- Bugfix : Corrected bug with email post crossposting
+- Removed : Userpic text box option. No longer used.
+
 v2.2 03.20.2010
 - Bugfix : LJ logins beyond the first one failed to authenticate
 - Bugfix : Saving a draft no longer triggers a crosspost (again)

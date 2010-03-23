@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: crossposting, cross post, livejournal, livepress, crosspost
 Requires at least: 2.3
 Tested up to: 2.9.2
-Stable tag: 2.2
+Stable tag: 2.2.1
 
 Crosspost blog entries to LiveJournal automatically or on a post by post basis. Crosspostable options include user pic, current music, current mood, security "friends" group, with ability to disable comments on LJ side, and insert a linkback to original wordpress post.
 
@@ -32,7 +32,7 @@ Current version features list:
     * include a link back to the original wordpress post
     * cross posts either Tags or Categories as tags on LiveJournal
     * post delete also deletes livejournal post
-    * automatic crosspost email and cell phone text and multimedia posts 
+    * automatic crosspost email and cell phone text (multimedia posts possible with PostMaster plugin)    
     * non-roman alphabet support: Ie, Cyrillic, Kanji, Sanskrit, Greek, Arabic, Hebrew, etc
 
 
@@ -44,8 +44,8 @@ Current version features list:
 
 == Upgrade Notice ==
 
-= 2.2 =
-Upgrade because it's shiny and new!  And because it has 5 bug fixes and 2 enhancements!
+= 2.2.1 =
+Upgrade because it's shiny and new! 
 
 
 == Installation ==
@@ -73,6 +73,17 @@ Using shell access
     * Go to your plugins admin page and activate the LivePress plugin
     * Go to the Settings -> LivePress to configure your plugin on the admin page 
 
+Crossposting Text Via Email
+
+    * Configure wordpress to use email to post to the blog (http://codex.wordpress.org/Post_to_your_blog_using_email)
+    * Configure the "Email Crossposting" section in the LP admin page
+
+Crossposting Image/Video Via Email 
+
+    * Follow instruction above, plus..
+    * Install and configure the PostMaster plugin. 
+    * LivePress will crosspost the entry to Livejournal along with the multimedia content.
+
 
 == Screenshots ==
 
@@ -91,6 +102,16 @@ Type in an excerpt in the "exerpt" section of wordpress' new-post page then sele
 
 = Current version: =
 
+= 2.2.1 =
+*	Added stripslashes to LP data on its way out of the database to prevent recursive backslashes
+*	Removed Userpic text box option. No longer used.
+*	Corrected bug with e-mail crossposting 
+
+
+= Older Versions: =
+
+= _by Tania Morell (aka "digsite")_ =
+
 = 2.2 =
 * 	LJ logins beyond the first one failed to authenticate.
 *	Saving a draft no longer triggers a crosspost.
@@ -100,10 +121,6 @@ Type in an excerpt in the "exerpt" section of wordpress' new-post page then sele
 *	Changed how LP processes post content before crossposting - using apply_filters
 *	Added support for Cyrillic alphabet / Russian language
 *	Addressed complaints with apostrophes, commas, slashes in the body and title
-
-= Older Versions: =
-
-= _by Tania Morell (aka "digsite")_ =
 
 = 2.1.11 =
 * fixed unpopulated dropdowns, uncommented switcher.
@@ -139,13 +156,9 @@ Type in an excerpt in the "exerpt" section of wordpress' new-post page then sele
 = 2.0.1 =
 = 2.0 =
 
-
-
 = _by creepigurl_ =
 
 = 1.99.9 =
-
-
 
 = _by Jason Goldsmith (aka "unteins")_ =
 
@@ -153,5 +166,4 @@ Type in an excerpt in the "exerpt" section of wordpress' new-post page then sele
 = 1.5.2 =
 = 1.5.1.3 =
 = 1.2.0 =
-
 

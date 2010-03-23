@@ -1,5 +1,5 @@
 <?php
-//Live+Press_2.2
+//Live+Press_2.2.1
 
 
 require_once(ABSPATH . '/wp-includes/post.php');
@@ -149,6 +149,8 @@ function publish_phone_LJ ($post_ID){
 	    $metavalue_synchall	= 'checked';
 	    $metavalue_synchop	= 'synchall';
 	}
+
+//echo "in the LJ sync routine <br>";
 	//add_post_meta($post_ID,$metakey_nosynch,$metavalue_nosynch,true);
 	//add_post_meta($post_ID,$metakey_excerpt,$metavalue_excerpt,true);
 	//add_post_meta($post_ID,$metakey_synchall,$metavalue_synchall,true);
@@ -307,6 +309,7 @@ fwrite($fh, $stringData);
 	   if (strcmp($lj_meta['unt_lj_synchop']['value'],'nosynch')
 		&& $lj_meta['unt_lj_username']['value'] != ''
 		&& strcmp($the_post->post_status,'draft')) {
+
 /*
 $stringData = "\n in the  second if \n";
 fwrite($fh, $stringData);
@@ -317,11 +320,10 @@ fwrite($fh, $stringData);
 /*
 $stringData = "\n in the third if \n";
 fwrite($fh, $stringData);
+print_r($the_post);
 */
 
-//print_r($the_post);
-
-		    if (!strcmp($lj_meta['unt_lj_synchop']['value'], 'synchexcerpt'))
+ 		    if (!strcmp($lj_meta['unt_lj_synchop']['value'], 'synchexcerpt'))
 		    {
 			if (empty($the_post->post_excerpt))
 		        {
@@ -335,22 +337,11 @@ fwrite($fh, $stringData);
 			
 		    }
 		    $the_event .= '<br /><br />';
-
+ 
 		    // Add the LinkBack
 		    if (strcmp($lj_meta['unt_lj_linkback']['value'], 'notchecked')) {
 			$the_event = append_Linkback($the_event, $lj_meta, $post_ID);
 		    }
-		# removed to troubleshoot problem with breaks and paragraph breaks 11/29/08 
-		#    $the_event = preg_replace("/(\r\n|\n|\r)/", "\n", $the_event); // cross-platform newlines
-
-		    // Fix lj-tags hack
-	//	# removed to troubleshoot problem with breaks and paragraph breaks 11/29/08 
-	//	    $the_event = preg_replace('/([[\{<~])(\/?lj-cut.*)([]\}>~])/i', '<\2>' , $the_event);
-	//	    $the_event = preg_replace("/[^\x20-\x7f\t\n\r]+/", "", $the_event);
-	//	    $the_event = convert_chars($the_event, 'html');
-	//
-	//	    #$the_event = apply_filters('the_content', $the_event);
-	//	    $the_event = utf8_encode($the_event);
 
 	 	    $client = new IXR_client("www.livejournal.com", "/interface/xmlrpc", 80);
 		    if (!$client->query('LJ.XMLRPC.getchallenge')) {
@@ -358,7 +349,7 @@ fwrite($fh, $stringData);
 		    }
 		    $response = $client->getResponse();
 		    $challenge = $response['challenge'];
-
+ 
 		    $msgpass = $journals['livejournal'][$lj_meta['unt_lj_username']['value']]['pass'];
 		    $msg_array = array();
 		    $msg_array['username'] = utf8_encode($lj_meta['unt_lj_username']['value']);
@@ -378,6 +369,7 @@ fwrite($fh, $stringData);
 			$msg_array['security'] = utf8_encode($lj_meta['unt_lj_securitylevel']['value']);
 			$msg_array['allowmask'] = utf8_encode($lj_meta['unt_lj_allowmask']['value']);
 		    }
+ 
 
 		    $post_data = get_postdata($post_ID);
 		    $post_date = mktime(substr($post_data['Date'],11,2),substr($post_data['Date'],14,2),substr($post_data['Date'],17,2),substr($post_data['Date'],5,2),substr($post_data['Date'],8,2),substr($post_data['Date'],0,4));
@@ -389,9 +381,8 @@ fwrite($fh, $stringData);
 
 		    $props = array ( "current_mood" => utf8_encode($lj_meta['unt_lj_mood']['value']), "current_moodid" => utf8_encode($lj_meta['unt_lj_moodid']['value']), "current_music" => utf8_encode($lj_meta['unt_lj_music']['value']), "picture_keyword" => utf8_encode($lj_meta['unt_lj_userpic']['value']), "taglist" => utf8_encode(get_category_list($post_ID)), "opt_nocomments" => ($lj_meta['unt_lj_nocomment']['value'] == "checked" ? true : false));
 		    $msg_array['props'] = $props;
-
+ 
 		    if (array_key_exists('unt_lj_entry', $lj_meta) && $lj_meta['unt_lj_entry']['value'] != ''){
-//			&& $the_post->post_status != 'trash'){
 			$msg_array['itemid'] = utf8_encode($lj_meta['unt_lj_entry']['value']);
 			$xmlrpc_method = 'LJ.XMLRPC.editevent';
 		    } else {
@@ -408,19 +399,22 @@ fwrite($fh, $stringData);
 			    add_post_meta($post_ID,$metakey,$metavalue,true);
 			}
 		    }
-
+ 
                         $return_values = $client->getResponse();
 
                         $metavalue = $wpdb->escape( stripslashes( trim($return_values['itemid']) ) );
+
                         if (array_key_exists('unt_lj_entry', $lj_meta)) {
                                 update_meta($lj_meta['unt_lj_entry']['id'], 'unt_lj_entry', $metavalue);
                         } else {
                                 $metakey = 'unt_lj_entry';
 				add_post_meta($post_ID,$metakey,$metavalue,true);
                         }
+
                     }
         	}
         }
+
 //fclose($fh);
 }
 
@@ -431,6 +425,7 @@ function test_LJ (){
 	fwrite($fh, $stringData);
 	fclose($fh);
 }
+//		add_action('publish_phone', 'publish_phone_LJ', 10);
 
 	if ((strpos($_SERVER['PHP_SELF'],'wp-admin/post-new.php') != false )
 	    || (strpos($_SERVER['PHP_SELF'],'wp-admin/post.php') != false )
@@ -446,7 +441,7 @@ echo '</pre>';
 */
 		add_action('publish_phone', 'publish_phone_LJ', 5);
 		add_action('edit_post', 'synch_LJ');
-		add_action('publish_post', 'synch_LJ');
+		add_action('publish_post', 'synch_LJ',5);
 		add_action('trash_post', 'delete_post_LJ');
 		add_action('delete_post', 'delete_post_LJ');
 		add_action('untrash_post', 'synch_LJ');
