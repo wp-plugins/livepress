@@ -7,8 +7,15 @@
  */
 if (!function_exists('AA_is_wpmu')):
 function AA_is_wpmu() {
-	global $wpmu_version, $wp_version;
-	return (bool) ( (isset($wpmu_version)) || (strpos($wp_version, 'wordpress-mu')) );
+	// Wordpress 3.0+
+	if (function_exists('is_multisite')) {
+		return is_multisite();
+	}
+	// Old WordpressMU versions
+	else {
+		global $wpmu_version, $wp_version;
+		return (bool) ( (isset($wpmu_version)) || (strpos($wp_version, 'wordpress-mu')) );
+	}
 }
 endif;
 
