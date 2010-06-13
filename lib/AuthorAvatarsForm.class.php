@@ -314,6 +314,8 @@ class AuthorAvatarsForm {
 		$order_options = Array(
 			'date_registered' => __('Date of Registration', 'author-avatars'),
 			'display_name' => __('Display Name', 'author-avatars'),
+			'first_name' => __('First Name', 'author-avatars'),
+			'last_name' => __('Last Name', 'author-avatars'),
 			'user_login' => __('Login Name', 'author-avatars'),
 			'post_count' => __('Number of Posts', 'author-avatars'),
 			'random' => __('Random', 'author-avatars'),

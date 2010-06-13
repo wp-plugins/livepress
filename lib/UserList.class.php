@@ -307,27 +307,27 @@ class UserList {
 		global $wpdb, $blog_id;
 		
 		if (AA_is_wpmu() && !empty($this->blogs)) {
-		
+
 			// make sure all values are integers
 			$this->blogs = array_map ('intval', $this->blogs);
 			
 			// if -1 is in the array display all users (no filtering)
 			if (in_array('-1', $this->blogs)) {
-				$blogs_condition = "meta_key LIKE '". $wpdb->base_prefix ."%_capabilities'";
+				$blogs_condition = "meta_key LIKE '". $wpdb->base_prefix ."%capabilities'";
 			}
 			// else filter by set blog ids
 			else {
-				$blogs = array_map(create_function('$v', 'return "\''.$wpdb->base_prefix.'". $v ."_capabilities\'";'), $this->blogs);
-				$blogs_condition = 'meta_key IN ('.  implode(',', $blogs) .')';
+				$blogs = array_map(create_function('$v', 'return "\''.$wpdb->base_prefix.'" . (($v == 1) ? "" : $v . "_") . "capabilities\'";'), $this->blogs);
+				$blogs_condition = 'meta_key IN ('.  implode(', ', $blogs) .')';
 			}
 		}
 		else {
 			$blogs_condition = "meta_key = '". $wpdb->prefix ."capabilities'";
 		}
-		
+
 		$query = "SELECT user_id, user_login, display_name, user_email, user_url, user_registered, meta_key, meta_value FROM $wpdb->users, $wpdb->usermeta".
 			" WHERE " . $wpdb->users . ".ID = " . $wpdb->usermeta . ".user_id AND ". $blogs_condition . " AND user_status = 0";
-				
+
 		$users = $wpdb->get_results( $query );
 		
 		
@@ -383,16 +383,16 @@ class UserList {
 					$add = false;
 				}
 
-                                // Remove users with zero posts
-                                if (
-                                        // if the flag is set to remove respective users
-                                        $this->min_post_count > 0 &&
-                                        // and they have zero posts
-                                        $this->get_user_postcount($user->user_id) < $this->min_post_count ) {
-                                        // do not add this user
-                                        $add = false;
-                                }
-								
+				// Remove users with zero posts
+				if (
+						// if the flag is set to remove respective users
+						$this->min_post_count > 0 &&
+						// and they have zero posts
+						$this->get_user_postcount($user->user_id) < $this->min_post_count ) {
+						// do not add this user
+						$add = false;
+				}
+
 				if ($add === true) {
 					// store current user_id for uniqueness check
 					$user_ids[] = $user->user_id;
@@ -442,6 +442,12 @@ class UserList {
 			case 'display_name':
 				usort($users, array($this, '_users_cmp_name'));
 				break;
+			case 'first_name':
+				usort($users, array($this, '_users_cmp_first_name'));
+				break;
+			case 'last_name':
+				usort($users, array($this, '_users_cmp_last_name'));
+				break;
 			case 'post_count':
 				usort($users, array($this, '_user_cmp_postcount'));
 				break;
@@ -489,6 +495,54 @@ class UserList {
 	 */
 	function _users_cmp_name($a, $b) {
 		return $this->_sort_direction() * strcasecmp($a->display_name, $b->display_name);
+	}
+
+	/**
+	 * Given two users, this function compares the user's display names.
+	 *
+	 * @access private
+	 * @param WP_User $a
+	 * @param WP_User $b
+	 * @return int result of a string compare of the user first names.
+	 */
+	function _users_cmp_first_name($a, $b) {
+		$an = $this->get_user_firstname ($a->user_id);
+		$bn = $this->get_user_firstname ($b->user_id);
+		return $this->_sort_direction() * strcasecmp( $an, $bn );
+	}
+
+	/**
+	 * Given a user id returns the first name of the respective user.
+	 *
+	 * @param int $user_id
+	 * @return string first name of user
+	 */
+	function get_user_firstname($user_id) {
+		return get_usermeta( $user_id, 'first_name', true );
+	}
+
+	/**
+	 * Given two users, this function compares the user's last names.
+	 *
+	 * @access private
+	 * @param WP_User $a
+	 * @param WP_User $b
+	 * @return int result of a string compare of the user display names.
+	 */
+	function _users_cmp_last_name($a, $b) {
+		$an = $this->get_user_lastname ($a->user_id);
+		$bn = $this->get_user_lastname ($b->user_id);
+		return $this->_sort_direction() * strcasecmp( $an, $bn );
+	}
+
+	/**
+	 * Given a user id returns the last name of the respective user.
+	 *
+	 * @param int $user_id
+	 * @return string last name of user
+	 */
+	function get_user_lastname($user_id) {
+		return get_usermeta( $user_id, 'last_name', true );
 	}
 	
 	/**
@@ -623,7 +677,13 @@ class UserList {
 					foreach($users as $user) {
 						$key = $user->meta_key;
 						$matches = array();
-						if (preg_match($pattern, $key, $matches) > 0) {
+
+						// blog id 1
+						if ($key == $wpdb->base_prefix . 'capabilities') {
+							$users_new[1][] = $user;
+						}
+						// other blogs
+						else if (preg_match($pattern, $key, $matches) > 0) {
 							$users_new[$matches[1]][] = $user;
 						}
 					}
