@@ -221,7 +221,10 @@ class UserList {
 				}
 				break;
 			case 'bp_memberpage':
-				if (function_exists('bp_core_get_userurl')) {
+				if (function_exists('bp_core_get_user_domain')) {
+					$link = bp_core_get_user_domain($user->user_id);
+				}
+				elseif (function_exists('bp_core_get_userurl')) { // BP versions < 1.1
 					$link = bp_core_get_userurl($user->user_id);
 				}
 				break;

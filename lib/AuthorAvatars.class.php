@@ -45,11 +45,11 @@ class AuthorAvatars {
 
 		// include settings file
 		require_once('AuthorAvatarsSettings.class.php');
-		
+
 		// load translation domain on init action
 		add_action('init', array($this, 'load_translation_domain'));
 	}
-	
+
 	/**
 	 * Loads the translation domain for ngettext calls
 	 *

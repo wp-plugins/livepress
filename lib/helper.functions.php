@@ -26,7 +26,8 @@ endif;
  */
 if (!function_exists('AA_is_bp')):
 function AA_is_bp() {
-	return defined('BP_CORE_VERSION');
+	return defined('BP_VERSION')
+		|| defined('BP_CORE_VERSION'); // buddypress versions < 1.0 (?)
 }
 endif;
 
