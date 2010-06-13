@@ -206,7 +206,14 @@ class UserList {
 		if ($this->show_name) $divcss[] = 'with-name';
 		
 		$link = false;
-		switch ($this->user_link) {
+		$link_type = $this->user_link;
+		
+		// always use 'website' for commentators
+		if ( $user->user_id == -1) {
+			$link_type = 'website';
+		}
+
+		switch ($link_type) {
 			case 'authorpage':
 				$link = get_author_posts_url($user->user_id);
 				break;
@@ -231,20 +238,34 @@ class UserList {
 		}
 
 		if ($this->show_postcount) {
-			$postcount = $this->get_user_postcount($user->user_id);
+			$postcount = 0;
+			if ($user->user_id == -1) {
+				$postcount = $this->getCommentCount($user->user_email);
+				$title .= ' ('. sprintf(_n("%d comment", "%d comments", $postcount, 'author-avatars'), $postcount) .')';
+			}
+			else {
+				$postcount = $this->get_user_postcount($user->user_id);
+				$title .= ' ('. sprintf(_n("%d post", "%d posts", $postcount, 'author-avatars'), $postcount) .')';
+			}
 			$name .= sprintf(' (%d)', $postcount);
-			$title .= ' ('. sprintf(_n("%d post", "%d posts", $postcount, 'author-avatars'), $postcount) .')';
 		}
 
 		$biography = false;
-		if ($this->show_biography) {
+		if ($this->show_biography && $user->user_id > 0) {
 			$biography = get_the_author_meta('description', $user->user_id);
 			$divcss[] = 'with-biography';
 			$name = '<strong>'. $name .'</strong>';
 			if (empty($biography)) $divcss[] = 'biography-missing';
 		}
 
-		$avatar = get_avatar($user->user_id, $avatar_size);
+		if ($user->user_id == -1) {
+			// use email for commentators
+			$avatar = get_avatar('nobody@example.net', $avatar_size);
+			//$avatar = get_avatar($user->user_email, $avatar_size);
+		}
+		else {
+			$avatar = get_avatar($user->user_id, $avatar_size);
+		}
 
 		/* Strip all existing links (a tags) from the get_avatar() code to
 		* remove e.g. the link which is added by the add-local-avatar plugin
@@ -279,7 +300,18 @@ class UserList {
 	function get_users() {
 		// get all users
 		$users = $this->get_blog_users();
-		
+
+		// add commentators if requested
+		if(in_array('Commentator', $this->roles)) {
+			$commentators = $this->get_commentators();
+			if (is_array($users) && is_array($commentators)) {
+				$users = array_merge($users, $commentators);
+			}
+			else if (is_array($commentators)) {
+				$users = $commentators;
+			}
+		}
+
 		// filter them
 		$this->_filter($users);
 		
@@ -329,9 +361,34 @@ class UserList {
 			" WHERE " . $wpdb->users . ".ID = " . $wpdb->usermeta . ".user_id AND ". $blogs_condition . " AND user_status = 0";
 
 		$users = $wpdb->get_results( $query );
-		
+
 		
 		return $users;
+	}
+
+	/**
+	 * Returns an array of all commentators
+	 *
+	 * @return array of users (commentators)
+	 */
+	function get_commentators() {
+		global $wpdb;
+
+		$query = "SELECT
+			'-1' as user_id,
+			comment_author_email as 'user_login',
+			comment_author as 'display_name',
+			comment_author_email as 'user_email',
+			comment_author_url as'user_url',
+			comment_date as 'user_registered',
+			'wp_capabilities' as 'meta_key',
+			'" . serialize( array('Commentator' => true) ) . "' as 'meta_value'
+			FROM ". $wpdb->comments."
+			WHERE comment_author_email <> '' AND comment_approved = 1 AND comment_type NOT IN( 'trackback', 'pingback' )";
+
+		$commentators = $wpdb->get_results($query);
+
+		return $commentators;
 	}
 	
 	/**
@@ -343,8 +400,9 @@ class UserList {
 	 */
 	function _filter(&$users) {
 		if (is_array($users)) {
-			// array keeping track of all 'valid' user_ids
+			// arrays for keeping track of all 'valid' user ids and commentator emails
 			$user_ids = array();
+			$user_emails = array();
 			
 			foreach($users as $id => $usr) {
 				$user = &$users[$id];
@@ -372,30 +430,45 @@ class UserList {
 					// do not add this user
 					$add = false;
 				}
-				
-				// Remove duplicates
-				if (
-					// if we're not grouping anything
-					empty($this->group_by) &&
-					// and the current value has already been added
-					in_array($user->user_id, $user_ids) ) {
-					// do not add this user
-					$add = false;
-				}
 
-				// Remove users with zero posts
-				if (
+				// real user
+				if($user->user_id != -1) {
+					// Remove duplicates
+					if (
+						// if we're not grouping anything
+						empty($this->group_by) &&
+						// and the current value has already been added
+						in_array($user->user_id, $user_ids) ) {
+						// do not add this user
+						$add = false;
+					}
+
+					// Remove users with zero posts
+					if (
 						// if the flag is set to remove respective users
 						$this->min_post_count > 0 &&
 						// and they have zero posts
 						$this->get_user_postcount($user->user_id) < $this->min_post_count ) {
 						// do not add this user
 						$add = false;
+					}
+				}
+				// commentator
+				else {
+					if (
+						// if we're not grouping anything
+						empty($this->group_by) &&
+						// and the current value has already been added
+						in_array($user->user_email, $user_emails) ) {
+						// do not add this user
+						$add = false;
+					}
 				}
 
 				if ($add === true) {
-					// store current user_id for uniqueness check
+					// store current user_id/user_email for uniqueness check
 					$user_ids[] = $user->user_id;
+					$user_emails[] = $user->user_email;
 				}
 				else {
 					// remove the current user from the array
@@ -589,6 +662,31 @@ class UserList {
 		return $total;
 	}
 	
+	/**
+	 * Returns the comment count for a given email address.
+	 * 
+	 * @param string $user_email
+	 * @return int number of comments
+	 */
+	function get_comment_count($user_email) {
+		static $comment_counts = array();
+
+		// retrieve counts for all commentators
+		if (empty($comment_counts)) {
+			global $wpdb;
+			$query = 'SELECT comment_author_email, COUNT(*) AS total FROM ' . $wpdb->comments . ' WHERE comment_approved = 1 GROUP BY comment_author_email';
+			$results = $wpdb-> get_results($query);
+			foreach ($results as $result) {
+				$comment_counts[$result->comment_author_email] = $result->total;
+			}
+		}
+
+		if (in_array($user_email, $comment_counts)) {
+			return $comment_counts[$user_email];
+		}
+		return 0;
+	}
+
 	/**
 	 * Given two users, this function compares the date on which the user registered.
 	 * 

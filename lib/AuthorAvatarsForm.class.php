@@ -189,6 +189,7 @@ class AuthorAvatarsForm {
 	 */
 	function renderFieldRoles($values=array(), $name='roles') {
 		$roles = $this->_getAllRoles();
+		$roles =  array_merge($roles, array('Commentator' => __('Commentators', 'author-avatars')));
 		
 		$html = '';
 		if (!empty($roles)) {		
