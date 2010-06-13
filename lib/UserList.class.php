@@ -260,8 +260,7 @@ class UserList {
 
 		if ($user->user_id == -1) {
 			// use email for commentators
-			$avatar = get_avatar('nobody@example.net', $avatar_size);
-			//$avatar = get_avatar($user->user_email, $avatar_size);
+			$avatar = get_avatar($user->user_email, $avatar_size);
 		}
 		else {
 			$avatar = get_avatar($user->user_id, $avatar_size);
