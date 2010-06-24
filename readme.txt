@@ -3,8 +3,8 @@ Contributors: bforchhammer, pbearne
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5UP2FUQ8QMHJU&lc=GB&item_name=Wordpress%20Development&item_number=Author%20Avatars%20List%20Plugin&currency_code=GBP&bn=PP%2dDonationsBF%3abtn_donateCC_LG_global%2egif%3aNonHosted
 Tags: Avatar, Author, BuddyPress, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.8
-Tested up to: 2.9.1
-Stable tag: 0.8
+Tested up to: 3.0.0
+Stable tag: 0.9
 
 Display lists of user avatars using widgets or shortcodes.
 
@@ -34,12 +34,6 @@ Single user avatars can be inserted using the [show_avatar shortcode](http://aut
 
 Please report bugs and provide feedback in the [wordpress support forum](http://wordpress.org/tags/author-avatars?forum_id=10#postform). (I'm following all posts with the "author-avatars" tag.)
 
-= Planned Features/Ideas =
-
-*   User information popup on rollover
-*   Advanced user display configuration / templates
-*   Any ideas or suggestions? [tell us about it](mailto:b.forchhammer@mind2.de)!
-
 == Installation ==
 
 1. Upload the `author-avatars` folder to the `/wp-content/plugins/` directory
@@ -59,6 +53,12 @@ You can find information for developers [on this page](http://authoravatars.word
 5. List of users with name and biography
 
 == Changelog ==
+
+= 0.9 =
+*	Fixed compatibility with WordPress 3.0 (and its new multisite feature)
+*   Fixed BuddyPress integration
+*	Added feature to show avatars of commentators
+*	Added feature to sort by firstname or lastname
 
 = 0.8 =
 *   Added feature to show a user's biography next to the avatar
