@@ -55,10 +55,10 @@ You can find information for developers [on this page](http://authoravatars.word
 == Changelog ==
 
 = 0.9 =
-*	Fixed compatibility with WordPress 3.0 (and its new multisite feature)
+*   Fixed compatibility with WordPress 3.0 (and its new multisite feature)
 *   Fixed BuddyPress integration
-*	Added feature to show avatars of commentators
-*	Added feature to sort by firstname or lastname
+*   Added feature to show avatars of commentators
+*   Added feature to sort by firstname or lastname
 
 = 0.8 =
 *   Added feature to show a user's biography next to the avatar
