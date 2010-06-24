@@ -200,6 +200,12 @@ class AuthorAvatarsForm {
 				'wrapper_tag' => 'p',
 				'label' => '<strong>'. __('Show roles', 'author-avatars') .':</strong><br/>',
 			);
+			if (AA_is_wpmu() && AA_is_bp()) {
+				if (version_compare(BP_VERSION, '1.3', '<=')) {
+					$attributes['help'] = '<br /><small class="warning">Warning: Commentator avatars are not displayed properly with BuddyPress versions &lt;= 1.3!</small>';
+				}
+			}
+
 			$name = $this->_getFieldName($name);
 			$html .= FormHelper::choice($name, $roles, $values, $attributes);
 		}
