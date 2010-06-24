@@ -240,7 +240,7 @@ class UserList {
 		if ($this->show_postcount) {
 			$postcount = 0;
 			if ($user->user_id == -1) {
-				$postcount = $this->getCommentCount($user->user_email);
+				$postcount = $this->get_comment_count($user->user_email);
 				$title .= ' ('. sprintf(_n("%d comment", "%d comments", $postcount, 'author-avatars'), $postcount) .')';
 			}
 			else {
@@ -674,13 +674,13 @@ class UserList {
 		if (empty($comment_counts)) {
 			global $wpdb;
 			$query = 'SELECT comment_author_email, COUNT(*) AS total FROM ' . $wpdb->comments . ' WHERE comment_approved = 1 GROUP BY comment_author_email';
-			$results = $wpdb-> get_results($query);
+			$results = $wpdb->get_results($query);
 			foreach ($results as $result) {
 				$comment_counts[$result->comment_author_email] = $result->total;
 			}
 		}
 
-		if (in_array($user_email, $comment_counts)) {
+		if (array_key_exists($user_email, $comment_counts)) {
 			return $comment_counts[$user_email];
 		}
 		return 0;
