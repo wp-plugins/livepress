@@ -1,7 +1,7 @@
 === Author Avatars List ===
 Contributors: bforchhammer, pbearne
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5UP2FUQ8QMHJU&lc=GB&item_name=Wordpress%20Development&item_number=Author%20Avatars%20List%20Plugin&currency_code=GBP&bn=PP%2dDonationsBF%3abtn_donateCC_LG_global%2egif%3aNonHosted
-Tags: Avatar, Author, BuddyPress, Editor, Image, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
+Tags: Avatar, Author, BuddyPress, Comment, Editor, Image, Multisite, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.8
 Tested up to: 3.0.0
 Stable tag: 0.9
@@ -22,7 +22,7 @@ Both shortcode and widget can be configured to...
 *   Change the sort order of users or show in random order
 *   Adjust the size of user avatars
 *   Optionally show a user's name or biography
-*   Show users from the current blog, all blogs or a selection of blogs (on WPMU)
+*   Show users from the current blog, all blogs or a selection of blogs (on WPMU/Multisite)
 *   Group users by their blog (when showing from multiple blogs), and show the blog name above each grouping (experimental feature).
 
 The plugin makes use of built in wordpress (core) functions to retrieve user information and get avatars.
@@ -164,7 +164,7 @@ The plugin comes with two shortcodes: <code>[authoravatars]</code> for lists of 
 
 Make sure you have enabled the "blog filter" in Site Admin / Author Avatars for the blog on which you are trying to use this feature on. By default this is only enabled for the root blog (blog id = 1).
 
-And you are running [Wordpress MU](http://mu.wordpress.org/), right?
+And you are running [Wordpress MU](http://mu.wordpress.org/) (or respectively WordPress 3 in multi-site mode), right?
 
 = Can I upload custom pictures for users? =
 
