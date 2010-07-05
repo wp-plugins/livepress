@@ -348,7 +348,7 @@ class UserList {
 			}
 			// else filter by set blog ids
 			else {
-				$blogs = array_map(create_function('$v', 'global $wpdb; return $wpdb->get_blog_prefix($v) . "capabilities";'), $this->blogs);
+				$blogs = array_map(create_function('$v', 'global $wpdb; return "\'" . $wpdb->get_blog_prefix($v) . "capabilities\'";'), $this->blogs);
 				$blogs_condition = 'meta_key IN ('.  implode(', ', $blogs) .')';
 			}
 		}
