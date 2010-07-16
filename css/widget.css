@@ -22,3 +22,6 @@
 	float: left;
 	margin: 0.2em 0.3em 0.2em 0;
 }
+.multiwidget_author_avatars .author-list .avatar img {
+	float: none !important; /* is set to left on some themes */
+}
