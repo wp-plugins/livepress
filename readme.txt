@@ -1,6 +1,6 @@
 === Author Avatars List ===
 Contributors: bforchhammer, pbearne
-Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5UP2FUQ8QMHJU&lc=GB&item_name=Wordpress%20Development&item_number=Author%20Avatars%20List%20Plugin&currency_code=GBP&bn=PP%2dDonationsBF%3abtn_donateCC_LG_global%2egif%3aNonHosted
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CP96HL6QE6WWN
 Tags: Avatar, Author, BuddyPress, Comment, Editor, Image, Multisite, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.8
 Tested up to: 3.0.0
