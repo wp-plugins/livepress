@@ -32,7 +32,7 @@ class AuthorAvatarsSitewideAdminPanel {
 	function add_submenu() {
 		get_currentuserinfo();
 		if (!is_super_admin()) return false; // only for site admins
-		add_submenu_page('wpmu-admin.php', __('Sitewide Author Avatars Configuration', 'author-avatars'), __('Author Avatars List', 'author-avatars'), 10, 'wpmu_author_avatars', array(&$this,'config_page'));
+		add_submenu_page('wpmu-admin.php', __('Sitewide Author Avatars Configuration', 'author-avatars'), __('Author Avatars List', 'author-avatars'), 'manage_options', 'wpmu_author_avatars', array(&$this,'config_page'));
 	}
 	
 	/**
