@@ -3,7 +3,11 @@
 }
 .multiwidget_author_avatars .author-list .user {
 	padding: 0.2em;
-	display: inline;
+	display: inline-block;
+	vertical-align: top;
+	/* IE 7 */
+	zoom: 1;
+	*display: inline;
 }
 .multiwidget_author_avatars .author-list .with-name {
 	display: block;
