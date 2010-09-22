@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: Avatar, Author, BuddyPress, Comment, Editor, Image, Multisite, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.8
 Tested up to: 3.0.0
-Stable tag: 0.9
+Stable tag: 1.0
 
 Display lists of user avatars using widgets or shortcodes.
 
@@ -53,6 +53,11 @@ You can find information for developers [on this page](http://authoravatars.word
 5. List of users with name and biography
 
 == Changelog ==
+
+= 1.0 =
+*   Fixed a number of styling issues
+*   Fixed bug with capabilities (Wordpress 3 multisite)
+*   Removed deprecated functions
 
 = 0.9 =
 *   Fixed compatibility with WordPress 3.0 (and its new multisite feature)
