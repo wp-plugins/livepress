@@ -118,7 +118,7 @@ class AuthorAvatarsShortcode {
 		// min. number of posts
 		if (!empty($atts['min_post_count'])) {
 			$min_post_count = intval($atts['min_post_count']);
-			if ($min_post_count > 0) $userlist->min_post_count = min_post_count;
+			if ($min_post_count > 0) $userlist->min_post_count = $min_post_count;
 		}
 		
 		// display order
