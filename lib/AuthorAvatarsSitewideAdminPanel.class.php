@@ -23,7 +23,12 @@ class AuthorAvatarsSitewideAdminPanel {
 	 */
 	function init() {
 		if (is_null($this->settings)) $this->settings = AA_settings();
-		add_action('admin_menu', array(&$this, 'add_submenu'));
+		if (function_exists('is_network_admin')) { // Wordpress 3.1
+			add_action('network_admin_menu', array(&$this, 'add_submenu'));
+		}
+		else {
+			add_action('admin_menu', array(&$this, 'add_submenu'));
+		}
 	}
 	
 	/**
@@ -32,7 +37,12 @@ class AuthorAvatarsSitewideAdminPanel {
 	function add_submenu() {
 		get_currentuserinfo();
 		if (!is_super_admin()) return false; // only for site admins
-		add_submenu_page('wpmu-admin.php', __('Sitewide Author Avatars Configuration', 'author-avatars'), __('Author Avatars List', 'author-avatars'), 'manage_options', 'wpmu_author_avatars', array(&$this,'config_page'));
+		if (function_exists('is_network_admin')) { // Wordpress 3.1
+			add_submenu_page('settings.php', __('Sitewide Author Avatars Configuration', 'author-avatars'), __('Author Avatars List', 'author-avatars'), 'manage_options', 'wpmu_author_avatars', array(&$this,'config_page'));
+		}
+		else {
+			add_submenu_page('wpmu-admin.php', __('Sitewide Author Avatars Configuration', 'author-avatars'), __('Author Avatars List', 'author-avatars'), 'manage_options', 'wpmu_author_avatars', array(&$this,'config_page'));
+		}
 	}
 	
 	/**
