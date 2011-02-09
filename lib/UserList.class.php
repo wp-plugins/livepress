@@ -263,7 +263,18 @@ class UserList {
 			$avatar = get_avatar($user->user_email, $avatar_size);
 		}
 		else {
-			$avatar = get_avatar($user->user_id, $avatar_size);
+			if (function_exists('bp_core_fetch_avatar')) {
+				$avatar = bp_core_fetch_avatar(array(
+					'item_id' => $user->user_id,
+					'width' => $avatar_size,
+					'height' => $avatar_size,
+					'type' => 'full',
+					'alt' => $alt,
+					'title' => $title));
+			}
+			else {
+				$avatar = get_avatar($user->user_id, $avatar_size);
+			}
 		}
 
 		/* Strip all existing links (a tags) from the get_avatar() code to
@@ -272,11 +283,14 @@ class UserList {
 		if (!empty($link)) {
 			$avatar = preg_replace('@<\s*\/?\s*[aA]\s*.*?>@', '', $avatar);
 		}
-		/* strip alt and title parameter */
-		$avatar = preg_replace('@alt=["\'][\w]*["\'] ?@', '', $avatar);
-		$avatar = preg_replace('@title=["\'][\w]*["\'] ?@', '', $avatar);
-		/* insert alt and title parameters */
-		$avatar = preg_replace('@ ?\/>@', ' alt="'.$alt.'" title="'.$title.'" />', $avatar);
+
+		if (!function_exists('bp_core_fetch_avatar')) {
+			/* strip alt and title parameter */
+			$avatar = preg_replace('@alt=["\'][\w]*["\'] ?@', '', $avatar);
+			$avatar = preg_replace('@title=["\'][\w]*["\'] ?@', '', $avatar);
+			/* insert alt and title parameters */
+			$avatar = preg_replace('@ ?\/>@', ' alt="'.$alt.'" title="'.$title.'" />', $avatar);
+		}
 
 		$html = '';
 		if ($link) $html .= '<a href="'. $link .'">';
