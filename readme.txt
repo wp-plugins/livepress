@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: Avatar, Author, BuddyPress, Comment, Editor, Image, Multisite, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.8
 Tested up to: 3.0.0
-Stable tag: 1.0
+Stable tag: 1.1
 
 Display lists of user avatars using widgets or shortcodes.
 
@@ -53,6 +53,12 @@ You can find information for developers [on this page](http://authoravatars.word
 5. List of users with name and biography
 
 == Changelog ==
+
+= 1.1 =
+*   Added fix for buddypress which was using thumb instead of full versions of images.
+*   Added support for network admin area (new in WP 3.1)
+*   Added dutch translation by René (wpwebshop)
+*   Fixed bug with min_post_count in shortcode
 
 = 1.0 =
 *   Fixed a number of styling issues
