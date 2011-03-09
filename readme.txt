@@ -194,7 +194,7 @@ This can happens when you've choosen to link users to their "author page" and th
 2. If not already there add a custom user/author template to your theme. Otherwise if a user has no posts their user page is going to be quite empty by default...
 You can find a [tutorial](http://codex.wordpress.org/Author_Templates) on Author Templates as well as a [Sample Template File](http://codex.wordpress.org/Author_Templates#Sample_Template_File) in the WordPress Codex.
 
-= Can I use html in user biographies?
+= Can I use html in user biographies? =
 
 Wordpress Core unforunately strips all html from the user biography field when entered. Install the plugin [Weasel's HTML Bios](http://wordpress.org/extend/plugins/weasels-html-bios/) if you want to use html...
 
