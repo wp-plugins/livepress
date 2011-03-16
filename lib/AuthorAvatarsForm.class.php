@@ -327,10 +327,8 @@ class AuthorAvatarsForm {
 			'post_count' => __('Number of Posts', 'author-avatars'),
 			'random' => __('Random', 'author-avatars'),
 			'user_id' => __('User Id', 'author-avatars'),
+			'recent_activity' => __('Recent Activity', 'author-avatars'),
 		);
-		if (AA_is_bp()) {
-			$order_options['recent_activity'] = __('Recent Activity', 'author-avatars');
-		}
 		
 		$attributes = array(
 			'id' => $this->_getFieldId($name),

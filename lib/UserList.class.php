@@ -730,8 +730,9 @@ class UserList {
 	/**
 	 * Returns the time of last activity for a given user. 
 	 *
-	 * This requires that BuddyPress is installed.
-	 * If it's not available the function returns an empty string.
+	 * If BuddyPress is available this function uses the `last_activity` meta
+	 * data value maintained by BuddyPress. Otherwise it returns the date of
+	 * the latest post or page published by the given user.
 	 *
 	 * @param int $user_id
 	 * @return string last activity date
@@ -740,7 +741,11 @@ class UserList {
 		if (AA_is_bp()) {
 			return gmdate( 'Y-m-d H:i:s', (int)get_usermeta( $user_id, 'last_activity' ) );
 		}
-		return "";
+		else {
+			global $wpdb;
+			$query = 'SELECT `post_date` FROM `wp_posts` WHERE `post_status` = "publish" AND `post_author` = ' . $user_id . ' ORDER BY `post_date` DESC LIMIT 1';
+			return $wpdb->get_var($query);
+		}
 	}
 	
 	/**
