@@ -1,5 +1,5 @@
 ﻿=== Author Avatars List ===
-Contributors: bforchhammer, pbearne
+Contributors: pbearne, bforchhammer
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CP96HL6QE6WWN
 Tags: Avatar, Author, BuddyPress, Comment, Editor, Image, Multisite, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.8
@@ -32,7 +32,9 @@ Single user avatars can be inserted using the [show_avatar shortcode](http://aut
 *   Adjust the size of the user avatar.
 *   Align the avatar left, centered or right.
 
-Please report bugs and provide feedback in the [wordpress support forum](http://wordpress.org/tags/author-avatars?forum_id=10#postform). (I'm following all posts with the "author-avatars" tag.)
+Please report bugs and provide feedback in the [wordpress support forum](http://wordpress.org/tags/author-avatars?forum_id=10#postform).
+
+**Plugin support:** As of April 2011, Ben is stepping down as maintainer and handing over ownership to Paul Bearne, who will provide support and drive the development of new features. 
 
 == Installation ==
 
@@ -40,7 +42,7 @@ Please report bugs and provide feedback in the [wordpress support forum](http://
 1. Activate the plugin through the 'Plugins' menu in WordPress
 1. Enable and configure the widget as usual on the Design / Widgets page.
 
-[Look at this page](http://codex.wordpress.org/User:Bforchhammer/Author_Avatars_ShortCode_Documentation) to find out how to use the [authoravatars] shortcode.
+[Look at this page](https://authoravatars.wordpress.com/documentation/authoravatars-shortcode/) to find out how to use the [authoravatars] shortcode.
 
 You can find information for developers [on this page](http://authoravatars.wordpress.com/documentation/developers-guide/).
 
