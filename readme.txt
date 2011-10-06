@@ -3,8 +3,8 @@ Contributors: pbearne, bforchhammer
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CP96HL6QE6WWN
 Tags: Avatar, Author, BuddyPress, Comment, Editor, Image, Multisite, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.8
-Tested up to: 3.1
-Stable tag: 1.1
+Tested up to: 3.2.1
+Stable tag: 1.2
 
 Display lists of user avatars using widgets or shortcodes.
 
