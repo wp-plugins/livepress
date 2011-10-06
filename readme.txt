@@ -56,6 +56,9 @@ You can find information for developers [on this page](http://authoravatars.word
 
 == Changelog ==
 
+= 1.2 =
+*   Added Italian translation (by Nata Strazda)
+
 = 1.1 =
 *   Added fix for buddypress which was using thumb instead of full versions of images.
 *   Added support for network admin area (new in WP 3.1)
