@@ -56,7 +56,7 @@ You can find information for developers [on this page](http://authoravatars.word
 
 == Changelog ==
 
-= 1.3 =
+= 1.4 =
 *    Fix a bug in the js code for the short-code generator in the tinyMCE editor. 
 *   It wasn't possible to set the show name / post count / biography options.
 
