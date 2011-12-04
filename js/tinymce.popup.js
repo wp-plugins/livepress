@@ -95,20 +95,21 @@ function insertAuthorAvatarsCode() {
 		}
 
 		// show_name
-		var show_name = jQuery("#display input[value=show_name]").attr("checked");
-		if (show_name == true) {
+
+		var show_name = jQuery('#display input[value="show_name"]').attr("checked");
+		if (show_name == true || 'checked' == show_name) {
 			tagtext += " show_name=true";
 		}
 
 		// show_postcount
-		var show_postcount = jQuery("#display input[value=show_postcount]").attr("checked");
-		if (show_postcount == true) {
+		var show_postcount = jQuery('#display input[value="show_postcount"]').attr("checked");
+		if (show_postcount == true || 'checked' == show_postcount) {
 			tagtext += " show_postcount=true";
 		}
 
 		// show_biography
-		var show_biography = jQuery("#display input[value=show_biography]").attr("checked");
-		if (show_biography == true) {
+		var show_biography = jQuery('#display input[value="show_biography"]').attr("checked");
+		if (show_biography == true || 'checked' == show_biography) {
 			tagtext += " show_biography=true";
 		}
 
