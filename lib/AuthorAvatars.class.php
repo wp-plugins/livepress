@@ -25,7 +25,10 @@ class AuthorAvatars {
 			$this->init_shortcodes();
 			$this->init_controlpanels();
 		}
+	
 	}
+	
+
 
 	/**
 	 * Check we got everything we need to use the plugin
@@ -92,7 +95,7 @@ class AuthorAvatars {
 		require_once('AuthorAvatarsWidget.class.php');
 
 		// Create an object for the widget. Registering is done in the object's constructor
-		$author_avatars_multiwidget = new AuthorAvatarsWidget();
+		$this->author_avatars_multiwidget = new AuthorAvatarsWidget();
 	}
 
 	/**
@@ -105,10 +108,10 @@ class AuthorAvatars {
         require_once('AuthorAvatarsEditorButton.class.php');
 
 		// Create objects of the shortcode classes. Registering is done in the objects' constructors
-		$author_avatars = new AuthorAvatarsShortcode();
-		$show_avatar = new ShowAvatarShortcode();
+		$this->author_avatars_shortcode = new AuthorAvatarsShortcode();
+		$this->show_avatar = new ShowAvatarShortcode();
 
-        $editor_button = new AuthorAvatarsEditorButton();
+        $this->editor_button = new AuthorAvatarsEditorButton();
 	}
 
 	/**
@@ -118,7 +121,7 @@ class AuthorAvatars {
 		// include necessary file(s).
 		require_once('AuthorAvatarsSitewideAdminPanel.class.php');
 
-		$wpmu_settings = new AuthorAvatarsSitewideAdminPanel();
+		$this->wpmu_settings = new AuthorAvatarsSitewideAdminPanel();
 	}
 
 	/**

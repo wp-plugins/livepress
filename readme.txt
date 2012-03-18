@@ -3,8 +3,8 @@ Contributors: pbearne, bforchhammer
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CP96HL6QE6WWN
 Tags: Avatar, Author, BuddyPress, Comment, Editor, Image, Multisite, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.8
-Tested up to: 3.3 RC1
-Stable tag: 1.4.1
+Tested up to: 3.3
+Stable tag: 1.5.0
 
 Display lists of user avatars using widgets or shortcodes.
 
@@ -24,6 +24,8 @@ Both shortcode and widget can be configured to...
 *   Optionally show a user's name or biography
 *   Show users from the current blog, all blogs or a selection of blogs (on WPMU/Multisite)
 *   Group users by their blog (when showing from multiple blogs), and show the blog name above each grouping (experimental feature).
+
+* the shortcode can page the avatars for large sets add a page_size to the shortcode e.g. "page_size=30"
 
 The plugin makes use of built in wordpress (core) functions to retrieve user information and get avatars.
 
@@ -56,8 +58,12 @@ You can find information for developers [on this page](http://authoravatars.word
 
 == Changelog ==
 
+= 1.5 =
+*  Added Paging to the short code
+*  Added  Romanian language (by Alexander Ovsov:  Web Hosting Geeks - http://webhostinggeeks.com)
+
 = 1.4 =
-*    Fix a bug in the js code for the short-code generator in the tinyMCE editor. 
+*   Fix a bug in the js code for the short-code generator in the tinyMCE editor. 
 *   It wasn't possible to set the show name / post count / biography options.
 
 = 1.2 =

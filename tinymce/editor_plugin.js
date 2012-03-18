@@ -49,8 +49,8 @@
 		getInfo : function() {
 			return {
 				longname : 'authoravatars plugin',
-				author : 'Benedikt Forchhammer',
-				authorurl : 'http://mind2.de',
+				author : 'Benedikt Forchhammer,Paul Bearne',
+				authorurl : 'http://mind2.de,http://bearne.ca',
 				infourl : 'http://wordpress.org/extend/plugins/author-avatars',
 				version : "1.0"
 			};
