@@ -1,10 +1,10 @@
 ﻿=== Author Avatars List ===
 Contributors: pbearne, bforchhammer
-Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CP96HL6QE6WWN
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=MZTZ5S8MGF75C&lc=CA&item_name=Wordpress%20Development%20%2f%20Paul%20Bearne&item_number=AuthorAvatarsList%20Plugin&currency_code=CAD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
 Tags: Avatar, Author, BuddyPress, Comment, Editor, Image, Multisite, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.8
-Tested up to: 3.3
-Stable tag: 1.5.0
+Tested up to: 3.4.1
+Stable tag: 1.5.1
 
 Display lists of user avatars using widgets or shortcodes.
 
@@ -57,6 +57,9 @@ You can find information for developers [on this page](http://authoravatars.word
 5. List of users with name and biography
 
 == Changelog ==
+
+= 1.5.1 =
+*  Added  Romanian language (by Love Chandel:  Outshine Solutions - http://outshinesolutions.com)
 
 = 1.5 =
 *  Added Paging to the short code
