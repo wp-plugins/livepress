@@ -59,7 +59,7 @@ You can find information for developers [on this page](http://authoravatars.word
 == Changelog ==
 
 = 1.5.1 =
-*  Added  Romanian language (by Love Chandel:  Outshine Solutions - http://outshinesolutions.com)
+*  Added  Hindi language (by Love Chandel:  Outshine Solutions - http://outshinesolutions.com)
 
 = 1.5 =
 *  Added Paging to the short code
