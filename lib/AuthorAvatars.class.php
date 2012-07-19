@@ -20,7 +20,7 @@ class AuthorAvatars {
 		}
 		else {
 			$this->init_settings();
-				add_action( 'init', array( $this, 'register_resources' ));
+			add_action( 'init', array( $this, 'register_resources' ));
 		//	$this->register_resources();
 			$this->init_widgets();
 			$this->init_shortcodes();
@@ -67,7 +67,8 @@ class AuthorAvatars {
 		$aa_ver = AUTHOR_AVATARS_VERSION;
 		// make sure styles are written on wp_head action
 		add_action('wp_head', 'wp_print_styles');
-		// styles wp_register_style('MCE_BoxStyles', get_stylesheet_directory_uri().'/editorstyle.css');
+		// styles 
+		wp_register_style('MCE_BoxStyles', get_stylesheet_directory_uri().'/editorstyle.css');
 		wp_register_style('author-avatars-widget', WP_PLUGIN_URL . '/author-avatars/css/widget.css', array(), $aa_ver);
 		wp_register_style('author-avatars-shortcode', WP_PLUGIN_URL . '/author-avatars/css/shortcode.css', array(), $aa_ver);
 		wp_register_style('admin-form', WP_PLUGIN_URL . '/author-avatars/css/admin-form.css', array(), $aa_ver);

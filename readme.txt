@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=MZTZ5
 Tags: Avatar, Author, BuddyPress, Comment, Editor, Image, Multisite, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.8
 Tested up to: 3.4.1
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 
 Display lists of user avatars using widgets or shortcodes.
 
@@ -57,6 +57,10 @@ You can find information for developers [on this page](http://authoravatars.word
 5. List of users with name and biography
 
 == Changelog ==
+
+
+= 1.6.1 =
+* Fixed a bug that stoped the loading of default CSS sheet for the plugin that I added a bug in in 1.6 
 
 = 1.6.0 =
 * Added the option to link to BBpress profile in the link to the shortcode and generator  user_link=bbpress_memberpage
