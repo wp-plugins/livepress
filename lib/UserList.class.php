@@ -674,7 +674,7 @@ class UserList {
 	 * @return int result of a string compare of the user_logins.
 	 */
 	function _users_cmp_login($a, $b) {
-		return $this->_sort_direction() * strcasecmp($a->user_login, $b->user_login);
+		return $this->_sort_direction() * strcasecmp($this->_stripUniCode($a->user_login), $this->_stripUniCode($b->user_login));
 	}
 
 	/**
@@ -686,7 +686,7 @@ class UserList {
 	 * @return int result of a string compare of the user display names.
 	 */
 	function _users_cmp_name($a, $b) {
-		return $this->_sort_direction() * strcasecmp($a->display_name, $b->display_name);
+		return $this->_sort_direction() * strcasecmp($this->_stripUniCode($a->display_name), $this->_stripUniCode($b->display_name));
 	}
 
 	/**
@@ -698,8 +698,8 @@ class UserList {
 	 * @return int result of a string compare of the user first names.
 	 */
 	function _users_cmp_first_name($a, $b) {
-		$an = $this->get_user_firstname ($a->user_id);
-		$bn = $this->get_user_firstname ($b->user_id);
+		$an = $this->_stripUniCode($this->get_user_firstname ($a->user_id));
+		$bn = $this->_stripUniCode($this->get_user_firstname ($b->user_id));
 		return $this->_sort_direction() * strcasecmp( $an, $bn );
 	}
 
@@ -714,6 +714,19 @@ class UserList {
 	}
 
 	/**
+	 * Given a string this returns the string with uni-code replaced with non-uni-code letters.
+	 *
+	 * @access private
+	 * @param string uniCode
+	 * @return string nonUniCode
+	 */
+	function _stripUniCode($uniCode) {
+		$uniCodeSearch = array("á", "é", "í", "ó", "ú");
+		$NonUniCodeSearch = array("a", "e", "i", "o", "u");
+		return str_replace($uniCodeSearch ,$NonUniCodeSearch ,$uniCode);
+	}
+
+	/**
 	 * Given two users, this function compares the user's last names.
 	 *
 	 * @access private
@@ -722,8 +735,8 @@ class UserList {
 	 * @return int result of a string compare of the user display names.
 	 */
 	function _users_cmp_last_name($a, $b) {
-		$an = $this->get_user_lastname ($a->user_id);
-		$bn = $this->get_user_lastname ($b->user_id);
+		$an = $this->_stripUniCode($this->get_user_lastname ($a->user_id));
+		$bn = $this->_stripUniCode($this->get_user_lastname ($b->user_id));
 		return $this->_sort_direction() * strcasecmp( $an, $bn );
 	}
 
