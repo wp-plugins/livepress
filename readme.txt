@@ -3,8 +3,8 @@ Contributors: pbearne, bforchhammer
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=MZTZ5S8MGF75C&lc=CA&item_name=Wordpress%20Development%20%2f%20Paul%20Bearne&item_number=AuthorAvatarsList%20Plugin&currency_code=CAD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
 Tags: Avatar, Author, BuddyPress, Comment, Editor, Image, Multisite, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu
 Requires at least: 2.8
-Tested up to: 3.5.0 alpha
-Stable tag: 1.6.2
+Tested up to: 3.4.1
+Stable tag: 1.6.1
 
 Display lists of user avatars using widgets or shortcodes.
 
@@ -57,6 +57,10 @@ You can find information for developers [on this page](http://authoravatars.word
 5. List of users with name and biography
 
 == Changelog ==
+=1.6.3 =
+* Wraped ordering code in "remove_accents" functions to to replace Uni-code accents with non unicode versions so sort works as expected.
+* Increased height of TinyMCE popup so content shows with scroll bars.
+* Replaced text donate links with image link.
 
 = 1.6.2 =
 * Added display options for single Avatar options
