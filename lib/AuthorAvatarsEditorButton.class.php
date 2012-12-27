@@ -43,8 +43,9 @@ class AuthorAvatarsEditorButton {
 				// set the POST parameter for the popup calls.
 				if (defined('DOING_AJAX') && DOING_AJAX == true) {
 					$p = 'author-avatars-editor-popup';
-					if ($_GET['action'] == $p && !isset($_POST['action'])) {
-						$_POST['action'] = $_GET['action'];
+					$action = isset($_GET['action']) ? $_GET['action'] : null;
+					if ($action == $p && !isset($_POST['action'])) {
+						$_POST['action'] = $action;
 					}
 				}
 			}
