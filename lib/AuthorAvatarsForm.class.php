@@ -263,9 +263,13 @@ class AuthorAvatarsForm {
 	function renderFieldDisplayOptions($values=array(), $name='display') {
 		$display_options = Array(
 			'show_name' => __('Show name', 'author-avatars'),
-			'show_postcount' => __('Show number of posts', 'author-avatars'),
 			'show_biography' => __('Show biography', 'author-avatars'),
+			'show_postcount' => __('Show number of posts', 'author-avatars'),
 		);
+		if (AA_is_bbpress()) {
+			$display_options['show_bbpress_post_count'] = __('Show BBPress Post Count', 'author-avatars');
+		}
+
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
 			'expanded' => true,
@@ -295,6 +299,10 @@ class AuthorAvatarsForm {
 			'user_id' => __('User Id', 'author-avatars'),
 			'recent_activity' => __('Recent Activity', 'author-avatars'),
 		);
+		if (AA_is_bbpress()) {
+			$order_options['bbpress_post_count'] = __('BBPress Post Count', 'author-avatars');
+		}
+
 		$attributes = array(
 			'id' => $this->_getFieldId($name),
 			'label' => __('Sorting order', 'author-avatars') . ': ',

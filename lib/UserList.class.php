@@ -45,6 +45,10 @@ class UserList {
 	 * Flag wether to show the post count for each user after the username.
 	 */
 	var $show_postcount = false;
+	/**
+	 * Flag wether to show the post count for each user after the username.
+	 */
+	var $show_bbpress_post_count = false;
 
 	/**
 	 * Flag whether to show a user's biography
@@ -267,6 +271,7 @@ class UserList {
 		'user_link' => $this->user_link,
 		'show_name' => $this->show_name,
 		'show_postcount' => $this->show_postcount,
+		'show_bbpress_post_count' => $this->show_bbpress_post_count,
 		'show_biography' => $this->show_biography,
 		'avatar_size' => $this->avatar_size,
 		'limit' => $this->limit,
@@ -354,6 +359,15 @@ class UserList {
 				$title .= ' ('. sprintf(_n("%d post", "%d posts", $postcount, 'author-avatars'), $postcount) .')';
 			}
 			$name .= sprintf(' (%d)', $postcount);
+		}
+
+		if($this->show_bbpress_post_count){
+			$BBPRESS_postcount = 0;
+			if(function_exists('bbp_get_user_topic_count_raw')){
+				$BBPRESS_postcount = bbp_get_user_topic_count_raw(  $user->user_id ) + bbp_get_user_reply_count_raw(  $user->user_id );
+				$title .= ' ('. sprintf(_n("%d BBPress post", "%d BBPress posts", $BBPRESS_postcount, 'author-avatars'), $BBPRESS_postcount) .')';
+			}
+			$name .= sprintf(' (%d)', $BBPRESS_postcount);
 		}
 
 		$biography = false;
@@ -620,7 +634,7 @@ class UserList {
 	 */
 	function _sort(&$users, $order=false) {
 		if (!$order) $order = $this->order;
-		
+
 		switch ($order) {
 			case 'random':
 				shuffle($users);
@@ -643,6 +657,9 @@ class UserList {
 			case 'post_count':
 				usort($users, array($this, '_user_cmp_postcount'));
 				break;
+			case 'bbpress_post_count':
+				usort($users, array($this, '_user_cmp_BBPRESS_post_count'));
+				break;				
 			case 'date_registered':
 				usort($users, array($this, '_user_cmp_regdate'));
 				break;
@@ -710,7 +727,11 @@ class UserList {
 	 * @return string first name of user
 	 */
 	function get_user_firstname($user_id) {
-		return get_usermeta( $user_id, 'first_name', true );
+		if ( AA_is_version(3.0) ) {
+			return get_user_meta( $user_id, 'first_name', true );
+		}else{
+			return get_usermeta( $user_id, 'first_name', true );
+		}
 	}
 
 	/**
@@ -734,7 +755,11 @@ class UserList {
 	 * @return string last name of user
 	 */
 	function get_user_lastname($user_id) {
-		return get_usermeta( $user_id, 'last_name', true );
+		if ( AA_is_version(3.0) ) {
+			return get_user_meta( $user_id, 'last_name', true );
+		}else{
+			return get_usermeta( $user_id, 'last_name', true );
+		}		
 	}
 	
 	/**
@@ -752,7 +777,22 @@ class UserList {
 		if ($ac == $bc) return 0;
 		return $this->_sort_direction() * ($ac < $bc ? -1 : 1);
 	}
+
+	/**
+	 * Given two users, this function compares the user's post count.
+	 * 
+	 * @access private
+	 * @param WP_User $a
+	 * @param WP_User $b
+	 * @return int result of a string compare of the user display names.
+	 */
+	function _user_cmp_BBPRESS_post_count($a, $b) {
+		$ac = bbp_get_user_topic_count_raw(  $a->user_id) + bbp_get_user_reply_count_raw($a->user_id );
+		$bc = bbp_get_user_topic_count_raw( $b->user_id) + bbp_get_user_reply_count_raw( $b->user_id );
 	
+		if ($ac == $bc) return 0;
+		return $this->_sort_direction() * ($ac < $bc ? -1 : 1);
+	}	
 	/**
 	 * Returns the postcount for a given user. 
 	 * On WPMU sites posts are counted from all blogs in field $blogs and summed up.
@@ -770,12 +810,20 @@ class UserList {
 			}
 			foreach ($blogs as $blog_id) {
 				switch_to_blog($blog_id);
-				$total += get_usernumposts($user_id);
+				if ( AA_is_version(3.0) ) {
+					$total += count_user_posts($user_id);
+				}else{
+					$total += get_usernumposts($user_id);
+				}
 				restore_current_blog();
 			}
 		}
 		else {
-			$total += get_usernumposts($user_id);
+			if ( AA_is_version(3.0) ) {
+				$total += count_user_posts($user_id);
+			}else{
+				$total += get_usernumposts($user_id);
+			}
 		}
 		
 		return $total;
@@ -842,10 +890,16 @@ class UserList {
 	 *
 	 * @param int $user_id
 	 * @return string last activity date
+	*
+	* look at using bbp_get_user_last_posted to get the buddypress value 
 	 */
 	function get_user_last_activity($user_id) {
 		if (AA_is_bp()) {
-			return gmdate( 'Y-m-d H:i:s', (int)get_usermeta( $user_id, 'last_activity' ) );
+			if ( AA_is_version(3.0) ) {
+				return gmdate( 'Y-m-d H:i:s', (int)get_user_meta( $user_id, 'last_activity' ) );
+			}else{
+				return gmdate( 'Y-m-d H:i:s', (int)get_usermeta( $user_id, 'last_activity' ) );
+			}
 		}
 		else {
 			global $wpdb;

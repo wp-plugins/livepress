@@ -18,6 +18,22 @@ function AA_is_wpmu() {
 }
 endif;
 
+
+if ( ! function_exists( 'is_version' ) ) :
+/**
+* Helper function which checks the wordpress version
+* @param $version needed to be >= to
+* @return bool true if later site worpress version is >=, false otherwise.
+*/
+    function AA_is_version( $version = '3.1' ) {
+        global $wp_version;
+        if ( version_compare( $wp_version, $version, '>=' ) ) {
+            return false;
+        }
+        return true;
+    }
+endif;
+
 if (!function_exists('AA_is_bp')):
 /**
 * Helper function which checks whether we are running buddypress
