@@ -179,7 +179,7 @@ class AuthorAvatarsWidget extends MultiWidget
 		$basic_left .= $form->renderFieldUserLink($instance['display']['user_link'], 'display][user_link');
 		
 		$basic_right = $form->renderFieldAvatarSize($instance['display']['avatar_size'], 'display][avatar_size');
-		$basic_right .= '<div class="avatar_donate">'.donateButton('link').'</div>';
+		$basic_right .= '<div class="avatar_donate">'.AA_donateButton('link').'</div>';
 		
 		$basic  = '<h5>'. __('Basic', 'author-avatars') .'</h5>';
 		$basic .= $form->renderColumns($basic_left, $basic_right);

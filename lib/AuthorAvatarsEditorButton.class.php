@@ -147,7 +147,7 @@ class AuthorAvatarsEditorButton {
 
 		$tabs = $basic_tab . $advanced_tab;
 		$html = '<div class="aa-tabs">'. $form->renderTabList() . $tabs .'</div>';
-        $html .= "\n\t".'<div class="mceActionPanel"> '.donateButton();
+        $html .= "\n\t".'<div class="mceActionPanel"> '.AA_donateButton();
 	    $html .= "\n\t".'<div style="float: left">';
 	    $html .= "\n\t".'<input type="button" id="cancel" name="cancel" value="'. __("Cancel") .'" onclick="tinyMCEPopup.close();" />';
 	    $html .= "\n\t".'</div>';
