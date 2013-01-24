@@ -304,7 +304,10 @@ class UserList {
 		$avatar_size = intval($this->avatar_size);
 		if (!$avatar_size) $avatar_size = false;
 
-		$name = $user->display_name;
+		$name = "";
+		if($this->show_name)
+			$name = $user->display_name;
+		
 		$alt = $title = $name;
 
 		$divcss = array('user');
@@ -368,6 +371,7 @@ class UserList {
 				$title .= ' ('. sprintf(_n("%d BBPress post", "%d BBPress posts", $BBPRESS_postcount, 'author-avatars'), $BBPRESS_postcount) .')';
 			}
 			$name .= sprintf(' (%d)', $BBPRESS_postcount);
+		}
 
 		$biography = false;
 		if ($this->show_biography && $user->user_id > 0) {
@@ -414,7 +418,7 @@ class UserList {
 		$html = '';
 		if ($link) $html .= '<a href="'. $link .'" alt="'. $title .'">';
 		$html .= '<span class="avatar">'. $avatar .'</span>';
-		if ($this->show_name) $html .= '<span class="name">'. $name . '</span>';
+		if ($this->show_name || $this->show_bbpress_post_count) $html .= '<span class="name">'. $name . '</span>';
 		if ($link) $html .= '</a>';
 		if ($biography) $html .= '<div class="biography">'. $biography .'</div>';
 		
