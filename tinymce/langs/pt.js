@@ -1,14 +1,8 @@
 tinyMCE.addI18n({
-
-    "ro":{
-
+    "pt":{
         "authoravatars": {
-
-            "desc" : "Add Author Avatars Shortcodes"
-
+            "desc" : "Adicionar o atalho do Author Avatar"
         }
-
     }
-
 });
 
