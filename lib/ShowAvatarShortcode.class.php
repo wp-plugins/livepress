@@ -136,7 +136,7 @@ class ShowAvatarShortcode {
 			if(!empty($atts['show_name'])){
 				$name = '<br />'.get_the_author_meta('display_name', $id);
 				$extraClass .= ' with-name';
-			}			
+
 			if(!empty($atts['show_postcount'])){
 				$name .= ' ('. $postcount = get_user_postcount($id).')';
 			}
@@ -145,17 +145,12 @@ class ShowAvatarShortcode {
 				if (function_exists('bbp_get_user_topic_count_raw')) {
 					$BBPRESS_postcount = bbp_get_user_topic_count_raw(  $id) + bbp_get_user_reply_count_raw( $id );
 					$name .= ' ('. $postcount = $BBPRESS_postcount.')';
-				}
-			}			
-			
+
 			if(!empty($atts['show_biography'])){
 				$bio = get_the_author_meta('description', $id);
 				if(!empty($atts['show_name']))$bio = '<br />'. $bio ;
 				$extraClass .= ' with-biography';
-			}		
-		}
-			
-		}
+
 		$hrefend = '';
 		if (!empty($hrefStart)) $hrefend = '</a>' ;
 		if (!empty($style)) $style = ' style="'. $style .'"';

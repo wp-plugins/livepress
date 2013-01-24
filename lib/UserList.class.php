@@ -368,7 +368,6 @@ class UserList {
 				$title .= ' ('. sprintf(_n("%d BBPress post", "%d BBPress posts", $BBPRESS_postcount, 'author-avatars'), $BBPRESS_postcount) .')';
 			}
 			$name .= sprintf(' (%d)', $BBPRESS_postcount);
-		}
 
 		$biography = false;
 		if ($this->show_biography && $user->user_id > 0) {
@@ -413,7 +412,7 @@ class UserList {
 		}
 
 		$html = '';
-		if ($link) $html .= '<a href="'. $link .'">';
+		if ($link) $html .= '<a href="'. $link .'" alt="'. $title .'">';
 		$html .= '<span class="avatar">'. $avatar .'</span>';
 		if ($this->show_name) $html .= '<span class="name">'. $name . '</span>';
 		if ($link) $html .= '</a>';

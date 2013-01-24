@@ -108,7 +108,14 @@ class AuthorAvatarsShortcode {
 			if ($set_to_false) $this->userlist->show_biography = false;
 			else $this->userlist->show_biography = true;
 		}
-		
+
+		// show show_bbpress_post_count?
+		if (isset($atts['show_bbpress_post_count'])&& ( strlen($atts['show_bbpress_post_count'])>0) ) {
+			$set_to_false = ($atts['show_bbpress_post_count'] == 'false');
+			if ($set_to_false) $this->userlist->show_bbpress_post_count = false;
+			else $this->userlist->show_bbpress_post_count = true;
+		}		
+
 		// avatar size
 		if (!empty($atts['avatar_size'])) {
 			$size = intval($atts['avatar_size']);
