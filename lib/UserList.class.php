@@ -493,7 +493,7 @@ class UserList {
 		$query = "SELECT user_id, user_login, display_name, user_email, user_url, user_registered, meta_key, meta_value FROM $wpdb->users, $wpdb->usermeta".
 			" WHERE " . $wpdb->users . ".ID = " . $wpdb->usermeta . ".user_id AND ". $blogs_condition . " AND user_status = 0";
 
-		$users = $wpdb->get_results( $wpdb->prepare($query) );
+		$users = $wpdb->get_results( $query);
 
 		
 		return $users;
@@ -519,7 +519,7 @@ class UserList {
 			FROM ". $wpdb->comments."
 			WHERE comment_author_email <> '' AND comment_approved = 1 AND comment_type NOT IN( 'trackback', 'pingback' )";
 
-		$commentators = $wpdb->get_results($wpdb->prepare( $query));
+		$commentators = $wpdb->get_results($query);
 
 		return $commentators;
 	}
@@ -842,7 +842,7 @@ class UserList {
 		if (empty($comment_counts)) {
 			global $wpdb;
 			$query = 'SELECT comment_author_email, COUNT(*) AS total FROM ' . $wpdb->comments . ' WHERE comment_approved = 1 GROUP BY comment_author_email';
-			$results = $wpdb->get_results($wpdb->prepare( $query));
+			$results = $wpdb->get_results($query);
 			foreach ($results as $result) {
 				$comment_counts[$result->comment_author_email] = $result->total;
 			}
@@ -903,8 +903,8 @@ class UserList {
 		}
 		else {
 			global $wpdb;
-			$query = 'SELECT `post_date` FROM `wp_posts` WHERE `post_status` = "publish" AND `post_author` = ' . $user_id . ' ORDER BY `post_date` DESC LIMIT 1';
-			return $wpdb->get_var( $wpdb->prepare($query));
+			$query = $wpdb->prepare('SELECT `post_date` FROM `wp_posts` WHERE `post_status` = "publish" AND `post_author` = %d ORDER BY `post_date` DESC LIMIT 1', $user_id);
+			return $wpdb->get_var( $query);
 		}
 	}
 	
