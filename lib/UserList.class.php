@@ -907,7 +907,19 @@ class UserList {
 		}
 		else {
 			global $wpdb;
-			$query = $wpdb->prepare('SELECT `post_date` FROM `wp_posts` WHERE `post_status` = "publish" AND `post_author` = %d ORDER BY `post_date` DESC LIMIT 1', $user_id);
+			$query = $wpdb->prepare(
+				"
+				SELECT p.post_date
+				FROM $wpdb->posts p
+				WHERE
+					p.post_status = 'publish'
+					AND
+					p.post_author = %d
+				ORDER BY p.post_date
+				DESC LIMIT 1'
+				",
+				$user_id
+			);
 			return $wpdb->get_var( $query);
 		}
 	}
