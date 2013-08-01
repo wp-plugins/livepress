@@ -12,12 +12,15 @@ LivePress converts your blog into a fully real-time information resource.  Your 
 
 Take advantage of an enhanced mode for the WordPress editor featuring live comment moderation, streaming Twitter search and more.  Or, live blog entirely via Twitter.
 
+To use LivePress, you must register form an API key at https://livepress.com
+
 == Installation ==
 
 1. Upload `livepress-wp` folder into `/wp-content/plugins/` directory.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
-3. Go to 'LivePress'=>'Administrator Settings', enter your authorization key into field, and press "Check".
-4. Configure settings as you wish and press save. You can use all the power of LivePress now!
+3. Register for a LivePress API key from https://livepress.com
+4. Go to Settings >> LivePress, enter your authorization key into field, and press "Check".
+5. Configure settings as you wish and press save. You can use all the power of LivePress now!
 
 == Frequently Asked Questions ==
 
