@@ -12,7 +12,7 @@ LivePress converts your blog into a fully real-time information resource.  Your 
 
 Take advantage of an enhanced mode for the WordPress editor featuring live comment moderation, streaming Twitter search and more.  Or, live blog entirely via Twitter.
 
-To use LivePress, you must register form an API key at https://livepress.com
+To use LivePress, you must register for an API key at https://livepress.com
 
 == Installation ==
 
