@@ -7,7 +7,7 @@ module.exports = function ( grunt ) {
 		concat: {
 			options: {
 				stripBanners: true,
-				banner: '/*! <%= pkg.name %> -v<%= pkg.version %> - <%= grunt.template.today("yyyy-mm-dd") %>\n' +
+				banner: '/*! <%= pkg.name %> -v<%= pkg.version %>\n' +
 					' * http://livepress.com/\n' +
 					' * Copyright (c) <%= grunt.template.today("yyyy") %> LivePress, Inc.\n' +
 					' */\n'
@@ -155,7 +155,7 @@ module.exports = function ( grunt ) {
 					'js/admin/livepress-pointer.min.js': ['js/admin/livepress-pointer.full.js']
 				},
 				options: {
-					banner: '/*! <%= pkg.name %> -v<%= pkg.version %> - <%= grunt.template.today("yyyy-mm-dd") %>\n' +
+					banner: '/*! <%= pkg.name %> -v<%= pkg.version %>\n' +
 						' * http://livepress.com/\n' +
 						' * Copyright (c) <%= grunt.template.today("yyyy") %> LivePress, Inc.\n' +
 						' */\n',

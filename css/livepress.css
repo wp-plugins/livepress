@@ -101,6 +101,14 @@
 	top: 6px;
 	right: 30px;
 	}
+
+.blogging-tools-tabs li {
+	position: relative;
+}
+.blogging-tools-tabs li .count-update {
+	right: 3px;
+	display: none;
+}
 	
 /* odd items */
 .odd {	background: #f9f9f9;}
@@ -776,7 +784,7 @@ a.lp-tweet-clean-button:hover {
 	display: inline-block;
         vertical-align: top;
         position: relative;
-        top: 4px;
+        top: 1px;
 }
 #lp-tweet-player:hover {
     background: url(../img/buttons.png) -24px 0 no-repeat;

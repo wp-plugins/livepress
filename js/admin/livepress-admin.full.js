@@ -1,4 +1,4 @@
-/*! LivePress -v0.7.3 - 2013-07-16
+/*! livepress -v1.0.1
  * http://livepress.com/
  * Copyright (c) 2013 LivePress, Inc.
  */
@@ -951,6 +951,11 @@ Livepress.Admin.Tools = function () {
 				Collaboration.Edit.initialize(data);
 			}
 		});
+
+		// Initialize the Twitter handler
+		if ( undefined !== window.Dashboard ) {
+			window.Dashboard.Twitter.init();
+		}
 	}
 
 	/**
@@ -1168,7 +1173,8 @@ jQuery(function () {
 				var $livepressHud,
 					$readers,
 					$posts,
-					$comments;
+					$comments,
+					$labels = {};
 
 				/** Hide the HUD. */
 				this.hide = function () {
@@ -1190,6 +1196,9 @@ jQuery(function () {
 					$readers = $j('#livepress-online_num');
 					$posts = $j('#livepress-updates_num');
 					$comments = $j('#livepress-comments_num');
+					$labels['readers'] = $readers.siblings( '.label' );
+					//$labels['authors'] = $posts.siblings( '.label' );
+					$labels['comments'] = $comments.siblings( '.label' );
 					this.show();
 				};
 
@@ -1200,6 +1209,10 @@ jQuery(function () {
 				 * @returns {Object} jQuery object containing the readers display element.
 				 */
 				this.updateReaders = function (number) {
+					var label = ( 1 === number ) ? 'Person Online' : 'People Online';
+
+					$labels['readers'].text( label );
+
 					return $readers.text(number);
 				};
 
@@ -1224,6 +1237,10 @@ jQuery(function () {
 				 * @return {Object} jQuery object containing the comments display element.
 				 */
 				this.updateComments = function (number) {
+					var label = ( 1 === number ) ? 'Comment' : 'Comments';
+
+					$labels['comments'].text( label );
+
 					return $comments.text(number);
 				};
 
@@ -1234,8 +1251,13 @@ jQuery(function () {
 				 */
 				this.sumToComments = function (number) {
 					var $comments = $j('#livepress-comments_num'),
-						actual = parseInt($comments.text(), 10);
-					$comments.text(actual + number);
+						actual = parseInt($comments.text(), 10 ),
+						count = actual + number,
+						label = ( 1 === count ) ? 'Comment' : 'Comments';
+
+					$labels['comments'].text( label );
+
+					$comments.text( count );
 				};
 
 				return this;
