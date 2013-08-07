@@ -48,11 +48,10 @@ class livepress_post {
         $content = stripslashes($this->content);
         $dom = new DOMDocument();
         $xml = $this->get_valid_xml($content);
-        @$parse_success = $dom->loadHTML($xml);
+        @$parse_success = $dom->loadXML($xml);
         if (!$parse_success) {
             error_log("Received bad-formed HTML");
-            $xml = $this->get_valid_xml($content);
-            $dom->loadHTML($xml);
+            $dom->loadHTML( $content );
         }
         return $dom;
     }

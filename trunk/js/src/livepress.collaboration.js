@@ -283,7 +283,7 @@ jQuery.extend(Collaboration.Edit, {
 
 	readers_callback: function (data) {
 		console.log("Collaboration.readers_callback data -- " + data);
-		OORTLE.Livepress.LivepressHUD.updateReaders(data);
+		OORTLE.Livepress.LivepressHUD.updateReaders(data.count);
 	}
 });
 

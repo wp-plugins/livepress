@@ -6,12 +6,17 @@ Dashboard.Twitter.terms = [];
 Dashboard.Twitter.tweets = [];
 if (Dashboard.Twitter.twitter === undefined) {
 	Dashboard.Twitter = jQuery.extend(Dashboard.Twitter, (function () {
-		var tweetTrackerPaused = false;
+		var tweetTrackerPaused = 0;
 		var $paneHolder = jQuery('#lp-pane-holder');
 		var twitter = Dashboard.Twitter;
 		var tweetCounter = 0;
 
-		var liveCounter = Dashboard.Helpers.createLiveCounter('#twitter-search-mark');
+		var liveCounter = Dashboard.Helpers.createLiveCounter('#tab-link-live-twitter-search a'); // '#twitter-search-mark');
+		var tweetContainer = "#lp-twitter-results";
+		var tweetHolder = "#lp-hidden-tweets";
+		var getTweetTarget = function(){
+			return jQuery(tweetTrackerPaused>0 ? tweetHolder : tweetContainer); 
+		};
 
 		var binders = (function () {
 			var bindRemoveButtons = function (elToBind, type) {
@@ -34,14 +39,27 @@ if (Dashboard.Twitter.twitter === undefined) {
 
 			var tweet_player_id = "#lp-tweet-player";
 			var play = function () {
-				tweetTrackerPaused = false;
-				liveCounter.disable();
-				twitter.appendGatheredTweets();
+				tweetTrackerPaused--;
+				if (tweetTrackerPaused <= 0) {
+					tweetTrackerPaused = 0;
+					liveCounter.disable();
+					twitter.appendGatheredTweets();
+
+					jQuery(tweet_player_id).attr('title', "Click to pause the tweets so you can decide when to display them").removeClass('paused');
+					jQuery(tweetContainer).removeClass('paused');
+					jQuery('#pausedmsg').hide();
+				}
 			};
 
 			var pause = function () {
-				tweetTrackerPaused = true;
-				liveCounter.enable();
+				tweetTrackerPaused++;
+				if (tweetTrackerPaused === 1) {
+					liveCounter.enable();
+
+					jQuery(tweet_player_id).attr('title', "Click to display tweets instantly as they are created.").addClass('paused');
+					jQuery(tweetContainer).addClass('paused');
+					jQuery('#pausedmsg').show();
+				}
 			};
 
 			return {
@@ -63,7 +81,8 @@ if (Dashboard.Twitter.twitter === undefined) {
 						// Dashboard.Helpers.disableAndDisplaySpinner(jQuery(this));
 						twitter.removeAllTerms();
 						if (jQuery(this).attr('data-action') === 'clear') {
-							jQuery('#lp-twitter-results').html('');
+							jQuery(tweetContainer).html('');
+							jQuery(tweetHolder).html('');
 						}
 					});
 				},
@@ -144,31 +163,12 @@ if (Dashboard.Twitter.twitter === undefined) {
 					jQuery(tweet_player_id).click(function (e) {
 						e.preventDefault();
 						e.stopPropagation();
-						var elem = jQuery(this).toggleClass("paused");
-						if (elem.hasClass("paused")) {
-							elem.attr('title', "Click to display tweets instantly as they are created.");
-							jQuery('#pausedmsg').show();
-							pause();
-						} else {
-							elem.attr('title', "Click to pause the tweets so you can decide when to display them");
-							jQuery('#pausedmsg').hide();
-							play();
-						}
+						return jQuery(this).hasClass("paused") ? play() : pause();
 					});
 				},
 
 				bindTweetMouse: function () {
-					var handleMouse = function (e) {
-						var $elem = jQuery(this);
-						var $tweet_player = jQuery(tweet_player_id);
-
-						$elem.toggleClass("paused");
-						if (!$tweet_player.hasClass("paused")) {
-							return $elem.hasClass("paused") ? pause() : play();
-						}
-					};
-
-					jQuery("#lp-twitter-results").hover(handleMouse, handleMouse);
+					jQuery(tweetContainer).hover(pause, play);
 				},
 
 				init: function () {
@@ -267,7 +267,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 			twitter:                       this, // for convenience
 			liveCounter:                   liveCounter,
 			new_tweet_for_search_callback: function (tweet) {
-				var tweetsDiv = jQuery(tweetTrackerPaused ? "#lp-hidden-tweets" : "#lp-twitter-results");
+				var tweetsDiv = getTweetTarget();
 
 				tweet.id = tweet.id_str;
 				pushTweet(tweetsDiv, tweet);
@@ -322,7 +322,12 @@ if (Dashboard.Twitter.twitter === undefined) {
 					jQuery(".lp-tweet-cleaner").hide();
 				}
 
-				jQuery('#livepress-authors_num').html(tweets.length);
+				var $authors = jQuery( document.getElementById( 'livepress-authors_num' ) ),
+					$author_label = $authors.siblings( '.label' );
+				var label = ( 1 === tweets.length ) ? 'Remote Author' : 'Remote Authors';
+
+				$authors.html( tweets.length );
+				$author_label.text( label );
 				binders.bindRemoveTweetButtons();
 			},
 
@@ -423,7 +428,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 						twitter.unfollow_twitter_search(name);
 						twitter.handleRemovingFromCollection(id, Dashboard.Twitter.terms, 'term');
 
-						jQuery('#lp-twitter-results .comment-item').filter(function () {
+						jQuery(tweetContainer+' .comment-item').filter(function () {
 							return jQuery.data(this, 'term') === name;
 						}).remove();
 					}
@@ -535,10 +540,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				);
 				if (action_type === 'add') {
 					// Run single round of static search to populate stub results
-					var getContainer = function () {
-						return jQuery(tweetTrackerPaused ? "#lp-hidden-tweets" : "#lp-twitter-results");
-					};
-					Dashboard.Twitter.renderStaticSearchResults(term, getContainer, 5);
+					Dashboard.Twitter.renderStaticSearchResults(term, getTweetTarget, 5);
 
 					twitter.refresh_terms();
 				}
@@ -593,9 +595,11 @@ if (Dashboard.Twitter.twitter === undefined) {
 			},
 
 			appendGatheredTweets: function () {
-				var tweets = jQuery("#lp-hidden-tweets .comment-item");
-				var results = jQuery("#lp-twitter-results");
+				var tweets = jQuery(tweetHolder+" .comment-item");
+				var results = jQuery(tweetContainer);
+				tweets.hide();
 				results.prepend(tweets);
+				tweets.slideDown();
 			},
 
 			postTwitterFollow: function (username, action_type, success) {

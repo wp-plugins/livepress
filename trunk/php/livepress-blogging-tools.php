@@ -227,6 +227,7 @@ final class LivePress_Blogging_Tools {
 						<a href="<?php echo esc_url( "#$panel_id" ); ?>" aria-controls="<?php echo esc_attr( $panel_id ); ?>">
 							<?php echo esc_html( $tab['title'] ); ?>
 						</a>
+						<span class="count-update">0</span>
 					</li>
 					<?php
 					$class = '';
@@ -312,9 +313,9 @@ final class LivePress_Blogging_Tools {
 		) );
 
 		$sidebar = '<p><strong>' . __( 'This post at a glance:', 'livepress' ) . '</strong></p>';
-		$sidebar .= '<p class="live-highlight"><span id="livepress-comments_num">0</span> '. __( 'Comments', 'livepress' ) . '</p>';
-		$sidebar .= '<p class="live-highlight"><span id="livepress-authors_num">0</span> ' . __( 'Remote Authors', 'livepress' ) . '</p>';
-		$sidebar .= '<p class="live-highlight"><span id="livepress-online_num">0</span> ' . __( 'People Online', 'livepress' ) . '</p>';
+		$sidebar .= '<p class="live-highlight"><span id="livepress-comments_num">0</span> <span class="label">'. __( 'Comments', 'livepress' ) . '</span></p>';
+		$sidebar .= '<p class="live-highlight"><span id="livepress-authors_num">0</span> <span class="label">' . __( 'Remote Authors', 'livepress' ) . '</span></p>';
+		$sidebar .= '<p class="live-highlight"><span id="livepress-online_num">0</span> <span class="label">' . __( 'People Online', 'livepress' ) . '</span></p>';
 
 		apply_filters( 'livepress_sidebar_top', $sidebar );
 
@@ -399,10 +400,12 @@ final class LivePress_Blogging_Tools {
 			<p>
 				<input type="text" id="live-search-query" name="live-search-query" />
 				<input type="submit" class="button-secondary" value="<?php _e( 'Add Search Term', 'livepress' ); ?>" />
+				<a id="lp-tweet-player" class="streamcontrol" href="#" title="<?php _e( 'Click to pause the tweets so you can decide when to display them', 'livepress' ); ?>">play/pause</a>
 			</p>
             <div id="lp-twitter-search-terms">
             </div>
 		</div>
+		<div id="lp-hidden-tweets"></div>
 		<div id="lp-twitter-results">
 
 		</div>
