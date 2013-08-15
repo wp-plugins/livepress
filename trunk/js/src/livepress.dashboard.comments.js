@@ -224,7 +224,7 @@ if (Dashboard.Comments.Builder === undefined) {
 
 			var rowActions = jQuery("<div class='row-actions'></div>");
 
-			var postLink = linkTag("Copy the commenter name and full text into the post text box", "#", "Post");
+			var postLink = linkTag("Copy the commenter name and full text into the post text box", "#", "Send to editor");
 			rowActions.append(commentLink('post', postLink, true));
 			var approveLink = linkTag("Approve this comment", linkAction('approvecomment'), "Approve");
 			rowActions.append(commentLink('approve', approveLink));

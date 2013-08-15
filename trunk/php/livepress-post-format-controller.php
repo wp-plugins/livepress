@@ -74,6 +74,7 @@ class LivePress_PF_Updates {
 		add_filter( 'parse_query',         array( $this, 'hierarchical_posts_filter' ) );
 		add_filter( 'pre_get_posts',       array( $this, 'filter_children_from_query' ) );
 		add_filter( 'edit_posts_per_page', array( $this, 'setup_post_counts' ), 10, 2 );
+		add_filter( 'the_content',         array( $this, 'process_oembeds' ), -10 );
 		add_filter( 'the_content',         array( $this, 'append_more_tag' ) );
 		add_filter( 'the_content',         array( $this, 'add_children_to_post' ) );
 		add_filter( 'the_content',         array( $this, 'filter_xhtml' ), 999 );
@@ -178,7 +179,8 @@ class LivePress_PF_Updates {
 			return $content;
 		}
 
-		if ( isset( $post->no_update_tag ) || is_single() ) {
+        if ( isset( $post->no_update_tag ) || is_single() || is_admin() || 
+             (defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' )) ) {
 			return $content;
 		}
 
@@ -402,6 +404,7 @@ class LivePress_PF_Updates {
 	 * @uses LivePress_PF_Updates::add_update
 	 */
 	public function append_update() {
+		global $post;
 		check_ajax_referer( 'livepress-append_post_update-' . intval( $_POST['post_id'] ) );
 
 		$post = get_post( intval( $_POST['post_id'] ) );
@@ -420,7 +423,7 @@ class LivePress_PF_Updates {
 				$response = array(
 					'id'      => $piece_id,
 					'content' => $update->post_content,
-					'proceed' => apply_filters( 'the_content', $update->post_content ),
+					'proceed' => apply_filters( 'the_content', $this->process_oembeds( $update->post_content ) ),
 					'prefix'  => sprintf( '<div id="livepress-update-%s" class="livepress-update">', $piece_id ),
 					'suffix'  => '</div>'
 				);
@@ -440,6 +443,7 @@ class LivePress_PF_Updates {
 	 * @uses wp_update_post() Uses the WordPress API to update post content.
 	 */
 	public function change_update() {
+		global $post;
 		check_ajax_referer( 'livepress-change_post_update-' . intval( $_POST['post_id'] ) );
 
 		$post = get_post( intval( $_POST['post_id'] ) );
@@ -490,6 +494,7 @@ class LivePress_PF_Updates {
 	 * @uses wp_delete_post() Uses the WordPress API to delete a post.
 	 */
 	public function delete_update() {
+		global $post;
 		check_ajax_referer( 'livepress-delete_post_update-' . intval( $_POST['post_id'] ) );
 
 		$post = get_post( intval( $_POST['post_id'] ) );
@@ -535,12 +540,14 @@ class LivePress_PF_Updates {
 	 * @uses wp_insert_post() Uses the WordPress API to create a new child post.
 	 */
 	public function add_update( $parent, $content ) {
-		global $current_user;
+		global $current_user, $post;
 		get_currentuserinfo();
 
 		if ( ! is_object( $parent ) ) {
 			$parent = get_post( $parent );
 		}
+		$save_post = $post;
+		$post = $parent;
 
 		$this->assemble_pieces( $parent );
 		$old_data = $this->pieces;
@@ -569,6 +576,7 @@ class LivePress_PF_Updates {
 			$this->send_change_to_livepress( $parent, $old_data, $new_data );
 		}
 
+		$post = $save_post;
 		return $update;
 	}
 
@@ -701,8 +709,8 @@ class LivePress_PF_Updates {
 		if ( ! $this->is_empty( $parent->post_content ) ) {
 			$pieces[] = array(
 				'id'      => $parent_lp_id,
-				'content' => $this->process_oembeds( $parent->post_content ),
-				'proceed' => apply_filters( 'the_content', $this->process_oembeds( $parent->post_content ) ),
+				'content' => $parent->post_content,
+				'proceed' => apply_filters( 'the_content', $parent->post_content ),
 				'prefix'  => sprintf( '<div id="livepress-update-%s" class="livepress-update">', $parent_lp_id ),
 				'suffix'  => '</div>'
 			);
@@ -725,8 +733,8 @@ class LivePress_PF_Updates {
 				$piece_id = get_post_meta( $child->ID, '_livepress_update_id', true );
 				$piece = array(
 					'id'      => $piece_id,
-					'content' => $this->process_oembeds( $child->post_content ),
-					'proceed' => apply_filters( 'the_content', $this->process_oembeds( $child->post_content ) ),
+					'content' => $child->post_content,
+					'proceed' => apply_filters( 'the_content', $child->post_content ),
 					'prefix'  => sprintf( '<div id="livepress-update-%s" class="livepress-update">', $piece_id ),
 					'suffix'  => '</div>'
 				);
@@ -747,46 +755,8 @@ class LivePress_PF_Updates {
 		$this->pieces = $pieces;
 	}
 
-	protected function process_oembeds( $content ) {
-		//return preg_replace_callback( '|^\s*(https?://[^\s"]+)\s*$|im', array( $this, 'autoembed_callback' ), $content );
-		return preg_replace_callback( '|(https?://[^\s"]+)\s*$|im', array( $this, 'autoembed_callback' ), $content );
-	}
-
-	protected function autoembed_callback( $match ) {
-		$return = $this->shortcode( array(), $match[1] );
-
-		return "\n$return\n";
-	}
-
-	protected function shortcode( $attr, $url = '' ) {
-		if ( empty( $url ) ) {
-			return '';
-		}
-
-		$rawattr = $attr;
-		$attr = wp_parse_args( $attr, wp_embed_defaults() );
-
-		// kses converts & into &amp; and we need to undo this
-		// See http://core.trac.wordpress.org/ticket/11311
-		$url = str_replace( '&amp;', '&', $url );
-
-		// Use oEmbed to get the HTML
-		$attr['discover'] = ( apply_filters('embed_oembed_discover', false) && author_can( $post_ID, 'unfiltered_html' ) );
-
-		$key = 'lp_' . base64_encode( json_encode( array( $url, $attr ) ) );
-
-		$html = wp_cache_get( $key, 'livepress' );
-		if ( false === $html ) {
-			$html = wp_oembed_get( $url, $attr );
-			wp_cache_set( $key, $html, 'livepress' );
-		}
-
-		// If there was a result, return it
-		if ( $html ) {
-			return apply_filters( 'embed_oembed_html', $html, $url, $attr);//, $post_ID );
-		}
-
-		return $url;
+	public function process_oembeds( $content ) {
+		return preg_replace('&((?:<!--livepress.*?-->|\[livepress[^]]*\])\s*)(https?://[^\s"]+)&', "$1[embed]$2[/embed]", $content);
 	}
 
 	/**

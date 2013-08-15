@@ -16,33 +16,6 @@ class livepress_compatibility_fixes {
     }
 
     private function __construct() {
-        $this->fix_plugin_blackbird_pie();
-    }
-
-    public function is_active_plugin_blackbird_pie() {
-        global $BlackbirdPie;
-        return isset($BlackbirdPie);
-    }
-
-    /**
-     * Needs to register blackbirdpie shortcode when in admin mode
-     */
-    public function fix_plugin_blackbird_pie() {
-        if ($this->is_active_plugin_blackbird_pie()) {
-            global $BlackbirdPie;
-
-            if (is_admin()) {
-                //register shortcode
-                add_shortcode(BBP_NAME, array(&$BlackbirdPie, 'shortcode'));
-                //register auto embed
-                wp_embed_register_handler( BBP_NAME, BBP_REGEX, array(&$BlackbirdPie, 'blackbirdpie_embed_handler') );
-
-            }
-            if ( !has_filter('bbp_create_tweet') ) {
-                add_filter('bbp_create_tweet', 'livepress_compatibility_fixes::patch_tweet_details');
-                add_filter('bbp_create_tweet', array( &$BlackbirdPie, 'create_tweet_html' ));
-            }
-        }
     }
 
     static function esc_amp_html($html) {

@@ -215,13 +215,14 @@ function DHelpers() {
 	};
 
 	SELF.handleErrors = function ( errors ) {
-		pane_errors.innerHtml = '';
+		console.log( errors );
+		$pane_errors.html('');
 		$pane_errors.hide();
 		jQuery.each( errors, function ( field, error ) {
 			var error_p = document.createElement( 'p' );
 			error_p.className = 'lp-pane-error ' + field;
 			error_p.innerHtml = error;
-			pane_errors.appendChild( error_p );
+			$pane_errors.append( error_p );
 		} );
 		$pane_errors.show();
 	};

@@ -313,7 +313,8 @@ class livepress_updater {
 
 		$ljsc->new_value('new_post_msg_id', get_option(PLUGIN_NAME."_new_post"));
 
-		$ljsc->new_value('sounds_default', $this->options['sounds_default'], ConfigurationItem::$BOOLEAN);
+		$ljsc->new_value('sounds_default', in_array("audio", $this->options['notifications']), ConfigurationItem::$BOOLEAN);
+		$ljsc->new_value('autoscroll', in_array("scroll", $this->options['notifications']), ConfigurationItem::$BOOLEAN);
 
 		if (is_page() || is_single() || is_admin()) {
 			if (isset($post->ID)&&$post->ID) {
@@ -384,9 +385,6 @@ class livepress_updater {
 				$ljsc->new_value("num_chars_on_post_update_id",
 						livepress_post::$NUM_CHARS_ID,
 						ConfigurationItem::$LITERAL);
-				$ljsc->new_value('blackbirdpie_exists',
-						livepress_compatibility_fixes::instance()->is_active_plugin_blackbird_pie(),
-						ConfigurationItem::$BOOLEAN);
 			}
 		}
 

@@ -281,7 +281,7 @@ class livepress_communication {
             break;
       }
       $params["format"] = "json";
-      return wp_remote_retrieve_body($this->do_post_to_livepress("/blog/$ws_action", $params));
+      return wp_remote_retrieve_body( ( $this->do_post_to_livepress( "/blog/$ws_action", $params ) ) );
     }
 
     public function send_to_livepress_handle_twitter_follow($action, $username, $postId, $login) {
@@ -514,7 +514,7 @@ class livepress_communication {
     }
 
     public function followed_tracked_twitter_accounts($params) {
-        return wp_remote_retrieve_body($this->do_post_to_livepress('/blog/followed_tracked_twitter_accounts', $params));
+        return wp_remote_retrieve_body( ( $this->do_post_to_livepress( '/blog/followed_tracked_twitter_accounts', $params) ) );
     }
 
     /**

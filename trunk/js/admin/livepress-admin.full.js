@@ -1,4 +1,4 @@
-/*! livepress -v1.0.1
+/*! livepress -v1.0.2
  * http://livepress.com/
  * Copyright (c) 2013 LivePress, Inc.
  */
@@ -2384,10 +2384,13 @@ jQuery(function () {
 								// published non touched block
 								sty = "";
 							}
-							var $block = $j(reg.prefix + reg.proceed + reg.suffix);
+							var proc = reg.prefix + reg.proceed + reg.suffix;
+							var origproc = reg.origproc===undefined ? proc : reg.origproc;
+							var $block = $j(proc);
+							var orig = reg.orig===undefined ? reg.content : reg.orig;
 							$block.data("nonExpandedContent", reg.content);
-							$block.data("originalContent", reg.orig);
-							$block.data("originalHtmlContent", reg.origproc);
+							$block.data("originalContent", orig);
+							$block.data("originalHtmlContent", origproc);
 							$block.data("originalId", reg.id);
 							if (sty === "new") {
 								// FIXME: add some kind of support for that
@@ -2404,10 +2407,11 @@ jQuery(function () {
 						if (!inittedOnce) {
 							$liveCanvas.insertAfter('#titlediv');
 
-							var canvas = document.getElementById( 'livepress-canvas' );
+							var canvas = document.getElementById( 'livepress-canvas' ),
+                                $canvas = $j( canvas );
 
-							// live listeners
-							$j( canvas.querySelectorAll( 'div.livepress-update' ) ).on('click', function (ev) {
+							// live listeners, bound to canvas (since childs are recreated/added/removed dynamically)
+							$canvas.on( 'click',  'div.livepress-update', function (ev) {
 								var $target = $j(ev.target);
 								if ($target.is("a,input,button,textarea") || $target.parents("a,input,button,textarea").length > 0) {
 									return true; // do not handle click event from children links (needed to fix live)
@@ -2421,7 +2425,7 @@ jQuery(function () {
 									jQuery( this ).remove();
 								}
 							});
-							$j( canvas.querySelectorAll( 'div.livepress-update a' ) ).on( 'click', function (ev) {
+							$canvas.on( 'click', 'div.livepress-update a', function (ev) {
 								ev.stopPropagation();
 							} );
 

@@ -36,6 +36,12 @@ class livepress_administration {
 		'enabled_to' => 'all', // all - registered - administrators - none,
 	);
 
+	// Add default empty array value for notification options, otherwise initial checks throws PHP errors
+	var $array_options = array(
+		'notifications' => array(),
+	);
+
+
 	var $user_bool_options = array(
 	);
 	var $user_string_options = array(
@@ -162,7 +168,7 @@ class livepress_administration {
 
 	function merge_default_values() {
 		$options = get_option( self::$options_name, array() );
-		$this->options = array_merge( $this->bool_options, $this->string_options, $options );
+		$this->options = array_merge( $this->bool_options, $this->string_options, $this->array_options, $options );
 		update_option( self::$options_name, $this->options );
 	}
 
