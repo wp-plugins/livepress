@@ -427,9 +427,9 @@ final class LivePress_Blogging_Tools {
 				<input type="text" name="new_term" id="new-twitter-account" class="new-term lp-input form-input-tip" size="16" autocomplete="off" placeholder="<?php _e( 'Account Name', 'livepress' ); ?>" />
 				<input class="button-secondary termadd" value="<?php _e( 'Add Remote Author', 'livepress' ); ?>" type="submit" />
 
-				<div class="clean">
+				<div class="clean lp-tweet-cleaner">
 					<p><?php _e( 'Done live blogging on this post?', 'livepress' ); ?></p>
-					<input class="button-secondary lp-tweet-cleaner" value="<?php _e( 'Remove All', 'livepress'); ?>" type="submit" />
+					<input class="button-secondary cleaner" value="<?php _e( 'Remove All', 'livepress'); ?>" type="submit" />
 				</div>
 			</div>
             <ul id="lp-account-list"></ul>

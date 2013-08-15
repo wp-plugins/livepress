@@ -400,51 +400,51 @@ Livepress.Ui.Controller = function (config, hooks) {
 
 			widget.sound_control(
 				Livepress.storage.get('settings-sound', config.sounds_default === undefined || config.sounds_default),
-				function () {
+				function (save) {
 					sounds.on();
-					Livepress.storage.set('settings-sound', "1");
+					if (save) { Livepress.storage.set('settings-sound', "1"); }
 				},
-				function () {
+				function (save) {
 					sounds.off();
-					Livepress.storage.set('settings-sound', "");
+					if (save) { Livepress.storage.set('settings-sound', ""); }
 				}
 			);
 
 			widget.live_control(
 				Livepress.storage.get('settings-live', true),
-				function () {
+				function (save) {
 					comet.connect();
-					Livepress.storage.set('settings-live', "1");
+					if (save) { Livepress.storage.set('settings-live', "1"); }
 				},
-				function () {
+				function (save) {
 					comet.disconnect();
-					Livepress.storage.set('settings-live', "");
+					if (save) { Livepress.storage.set('settings-live', ""); }
 				}
 			);
 
 			if (!config.disable_comments) {
 				widget.follow_comments_control(
 					Livepress.storage.get('settings-comments', true),
-					function () {
+					function (save) {
 						comet.subscribe(comment_update_topic, comment_update);
-						Livepress.storage.set('settings-comments', "1");
+						if (save) { Livepress.storage.set('settings-comments', "1"); }
 					},
-					function () {
+					function (save) {
 						comet.unsubscribe(comment_update_topic, comment_update);
-						Livepress.storage.set('settings-comments', "");
+						if (save) { Livepress.storage.set('settings-comments', ""); }
 					}
 				);
 			}
 
 			widget.scroll_control(
-				Livepress.storage.get('settings-scroll', true),
-				function () {
+				Livepress.storage.get('settings-scroll', config.autoscroll === undefined || config.autoscroll),
+				function (save) {
 					Livepress.Scroll.settings_enabled = true;
-					Livepress.storage.set('settings-scroll', "1");
+					if (save) { Livepress.storage.set('settings-scroll', "1"); }
 				},
-				function () {
+				function (save) {
 					Livepress.Scroll.settings_enabled = false;
-					Livepress.storage.set('settings-scroll', "");
+					if (save) { Livepress.storage.set('settings-scroll', ""); }
 				}
 			);
 		}

@@ -149,6 +149,15 @@ if (Dashboard.Twitter.twitter === undefined) {
 							guestBloggerAddAction(e);
 						}
 					});
+
+					meta.on('click', '#remote-authors .cleaner', function(e) {
+						e.preventDefault();
+						e.stopPropagation();
+						twitter.removeAllTweets();
+						return false;
+					});
+
+					meta.find(".lp-tweet-cleaner").hide();
 				},
 
 				bindRemoveTermButtons: function () {
@@ -172,7 +181,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				},
 
 				init: function () {
-					this.bindCleaners();
+					//this.bindCleaners();
 					this.bindAddTermInput();
 					this.bindStaticSearchButton();
 					this.bindAddGuestBloggerInput();
@@ -205,7 +214,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 			contentDiv.find('a').attr("target", "_blank");
 
 			var rowActions = jQuery("<div class='row-actions'></div>");
-			var postLink = jQuery("<span class='post'><a href='#' title='Copy the commenter name and full text into the post text box'>Post</a><span>");
+			var postLink = jQuery("<span class='post'><a href='#' title='Copy the tweet into the post editing area'>Send to editor</a><span>");
 			rowActions.append(postLink);
 			postLink.bind('click', function (e) {
 				e.preventDefault();
@@ -213,25 +222,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				var t = tinyMCE.activeEditor;
 
 				var created_at = new Date(tweet.created_at);
-				var textToAppend;
-				if (Livepress.Config.blackbirdpie_exists) {
-					textToAppend = '[blackbirdpie id="' + tweet.id + '"]';
-				} else {
-					textToAppend = "<div class='lp-inline-tweet'>";
-					textToAppend += "<span class='tweet-body'>" + twttr.txt.autoLink(twttr.txt.htmlEscape(tweet.text)) + "</span>";
-					textToAppend += "<span class='byline'>";
-					textToAppend += "<span class='author'>" + twttr.txt.autoLink(twttr.txt.htmlEscape('@' + tweet.author)) + ", </span>";
-					textToAppend += "<span class='timestamp'>" + created_at.getHours() + ':' + created_at.getMinutes() + "</span>";
-					textToAppend += "<span class='intents'>";
-					textToAppend += '<a href="http://twitter.com/intent/tweet?in_reply_to=' + tweet.id + '">Reply</a>';
-					textToAppend += '<a href="http://twitter.com/intent/retweet?tweet_id=' + tweet.id + '">Retweet</a>';
-					textToAppend += '<a href="http://twitter.com/intent/favorite?tweet_id=' + tweet.id + '">Favorite</a>';
-					textToAppend += '<a href="http://twitter.com/intent/user?screen_name=' + tweet.author + '">Follow</a>';
-					textToAppend += "</span>";
-					textToAppend += "</span>";
-					textToAppend += "</div>";
-					textToAppend += "<p></p>"; // make it possible to type after tweet
-				}
+				var textToAppend = "[embed]http://twitter.com/"+tweet.author+"/status/"+tweet.id+"[/embed]\n";
 
 				t.setContent(t.getContent() + textToAppend);
 
@@ -239,7 +230,6 @@ if (Dashboard.Twitter.twitter === undefined) {
 				var pushBtn = jQuery('.livepress-newform' ).find('input.button-primary');
 				pushBtn.removeAttr( 'disabled' );
 			});
-
 			contentDiv.append(rowActions);
 			tweetDiv.append(contentDiv);
 
@@ -259,7 +249,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 			var formatedTweet = formatTweet(tweet);
 			formatedTweet.hide();
 			container.prepend(formatedTweet);
-			container.find("div.comment-item:gt(500)").remove();
+			container.find("div.comment-item:gt(200)").remove();
 			formatedTweet.slideDown();
 		};
 

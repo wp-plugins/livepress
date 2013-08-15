@@ -38,7 +38,6 @@ class livepress_admin_settings {
 				'enabled_to'                   => 'all',
 				'disable_comments'             => false,
 				'comment_live_updates_default' => false,
-				'sounds_default'               => false,
 				'timestamp'                    => get_option( 'time_format' ),
 				'include_avatar'               => false,
 				'update_author'                => true,

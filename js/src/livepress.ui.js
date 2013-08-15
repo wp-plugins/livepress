@@ -84,7 +84,7 @@ Livepress.Ui.View = function (disable_comments) {
 
 	var control = function (initial, $checkbox, fOn, fOff) {
 		$checkbox.attr('checked', initial).change(function () {
-			return $checkbox.is(':checked') ? fOn() : fOff();
+			return $checkbox.is(':checked') ? fOn(1) : fOff(1);
 		});
 		return initial ? fOn() : fOff();
 	};
