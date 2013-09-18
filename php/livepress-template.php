@@ -14,6 +14,10 @@ function livepressTemplate( $auto = false, $minutes_since_last = 0 ) {
 		$lp_status = 'lp-off';
 	}
 
+    // Don't show the LivePress bar on front end if the post isn't live or LivePress disabled
+    if ( 1 !== $lp_active || ! livepress_updater::instance()->has_livepress_enabled() )  
+        return;
+
 	$since_last = "updated $minutes_since_last minutes ago";
 	if ( $minutes_since_last == 1 ) {
 		$since_last = "updated 1 minute ago";
@@ -90,10 +94,12 @@ HTML;
         $htmlTemplate = preg_replace("#<!--COMMENTS-->.*?<!--/COMMENTS-->#s", "", $htmlTemplate);
     }
 
-    if (livepress_updater::instance()->has_livepress_enabled()) {
-        if ($auto) return $htmlTemplate;
-        else echo $htmlTemplate;
+    if ($auto) {
+        return $htmlTemplate;
+    } else {
+        echo $htmlTemplate;
     }
+
 }
 
 add_action('livepress_update_box', 'livepressUpdateBox');

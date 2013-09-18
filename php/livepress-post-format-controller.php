@@ -343,7 +343,16 @@ class LivePress_PF_Updates {
 	 * @return string
 	 */
 	public function filter_xhtml( $content ) {
-		if ( true !== HTMLPurifier_DefinitionCache_WPDatabase::$caching ) {
+
+		// Check to verify that the current post is marked as live, skip HTMLPurify if not live
+		$lp_active = get_post_meta( get_the_ID(), '_livepress_live_status', true );
+		if( isset( $lp_active['live'] ) ) {
+			$lp_active = (int) $lp_active['live'];
+		} else {
+			$lp_active = 0;
+		}
+
+		if ( 1 === $lp_active && true !== HTMLPurifier_DefinitionCache_WPDatabase::$caching ) {
 			$content = lp_wp_utils::purifyHTML( $content );
 		}
 

@@ -25,64 +25,41 @@ jQuery(document).ready(function () {
 		endisable(data);
 	});
 
+	/**
+	 * enabledisable called when user enabled or disabled livepress from the Admin bar can be removed if
+	 * this feature is moved from the admin bar to the plugin settings page
+	 * 
+	 * @param object data
+	 *        - action	- string	action to take
+	 *        - post_id - string	post id
+	 *        - nonce	- string	nonce for ajax call
+	 */
 	var endisable = function (data) {
 		jQuery.post(
 			ajaxurl || Livepress.Config.ajax_url,
 			data,
 			function (response) {
 				var bar = jQuery('#wp-admin-bar-livepress-status'),
-					explanation = jQuery('#wp-admin-bar-livepress-status-explanation'),
+					meta_box = jQuery('#livepress_status_meta_box'),
 					external = jQuery('#wp-admin-bar-livepress-status-external');
 				switch (response) {
 					case 'connected':
+						meta_box.removeClass( 'globally_disabled' ).removeClass( 'globally_disconnected' );
 						bar.removeClass('disabled').addClass('connected');
-						explanation.find('.connected').removeClass('hidden');
-						explanation.find('.disconnected, .disabled').addClass('hidden');
 						external.removeClass('disabled').addClass('enabled');
-						publishBox('on');
 						break;
 					case 'disconnected':
+						meta_box.addClass( 'globally_disconnected' ).removeClass( 'globally_disabled' );	
 						bar.removeClass('disabled').removeClass('connected');
-						explanation.find('.disconnected').removeClass('hidden');
-						explanation.find('.connected, .disabled').addClass('hidden');
 						external.removeClass('disabled').addClass('enabled');
 						break;
 					case 'disabled':
+						meta_box.addClass( 'globally_disabled' ).removeClass( 'globally_disconnected' );
 						bar.addClass('disabled').removeClass('connected');
-						explanation.find('.disabled').removeClass('hidden');
-						explanation.find('.disconnected, .connected').addClass('hidden');
 						external.removeClass('enabled').addClass('disabled');
-						publishBox('off');
 						break;
 				}
 			}
 		);
-	};
-
-	var publishBox = function (onoroff) {
-		var $bar = jQuery('#lp-pub-status-bar');
-
-		switch (onoroff) {
-			case 'on':
-				$bar.removeClass('no-toggle').removeClass('not-live').addClass('live');
-
-				$bar.find('a.toggle-live span').addClass('hidden');
-				$bar.find('.icon').addClass('not-live').removeClass('disabled').removeClass('live');
-				$bar.find('.first-line').find('.lp-off').removeClass('hidden');
-				$bar.find('.first-line').find('.lp-on, .disabled').addClass('hidden');
-				$bar.find('.second-line').find('.inactive').removeClass('hidden');
-				$bar.find('.second-line').find('.recent, .lp-off').addClass('hidden');
-				break;
-			case 'off':
-				$bar.addClass('no-toggle').addClass('not-live').removeClass('live');
-
-				$bar.find('a.toggle-live span').addClass('hidden');
-				$bar.find('.icon').removeClass('live').removeClass('not-live').addClass('disabled');
-				$bar.find('.first-line').find('.lp-on, .lp-off').addClass('hidden');
-				$bar.find('.first-line').find('.disabled').removeClass('hidden');
-				$bar.find('.second-line').find('.inactive, .recent').addClass('hidden');
-				$bar.find('.second-line').find('.lp-off').removeClass('hidden');
-				break;
-		}
 	};
 });

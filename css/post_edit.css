@@ -261,7 +261,7 @@
 	}
 
     #lp-pub-status-bar .first-line span {
-	     font-weight: bold;
+	     font-size: 14px;
      }
 
 	#lp-pub-status-bar .second-line a {
@@ -275,6 +275,47 @@
     #lp-pub-status-bar.not-live a span {
 	    display: none;
     }
+    #lp-pub-status-bar .toggle-live {
+    	margin-left: 10px;
+    } 
+ 
+    #livepress_status_meta_box .disabled,
+    #livepress_status_meta_box.live .lp-off,
+    #livepress_status_meta_box.live .turnon,
+    #livepress_status_meta_box.globally_disabled .lp-off,
+    #livepress_status_meta_box.globally_disabled.live .lp-on,
+    #livepress_status_meta_box.not-live .lp-on,
+    #livepress_status_meta_box.globally_disabled.live .turnoff,
+    #livepress_status_meta_box.globally_disabled.not-live .turnon,
+    #livepress_status_meta_box .turnoff {
+    	display: none;
+    }
+    
+    #livepress_status_meta_box.globally_disabled .disabled,
+    #livepress_status_meta_box.live .lp-on,
+    #livepress_status_meta_box.not-live .turnon,
+    #livepress_status_meta_box.live .turnoff,
+   	#livepress_status_meta_box.not-live.globally_disabled .disabled {
+    	display: inline-block;
+    }
+    
+    #livepress_status_meta_box.postbox.live,
+    .live-status-enabled  {
+    	background: #dbfae1;
+    }
+
+    #livepress_status_meta_box.postbox.not-live {
+    	background: #dddddd;
+    }
+
+    #livepress_status_meta_box.postbox.globally_disabled {
+    	background: #f8c8ca;
+    }
+    
+    #livepress_status_meta_box .disabled {
+    	padding: 5px;
+    }
+
 
 /**
  * HiDPI Graphics

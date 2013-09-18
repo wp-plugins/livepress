@@ -14,7 +14,7 @@ require_once 'livepress-config_file.php';
 class livepress_config {
 	private $configurable_options = array (
 		'STATIC_HOST'               => 'http://static.livepress.com',
-		'LIVEPRESS_SERVICE_HOST'    => 'http://api.livepress.com:3000',
+		'LIVEPRESS_SERVICE_HOST'    => 'http://api.livepress.com',
 		'OORTLE_VERSION'            => '1.5',
 		'LIVEPRESS_CLUSTER'         => 'livepress.com',
 		'LIVEPRESS_VERSION'         => '1.0',

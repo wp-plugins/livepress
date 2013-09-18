@@ -530,14 +530,23 @@ ul#twitter-search-subtabs .tabs {
 	border: 1px solid #aaaaaa;
 }
 
-#lp-twitter-results {
-	width: 60%;
+#lp-twitter-results,
+#tab-panel-live-comments {
 	margin-left: 5%;
 	float: right;
 	max-height: 216px;
 	overflow-y: auto;
+	overflow-x: hidden;
 	position: relative;
 	left: 40px;
+}
+
+#lp-twitter-results {
+	width: 60%;
+}
+
+#tab-panel-live-comments {
+	width: 100%;
 }
 
 #lp-twitter-results .lp-spinner {
@@ -906,6 +915,23 @@ a.lp-tweet-clean-button:hover {
 
 *:first-child+html #lp-twitter-search-terms .lp-term-cleaner {
 	width: 48px;
+}
+
+.live-status-circle {
+    border-radius: 50%;
+    width: 10px;
+    height: 10px; 
+    margin: 14px 50px 14px 50px;
+}
+
+.live-status-enabled {
+    background-color: #69ca14;	
+    border: 1px solid #69ca0f;
+}
+
+.live-status-disabled {
+    background-color: #cacaca;	
+    border: 1px solid #999;	
 }
 
 /* @end */

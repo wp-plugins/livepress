@@ -69,8 +69,15 @@ class lp_wp_utils {
 		$def = $config->getHTMLDefinition( true );
 		self::append_purified_element_set( $def );
 
+		/**
+		 * HTMLPurifier will eat <fb:post ...> tags inserted by Facebook embed plugins; HTMLPurifier's addElement function
+		 * does not work correctly to allow this tag because the : in the tag name breaks the function
+		 * The following workaround remaps the tag before and restore is after purification
+		 */
+		$content = str_replace( 'fb:post', 'fbpost', $content); // Hide any Facebook fb:post tags from HTMLPurifier
 		$purifier = new HTMLPurifier( $config );
 		$content  = $purifier->purify( $content );
+		$content = str_replace( 'fbpost', 'fb:post', $content); // Restore the hidden Facebook tags
 
 		return $content;
 	}
@@ -106,6 +113,20 @@ class lp_wp_utils {
 			     'cite' => 'URI'
 			)
 		);
+
+		$def->addElement(
+          'fbpost', // Allow the psuedo fb tag
+          'Block', // content set
+          'Optional: Heading | Block | List', // allowed children (optional)
+          'Common', // attribute collection
+          array( // attributes
+            'href' 						=> 'URI',
+            'class'						=> 'Text',
+            'fb-xfbml-state'			=> 'Text',
+            'fb-iframe-plugin-query'	=> 'Text',
+          )
+        );
+
 	}
 }
 ?>

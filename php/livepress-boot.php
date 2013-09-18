@@ -55,6 +55,16 @@ add_action( 'wp_ajax_update-live-notes',    array( $blogging_tools, 'update_auth
 add_action( 'wp_ajax_update-live-comments', array( $blogging_tools, 'update_live_comments' ) );
 add_action( 'wp_ajax_update-live-status',   array( $blogging_tools, 'toggle_live_status' ) );
 
+add_action( 'manage_posts_custom_column' , array( $blogging_tools, 'display_posts_livestatus' ) , 10, 2 );
+
+/* Add custom column to post list */
+function add_livepress_status_column( $columns ) {
+    return array_merge( $columns, 
+        array( 'livepress_status' => __( 'LivePress Status', 'livepress' ) ) );
+}
+add_filter( 'manage_posts_columns' , 'add_livepress_status_column' );
+
+
 /**
  * When the site's URL changes, automatically inform the LivePress API of the change.
  */

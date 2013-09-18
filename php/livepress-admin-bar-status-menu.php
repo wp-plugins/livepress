@@ -54,27 +54,8 @@ class livepress_admin_bar_status_menu {
 
 		$class = 'livepress-status-menu';
 
-		$messages = new stdClass();
-		$messages->connected = __( 'The LivePress servers are up<br />and your site is able to<br />communicate with them.' , 'livepress' );
-		$messages->disable = __( 'Disable all live updates.', 'livepress' );
-		$messages->disconnected = __( 'We were unable to connect<br />to the LivePress servers.', 'livepress' );
-		$messages->disabled = __( 'Live updates have been manually<br />turned off.', 'livepress' );
-		$messages->enable = __( 'Enable live updates.', 'livepress' );
-		$messages->no_api_key = __( "You aren't connected to the<br />LivePress servers and your blog<br/>is not live yet.<br/>We just need a valid API key.", 'livepress' );
-
 		// TODO: Ideally there would be central API for getting the LivePress status. ~tddewey
 		$status = self::get_status();
-
-		// NOTE: These messages would have to be selectively hidden/shown based on LP status (probably via JS) ~tddewey
-		$connected_message    = "<div class='connected" . ( $status == 'connected' ? "" : " hidden" ) . "'><p>$messages->connected</p></div>";
-		$disconnected_message = "<div class='disconnected" . ( $status == 'disconnected' ? "" : " hidden" ) . "'><p>$messages->disconnected</p></div>"; // Todo: reason and link for more info.
-		$disabled_message     = "<div class='disabled" . ( $status == 'disabled' ? "" : " hidden" ) . "'><p>$messages->disabled</p></div>";
-
-		if ( false === $this->options['api_key'] ) {
-			$message = "<div class='disconnected'><p>$messages->no_api_key</p></div>";
-		} else {
-			$message = $connected_message . $disabled_message . $disconnected_message;
-		}
 
 		$wp_admin_bar->add_menu( array(
 			'id'     => 'livepress-status',
@@ -82,48 +63,12 @@ class livepress_admin_bar_status_menu {
 			'href'   => '',
 			'sticky' => true,
 			'meta'   => array(
-				'title' => __( 'LivePress', 'livepress' ),
-				'class' => $class . ' ' . $status
+				'title' => 'connected' == $status ? 
+					__( 'LivePress connected.', 'livepress' ) :
+					__( 'LivePress connection error.', 'livepress' ),
+				'class' => $class . ' ' . $status,
 			),
 		) );
-
-		$wp_admin_bar->add_menu( array(
-			'parent' => 'livepress-status',
-			'id'     => 'livepress-status-explanation',
-			'title'  => $message,
-		) );
-
-		$wp_admin_bar->add_group( array(
-			'parent' => 'livepress-status',
-			'id'     => 'livepress-status-external',
-			'meta'   => array(
-				'class' => 'ab-sub-secondary ' . ( $status == 'disabled' ? 'disabled' : 'enabled' ),
-			),
-		) );
-
-		$wp_admin_bar->add_menu( array(
-		     'parent' => 'livepress-status-external',
-		     'id'     => 'livepress-enable',
-		     'title'  => "<a href='#' data-nonce='" . wp_create_nonce( 'livepress-enable-global' ) . "'>$messages->enable</a>",
-		) );
-
-		$wp_admin_bar->add_menu( array(
-			'parent' => 'livepress-status-external',
-		    'id'     => 'livepress-disable',
-		    'title'  => "<a href='#' data-nonce='" . wp_create_nonce( 'livepress-disable-global' ) . "'>$messages->disable</a>",
-		) );
-
-		if ( ! current_user_can( 'manage_options' ) )
-			return;
-
-		if ( false === $this->options['api_key'] ) {
-			$wp_admin_bar->add_menu( array(
-				'id'     => 'livepress-api-key',
-				'title'  => 'Enter your API key',
-				'parent' => 'livepress-status-external',
-				'href'   => admin_url( '/options-general.php?page=livepress-settings' ),
-			) );
-		}
 	}
 
 	/**

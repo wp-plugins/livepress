@@ -18,6 +18,7 @@
 		};
 
 		var options = {
+			'pointerClass': 'livepress_pointer',
 			'content': CORE.content,
 			'position': {
 				'edge': 'top',
@@ -30,5 +31,10 @@
 	$( window ).on( 'livepress.blogging-tools-loaded', function() {
 		var pointer = CORE.pointer = new Pointer( '#blogging-tools-link-wrap' );
 		pointer.open();
+		// Close the pointer when live blogging tools opened (once)
+		$( 'a#blogging-tools-link' ).one( 'click', function() {
+			$( '.livepress_pointer a.close' ).trigger( 'click' );
+		} );
+
 	} );
 }( this, jQuery ) );

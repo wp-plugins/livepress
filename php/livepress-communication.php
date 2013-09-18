@@ -311,7 +311,7 @@ class livepress_communication {
      */
 	public function validate_on_livepress( $site_url ) {
 		$params = array();
-		$params['title'] = get_bloginfo( 'name' );
+		$params['title'] = rawurlencode(get_bloginfo( 'name' ));
 		$status = $this->request_to_livepress( '/message/api_key_validate', 'get', $params );
 
 		if ( $status == 202 ) {
@@ -326,20 +326,23 @@ class livepress_communication {
 	}
 
     /**
-     * Enables a new blog user to remote post.
+     * Create user record at livepress side.
      *
-     * @param   string  $site_url  The url to be validated with the api key.
-     * @return  int                0 if wrong API key, 1 if OK and -1 if connection problems.
+     * @param   string  $username  User username
+     * @param   string  $password  Generated password for remote post on user behalf
+     * @param   int     $blog_id   In case of multi-blog install, send ID of blog, user belongs to
+     *                             (looks like currently WP ignore that field)
+     * @return  int                HTTP response code (200 is ok)
      */
-    public function remote_post($enable, $username, $password = '', $blog_id = 1) {
+    public function create_blog_user($username, $password = '', $blog_id = 1) {
         $params['username'] = $username;
         $params['password'] = $password;
         $params['blog_rpc'] = $blog_id;
-        $action = $enable ? "create" : "deactivate";
+        $action = "create";
 
         $code = $this->request_to_livepress('/blog_user/' . $action, 'post', $params);
 
-        if ($enable && $code == 403) {
+        if ($code == 403) {
             $params['blog_user_updates[password]'] = $password;
             $code = $this->request_to_livepress('/blog_user/update', 'post', $params);
         }
@@ -639,7 +642,7 @@ class livepress_communication {
         if( is_wp_error($res) ) {
             $this->last_error = $res->get_error_message();
             $this->last_response = null;
-        } 
+        }
         elseif (wp_remote_retrieve_response_code($res) == 111) {
             $this->last_error = "Connection refused.";
             $this->last_response = null;

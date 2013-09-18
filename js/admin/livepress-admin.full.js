@@ -1,4 +1,4 @@
-/*! livepress -v1.0.2
+/*! livepress -v1.0.3
  * http://livepress.com/
  * Copyright (c) 2013 LivePress, Inc.
  */
@@ -882,7 +882,8 @@ Livepress.Admin.Tools = function () {
 	 * @private
 	 */
 	function wireupDefaults () {
-		var nonces = jQuery('#blogging-tool-nonces');
+		var nonces = jQuery('#blogging-tool-nonces'),
+			SELF   = this;
 
 		jQuery('#tab-panel-live-notes').on('click', 'input[type="submit"]', function (e) {
 			var submit = jQuery( this ),
@@ -927,13 +928,8 @@ Livepress.Admin.Tools = function () {
 				},
 				type:    'post',
 				success: function (data) {
-					var $bar = jQuery('#lp-pub-status-bar').toggleClass('live').toggleClass('not-live');
-
-					$bar.find('a.toggle-live span').toggleClass('hidden');
-					$bar.find('.icon').toggleClass('live').toggleClass('not-live');
-					$bar.find('.first-line').find('.lp-on, .lp-off').toggleClass('hidden');
-					$bar.find('.second-line').find('.inactive').toggleClass('hidden');
-					$bar.find('.recent').addClass('hidden');
+					var $bar = jQuery('#livepress_status_meta_box').toggleClass('live').toggleClass('not-live');
+					SELF.Dashboard.Helpers.setupLivePressTabs();
 				}
 			});
 		});
@@ -977,9 +973,9 @@ Livepress.Admin.Tools = function () {
 			element.parentNode.removeChild( element );
 		}
 
-		tools_link.innerText = 'Live Blogging Tools';
-		tools_link_wrap.appendChild( tools_link );
-
+		//tools_link.innerText = 'Live Blogging Tools';
+		$tools_link_wrap.append( tools_link );
+		jQuery( tools_link ).text( 'Live Blogging Tools' );
 		$tools_link_wrap.insertAfter('#screen-options-link-wrap');
 
 		$tools_wrap.insertAfter('#screen-options-wrap');
