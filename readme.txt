@@ -100,7 +100,7 @@ The default tab IDs used in LivePress are:
 * Update connection to LivePress api to use port 80
 * Display post live or not live status on post list page
 * Make post status live or not live more visible in post editor
-* Fix issue where a large number of comments would cause live blogging tools tab to grow too large
+* Fix display of large number of comments in live blogging tools
 * Better notifications when adding new Twitter handle
 * Fix Facebook embedding issue
 
