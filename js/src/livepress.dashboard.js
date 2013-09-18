@@ -82,6 +82,7 @@ Dashboard.Controller = Dashboard.Controller || function () {
 
 	jQuery( '#wp-content-editor-tools' ).on( 'click', '#content-livepress', live_switcher );
 	jQuery( '#poststuff' ).on( 'click', '.secondary-editor-tools .switch-tmce, .secondary-editor-tools .switch-html', live_switcher );
+	Dashboard.Helpers.setupLivePressTabs();  //Set up the LivePress tabs after brief pause
 
 	var hidePane = function () {
 		jQuery( '#lp-pane-holder div.active' ).removeClass( 'active' );
@@ -153,6 +154,11 @@ function DHelpers() {
 			SELF.count = 0;
 			SELF.enabled = true;
 			SELF.counterContainer.show();
+		};
+
+		SELF.reset = function() {
+			SELF.count = 0;
+			SELF.counterContainer.text( '0' );
 		};
 
 		SELF.disable = function() {
@@ -240,6 +246,36 @@ function DHelpers() {
 	SELF.createLiveCounter = function ( container ) {
 		return new LiveCounter( container );
 	};
+	
+	/**
+	 * Ensure Live Blogging Tools & Real Time open/closed when post is live/not live
+	 */
+	SELF.setupLivePressTabs = function () {
+		if ( jQuery('#livepress_status_meta_box').hasClass( 'live' ) ) {
+
+			// Post marked live, switch on the tabs if closed.
+			if ( jQuery( '.livepress-update-form' ).not(':visible') ) { // Is the LivePress live update form hidden?
+				jQuery( '#content-livepress' ).trigger( 'click' ); // If so, click the tab to open it.
+			}
+			
+			// Open the Live Blogging Tools area if not already open.
+			if ( 'true' !== jQuery( 'a#blogging-tools-link' ).attr( 'aria-expanded' ) ) { // Is the live blogging closed?
+				jQuery( 'a#blogging-tools-link' ).trigger( 'click' ); // If so, click the tab to open it.
+			}
+		} else {
+
+			// Post not marked as live, switch off the tabs if open.
+			if ( jQuery( '.livepress-update-form' ).is(':visible') ) { // Is the LivePress live update form visible?
+				jQuery( 'a.switch-tmce' ).trigger( 'click' ); // If so, click the tab to close it.
+			}
+
+			// Close the Live Blogging Tools area if  already open.
+			if ( 'true' === jQuery( 'a#blogging-tools-link' ).attr( 'aria-expanded' ) ) { // Is the live blogging open?
+				jQuery( 'a#blogging-tools-link' ).trigger( 'click' ); // If so, click the tab to close it.
+			}
+		}
+	};
+	
 }
 
 Dashboard.Helpers = Dashboard.Helpers || new DHelpers();

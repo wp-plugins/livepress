@@ -148,7 +148,7 @@ class livepress_administration {
 		$lp_key = wp_hash_password( $user_pass );
 		/* Avoid race condition by enabling two passwords at that point */
 		update_user_meta( $user_id, 'livepress-access-key-new', $lp_key );
-		$return_code = $livepress_com->remote_post( true, $user->user_login, $user_pass);
+		$return_code = $livepress_com->create_blog_user( $user->user_login, $user_pass );
 		if ( $return_code != 200 ) {
 			$this->add_error( "Can't enable remote post feature, so the remote post updates for this user will not work." );
 			$res = false;
@@ -362,38 +362,6 @@ class livepress_administration {
 		}
 
 		$return_code = 200;
-		// Unused part of code: only for author view
-		/*
-		if ( $this->has_changed( 'post_from_twitter_username', true ) ) {
-			$screen_name = $this->user_options['post_from_twitter_username'];
-			if ( $screen_name == "" ) {
-				$return_code =
-					$livepress_com->manage_remote_post_from_twitter( "", $current_user->user_login );
-			} else {
-				try {
-					$return_code = $livepress_com->manage_remote_post_from_twitter( $screen_name, $current_user->user_login );
-				} catch ( livepress_communication_exception $e ) {
-					$return_code = $e->get_code();
-					$this->add_error( $e->getMessage() );
-				}
-			}
-		}
-
-		if ( $return_code != 200 && $return_code != "OK." ) {
-			$this->user_options['post_from_twitter_username'] = $this->old_user_options['post_from_twitter_username'];
-			$error_message = $livepress_com->get_last_error_message();
-			if ( strlen( $error_message ) > 0 ) {
-				$this->add_error( "Problem with twitter user: " . $livepress_com->get_last_error_message() );
-			}
-		}
-
-		// Always update im users, since remote_post turn on/off doesn't change user settings
-		$this->update_im_users( $livepress_com );
-		// Disabled remote post
-		if ( $this->has_turned_off( 'remote_post', true ) && $author_view ) {
-			$livepress_com->remote_post( false, $current_user->user_login );
-		}
-		*/
 	}
 
 	private function update_bool_options( &$options, $bool_options ) {

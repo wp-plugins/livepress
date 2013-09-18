@@ -56,7 +56,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				if (tweetTrackerPaused === 1) {
 					liveCounter.enable();
 
-					jQuery(tweet_player_id).attr('title', "Click to display tweets instantly as they are created.").addClass('paused');
+					jQuery(tweet_player_id).attr('title', "Click to copy tweets into the post editor.").addClass('paused');
 					jQuery(tweetContainer).addClass('paused');
 					jQuery('#pausedmsg').show();
 				}
@@ -293,6 +293,13 @@ if (Dashboard.Twitter.twitter === undefined) {
 					jQuery("#lp-on-top").show();
 				}
 				binders.bindRemoveTermButtons();
+				
+				liveCounter.reset();
+				if ( 0 === terms.length ) {
+					jQuery(tweetContainer).html(''); // No more terms, clear the container
+				} else {
+					jQuery(tweetContainer).html("<div class='lp-spinner'></div>"); // Still terms, show spinner
+				}
 			},
 
 			refresh_tweets: function () {

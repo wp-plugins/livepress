@@ -17,7 +17,7 @@ class livepress_user_settings {
 		add_action( 'edit_user_profile', array( $this, 'user_fields' ) );
 		add_action( 'personal_options_update', array( $this, 'save_fields' ) );
 		add_action( 'edit_user_profile_update', array( $this, 'save_fields' ) );
-		add_action( 'user_profile_update_errors', array( $this, 'save_fields_err', 0, 3 ) );
+		add_action( 'user_profile_update_errors', array( $this, 'save_fields_err'), 0, 3 );
 	}
 
 	private function add_error( $msg ) {
@@ -118,46 +118,43 @@ class livepress_user_settings {
 
 			$options = get_option(livepress_administration::$options_name);
 			$livepress_com = new livepress_communication($options['api_key']);
-			if ( empty( $lp_twitter ) ) {
-				$return_code = $livepress_com->manage_remote_post_from_twitter( "", $user->user_login );
-				if ( $return_code != 200 && $return_code != "OK." ) {
-					$error_message = $livepress_com->get_last_error_message();
-					if ( strlen( $error_message ) > 0 ) {
-						$this->add_error( "Problem with remote twitter user: " . $error_message );
-					} else {
-						$this->add_error( "Problem with remote twitter user: " . $return_code );
-					}
+
+			$error_message = ''; 
+			try {
+				$return_code = $livepress_com->manage_remote_post_from_twitter( $lp_twitter, $user->user_login );
+			} catch ( livepress_communication_exception $e ) {
+				$return_code = $e->get_code();
+				$error_message = $e->getMessage();
+			}
+
+			if ( $return_code == 403 ) { /* User not found at livepress, or password invalid */
+				$la = new livepress_administration();
+				$error_message = $livepress_com->get_last_error_message();
+				if ( ! $la->enable_remote_post( $user_id ) ) {
+					$this->add_error( "Can't create user at livepress side: ", $error_message );
 				} else {
-					delete_user_meta( $user_id, 'lp_twitter' );
-				}
-			} else {
-				try {
-					$return_code = $livepress_com->manage_remote_post_from_twitter( $lp_twitter, $user->user_login );
-				} catch ( livepress_communication_exception $e ) {
-					$return_code = $e->get_code();
-					if($return_code == 403) {
-						$ret = $e->getMessage();
-						if(strstr($ret, '"username":"[not_exists]"')) {
-							// User not found? create it
-							$la = new livepress_administration();
-							if ($la->enable_remote_post($user_id)) {
-								try {
-									$return_code = $livepress_com->manage_remote_post_from_twitter( $lp_twitter, $user->user_login );
-								} catch ( livepress_communication_exception $e ) {
-									$return_code = $e->get_code();
-									$this->add_error( $e->getMessage() );
-								}
-							} else {
-								foreach($la->messages['error'] as $err) {
-									$this->add_error($err);
-								}
-							}
-						}
-					} else {
-						$this->add_error( $e->getMessage() );
+					$error_message = '';
+					try {
+						$return_code = $livepress_com->manage_remote_post_from_twitter( $lp_twitter, $user->user_login );
+					} catch ( livepress_communication_exception $e ) {
+						$return_code = $e->get_code();
+						$error_message = $e->getMessage();
 					}
 				}
-				update_user_meta( $user_id, 'lp_twitter', $lp_twitter );
+			}
+
+			if ( $return_code != 200 && $return_code != "OK." ) {
+				if ( strlen( $error_message ) > 0 ) {
+					$this->add_error( "Problem with setting twitter user: " . $error_message ); // Show existing error
+				} else {
+					$this->add_error( "Problem with setting twitter user: error #" . $return_code ); // Show error code if no msg
+				}
+			} else { // No error
+				if ( empty( $lp_twitter ) ) { // None left, delete meta
+					delete_user_meta( $user_id, 'lp_twitter' );
+				} else { // Update meta with current lp_twitter
+					update_user_meta( $user_id, 'lp_twitter', $lp_twitter );
+				}
 			}
 		}
 

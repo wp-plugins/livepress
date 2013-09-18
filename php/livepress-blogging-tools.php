@@ -29,61 +29,75 @@ final class LivePress_Blogging_Tools {
 	 * @uses add_action Adds an action to 'post_submitbox_misc_actions' to add the LivePress indicators.
 	 */
 	public function __construct() {
-		add_action( 'post_submitbox_misc_actions', array( &$this, 'livepress_status' ) );
+		add_action( 'add_meta_boxes', array( $this, 'livepress_status' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'feature_pointer' ) );
+		add_filter( 'postbox_classes_post_livepress_status_meta_box', array( $this, 'add_livepress_status_metabox_classes' ) );
 	}
-
-	public function livepress_status() {
+	
+	/**
+	 * Add appropriate classes to the meta box for proper diaplay of LivePress status
+	 * Adds one of 'live','not-live' or 'globally_disabled'
+	 * 
+	 * @param array $classes existing classes for the meta box
+	 * @return array ammended classes for the meta box 
+	 */
+	public function add_livepress_status_metabox_classes( $classes ) {
 		global $post;
 
 		$globally_enabled = get_option( 'livepress_globally_enabled', "enabled" );
 		$globally_enabled = 'enabled' === $globally_enabled;
-		$disabled = $globally_enabled ? 'hidden' : '';
 
 		$status = $this->get_option( 'live_status', $post->ID );
 		if ( ! isset( $status['live'] ) ) {
-			$status['live'] = 1;
+			$status['live'] = 0;
 		}
-		if ( ! isset( $status['automatic'] ) ) {
-			$status['automatic'] = 0;
-		}
-		$enabled = $globally_enabled && 1 === (int) $status['live'] ? '' : 'hidden';
-		$hidden = ! $globally_enabled || 1 === (int) $status['live'] ? 'hidden' : '';
-		$recent = $globally_enabled && 1 === (int) $status['automatic'] ? '' : 'hidden';
 
 		if ( $globally_enabled ) {
 			if ( 1 === (int) $status['live'] ) {
-				$icon = 'live';
-				$toggle = '';
+				$toggle = 'live';
 			} else {
-				$icon = '';
-				$toggle = ' not-live';
+				$toggle = 'not-live';
 			}
 		} else {
-			$icon = 'disabled';
-			$toggle = ' no-toggle';
+			$toggle = 'globally_disabled';
 		}
-
-		echo '<div id="lp-pub-status-bar" class="misc-pub-section' . $toggle . '">';
-		echo "<div class=\"icon $icon\"></div>";
+		array_push( $classes, $toggle );
+	    return $classes;
+	}
+	
+	/**
+	 * Display the LivePress meta box above the Post Publish meta box
+	 */
+	public function livepress_status_meta_box() {
+		echo '<div id="lp-pub-status-bar" class="major-publishing-actions">';
 		echo '<div class="info">';
 		echo '<span class="first-line">';
-		_e( 'LivePress: ', 'livepress' );
-		echo "<span class=\"lp-on $enabled\">" . __( 'Live', 'livepress' ) . '</span>';
-		echo "<span class=\"lp-off $hidden\">" . __( 'Not Live', 'livepress' ) . '</span>';
-		echo "<span class=\"disabled $disabled\">" . __( 'Disabled', 'livepress' ) . '</span>';
-		echo '</span>';
-		echo '<span class="second-line">';
-		echo "<span class=\"recent $recent\">" . __( 'due to a recent update.', 'livepress' ) . '</span>';
-		echo "<span class=\"inactive $hidden\">" . __( 'post is inactive.', 'livepress' ) . '</span>';
-		echo "<span class=\"lp-off $disabled\">" . __( 'live updates globally turned off.', 'livepress' ) . '</span>';
-		echo ' <a class="toggle-live"><span>un-</span>mark as live</a>';
+		echo "<span class=\"lp-on\">" . wp_kses_post( 'This Post is <strong>LIVE</strong>', 'livepress' ) . '</span>';
+		echo "<span class=\"lp-off\">" . wp_kses_post( 'This Post is <strong>NOT LIVE</strong>', 'livepress' ) . '</span>';
+		echo "<span class=\"disabled\">" . wp_kses_post( 'LivePress is Disabled', 'livepress' ) . '</span>';
+		echo sprintf( ' <a class="toggle-live button turnoff">%s</a>', esc_html__( 'Turn off live', 'livepress' ) );
+		echo sprintf( ' <a class="toggle-live button turnon">%s</a>', esc_html__( 'Turn on live', 'livepress' ) );
 		echo '</span>';
 		echo '</div>';
 		echo '</div>';
-		echo '<div class="clear"></div>';
+		}
+	
+	/**
+	 * Add the LivePress meta box above the Post Publish meta box
+	 */
+	public function livepress_status() {
+		
+		$screens = array( 'post' );
+		add_meta_box(
+            'livepress_status_meta_box',
+            esc_html__( 'LivePress Status', 'livepress' ),
+            array( $this, 'livepress_status_meta_box' ),
+            'post',
+            'side',
+            'high'
+        );
 	}
-
+	
 	/**
 	 * Get all of the tabs for the Live Blogging Tools section.
 	 *
@@ -290,32 +304,32 @@ final class LivePress_Blogging_Tools {
 	public function setup_tabs() {
 		$this->add_tab( array(
 			'id'       => 'live-comments',
-		    'title'    => __( 'Comments', 'livepress' ),
+		    'title'    => esc_attr__( 'Comments', 'livepress' ),
 		    'callback' => array( $this, 'live_comments' )
 		) );
 
 		$this->add_tab( array(
 			'id'    => 'live-twitter-search',
-			'title' => __( 'Twitter Search', 'livepress' ),
+			'title' => esc_attr__( 'Twitter Search', 'livepress' ),
 		    'callback' => array( $this, 'live_twitter_search' )
 		) );
 
 		$this->add_tab( array(
 			'id'       => 'live-remote-authors',
-			'title'    => __( 'Manage Remote Authors', 'livepress' ),
+			'title'    => esc_attr__( 'Manage Remote Authors', 'livepress' ),
 		    'callback' => array( $this, 'remote_authors' )
 		) );
 
 		$this->add_tab( array(
 			'id'       => 'live-notes',
-			'title'    => __( 'Author Notes', 'livepress' ),
+			'title'    => esc_attr__( 'Author Notes', 'livepress' ),
 		    'callback' => array( $this, 'author_notes' )
 		) );
 
-		$sidebar = '<p><strong>' . __( 'This post at a glance:', 'livepress' ) . '</strong></p>';
-		$sidebar .= '<p class="live-highlight"><span id="livepress-comments_num">0</span> <span class="label">'. __( 'Comments', 'livepress' ) . '</span></p>';
-		$sidebar .= '<p class="live-highlight"><span id="livepress-authors_num">0</span> <span class="label">' . __( 'Remote Authors', 'livepress' ) . '</span></p>';
-		$sidebar .= '<p class="live-highlight"><span id="livepress-online_num">0</span> <span class="label">' . __( 'People Online', 'livepress' ) . '</span></p>';
+		$sidebar = '<p><strong>' . esc_html__( 'This post at a glance:', 'livepress' ) . '</strong></p>';
+		$sidebar .= '<p class="live-highlight"><span id="livepress-comments_num">0</span> <span class="label">'. esc_html__( 'Comments', 'livepress' ) . '</span></p>';
+		$sidebar .= '<p class="live-highlight"><span id="livepress-authors_num">0</span> <span class="label">' . esc_html__( 'Remote Authors', 'livepress' ) . '</span></p>';
+		$sidebar .= '<p class="live-highlight"><span id="livepress-online_num">0</span> <span class="label">' . esc_html__( 'People Online', 'livepress' ) . '</span></p>';
 
 		apply_filters( 'livepress_sidebar_top', $sidebar );
 
@@ -454,7 +468,7 @@ final class LivePress_Blogging_Tools {
 		if ( isset( $status['live'] ) ) {
 			$status['live'] = (int) ( ! $status['live']);
 		} else {
-			$status['live'] = 1;
+			$status['live'] = 0;
 		}
 
 		$this->save_option( 'live_status', $status, $post_id );
@@ -485,11 +499,33 @@ final class LivePress_Blogging_Tools {
 			$pointer['ajaxurl'] = admin_url( 'admin-ajax.php' );
 
 			$html = array();
-			$html[] = '<h3>' . __( 'New Real-Time Writing Tools!', 'livepress' ) . '</h3>';
-			$html[] = '<p>' . __( 'Click the above link to expand a set of tools for managing comments, searching Twitter, adding remote authors, and saving notes. &mdash; All in real-time!', 'livepress' ) . '</p>';
+			$html[] = '<h3>' . esc_html__( 'New Real-Time Writing Tools!', 'livepress' ) . '</h3>';
+			$html[] = '<p>' . esc_html__( 'Click the above link to expand a set of tools for managing comments, searching Twitter, adding remote authors, and saving notes. &mdash; All in real-time!', 'livepress' ) . '</p>';
 			$pointer['content'] = implode( '', $html );
 
 			wp_localize_script( 'livepress-pointer', 'livepress_pointer', $pointer );
 		}
 	}
+	
+	/** 
+	 * Display custom column on the Post list page
+	 */
+	function display_posts_livestatus( $column, $post_id ) {
+	    
+	    $status = $this->get_option( 'live_status', $post_id );
+		if ( ! isset( $status['live'] ) ) {
+			$status['live'] = 1;
+		}
+
+		if ( 1 === (int) $status['live'] ) {
+			$toggle = 'enabled';
+			$title = esc_html__( 'This Post is LIVE', 'livepress' );
+		} else {
+			$toggle = 'disabled';
+			$title = esc_html__( 'This Post is NOT LIVE', 'livepress' );
+		}
+
+	    echo sprintf( '<div title="%s" class="live-status-circle live-status-%s"></div>', $title, $toggle );
+	}
+	
 }
