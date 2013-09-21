@@ -68,7 +68,7 @@ class LivePress_PF_Updates {
 		add_action( 'wp_ajax_change_post_update', array( $this, 'change_update' ) );
 		add_action( 'wp_ajax_delete_post_update', array( $this, 'delete_update' ) );
 		add_action( 'wp_insert_post',             array( $this, 'prepend_lp_comment' ), 10, 2 );
-		add_action( 'delete_post',                array( $this, 'delete_children' ) );
+		//add_action( 'delete_post',                array( $this, 'delete_children' ) );
 
 		// Wire filters
 		add_filter( 'parse_query',         array( $this, 'hierarchical_posts_filter' ) );
@@ -232,7 +232,7 @@ class LivePress_PF_Updates {
 			return $content;
 		}
 
-		// Immediately remove filter so it's only ever run once
+		// Remove the filter to prevent an infinite cascade.
 		remove_filter( 'the_content', array( $this, 'add_children_to_post' ) );
 
 		global $post;
@@ -248,6 +248,9 @@ class LivePress_PF_Updates {
 
 		$content = join( '', $response );
 		$content = livepress_updater::instance()->add_global_post_content_tag( $content );
+
+		// Re-add the filter and carry on
+		add_filter( 'the_content', array( $this, 'add_children_to_post' ) );
 
 		return $content;
 	}

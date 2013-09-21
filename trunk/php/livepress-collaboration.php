@@ -15,8 +15,8 @@ class Collaboration {
                     post_id int not null,
                     user_id int not null,
                     term varchar(140) default '' not null,
-                    unique key post_user_term(post_id, user_id, term),
-                    key(term)
+                    UNIQUE KEY post_user_term (post_id,user_id,term),
+                    KEY (term)
                 );";
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
