@@ -97,7 +97,7 @@ The default tab IDs used in LivePress are:
 == Changelog ==
 
 = 1.0.4 =
-* Miscellaneous bug fixes 
+* Miscellaneous bug fixes
 
 = 1.0.3 =
 * Update connection to LivePress api to use port 80
