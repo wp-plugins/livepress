@@ -89,7 +89,7 @@ class livepress_updater {
 	  $term = $_POST["term"];
 	  $postId = $_POST["post_id"];
 
-	  check_ajax_referer('twitter_search_term');
+	  livepress_check_ajax_referer('twitter_search_term');
 	  if(Collaboration::twitter_search($action, $postId, $current_user->ID, $term)) {
 		  echo "{\"success\":\"OK\"}";
 	  } else {
@@ -105,7 +105,7 @@ class livepress_updater {
 	  $term = $_POST["username"];
 	  $postId = $_POST["post_id"];
 
-	  check_ajax_referer('twitter_follow');
+	  livepress_check_ajax_referer('twitter_follow');
 	  $ret = $this->livepress_communication->send_to_livepress_handle_twitter_follow($action, $term, $postId, $login);
 
 	  if ($ret == '{"errors":{"username":"[not_exists]"}}') {
@@ -119,7 +119,7 @@ class livepress_updater {
 	}
 
 	public function status() {
-	  check_ajax_referer('lp_status');
+	  livepress_check_ajax_referer('lp_status');
 	  $post_id = isset( $_GET['post_id'] ) ? $_GET['post_id'] : null;
 	  $uuid = lp_wp_utils::get_from_post($post_id, 'status_uuid', true);
 	  if ($uuid) {
