@@ -301,7 +301,7 @@ class livepress_communication {
       $params['post_id'] = $postId;
       $params['login'] = $login;
       $params["format"] = "json";
-      return wp_remote_retrieve_body($this->do_post_to_livepress("/blog/$ws_action", $params));
+      return wp_remote_retrieve_body( ( $this->do_post_to_livepress("/blog/$ws_action", $params ) ) );
     }
     /**
      * Validate the API key on livepress service.

@@ -324,7 +324,11 @@ class LivePress_PF_Updates {
 		if ( 1 === preg_match( '/\<\!--livepress(.+)--\>/', $post->post_content) ) {
 			$post->post_content = preg_replace( '/\<\!--livepress(.+)--\>/', '', $post->post_content );
 		}
-
+		
+		if ( '' === $post->post_content ) {
+			return;
+		}
+		
 		$md5 = md5( $post->post_content );
 
 		$post->post_content = "<!--livepress md5={$md5} id={$post_ID}-->" . $post->post_content;

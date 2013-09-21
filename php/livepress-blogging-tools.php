@@ -468,7 +468,7 @@ final class LivePress_Blogging_Tools {
 		if ( isset( $status['live'] ) ) {
 			$status['live'] = (int) ( ! $status['live']);
 		} else {
-			$status['live'] = 0;
+			$status['live'] = 1;
 		}
 
 		$this->save_option( 'live_status', $status, $post_id );
@@ -512,9 +512,13 @@ final class LivePress_Blogging_Tools {
 	 */
 	function display_posts_livestatus( $column, $post_id ) {
 	    
+	    if ( 'livepress_status' !== $column ) {
+	    	return;
+	    }
+	    
 	    $status = $this->get_option( 'live_status', $post_id );
 		if ( ! isset( $status['live'] ) ) {
-			$status['live'] = 1;
+			$status['live'] = 0;
 		}
 
 		if ( 1 === (int) $status['live'] ) {
