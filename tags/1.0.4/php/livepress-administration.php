@@ -735,21 +735,9 @@ class livepress_administration {
 	}
 }
 
-if ( !function_exists( 'check_ajax_referer' ) ) :
-	function check_ajax_referer( $action = -1, $query_arg = false, $die = true ) {
-		if ( $query_arg )
-			$nonce = $_REQUEST[$query_arg];
-		else
-			$nonce = isset($_REQUEST['_ajax_nonce']) ? $_REQUEST['_ajax_nonce'] : $_REQUEST['_wpnonce'];
-
-		$result = wp_verify_nonce( $nonce, (isset($_REQUEST['livepress_action']) ? livepress_updater::LIVEPRESS_ONCE : $action) );
-
-		if ( $die && false == $result )
-			die('-1');
-
-		do_action( 'check_ajax_referer', $action, $result );
-
-		return $result;
-	}endif;
+function livepress_check_ajax_referer( $action = -1, $query_arg = false, $die = true ) {
+	$override = (isset($_REQUEST['livepress_action']) ? livepress_updater::LIVEPRESS_ONCE : $action);
+	return check_ajax_referer( $override, $query_arg, $die );
+}
 
 ?>

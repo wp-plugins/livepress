@@ -557,6 +557,9 @@ Livepress.Admin.PostStatus = function () {
 			remove_spin();
 		} else if (status === "empty") {
 			remove_spin();
+		} else if (status === "-1") {
+			error("Wrong AJAX nonce.");
+			remove_spin();
 		} else {
 			setTimeout(SELF.check, CHECK_WAIT_TIME * 1000);
 		}
@@ -1711,7 +1714,7 @@ jQuery(function () {
 				 * Synchronize content from Real-Time Editor to hidden normal editor.
 				 * Copies full state of currently open editor, including open and not saved yet.
 				 */
-				syncData:       function () {
+				syncData:       function () { if(false) {
 					var newContent = "",
 						addCnt,
 						t;
@@ -1752,7 +1755,7 @@ jQuery(function () {
 					// We take over tinyMCE.editors.content namespace due to wordpress's hardcoding
 					t = tinyMCE.editors.originalContent || tinyMCE.editors.content;
 					t.setContent(switchEditors.wpautop(newContent), {format: 'raw'});
-				},
+				}},
 
 				/*
 				 * function: mergeData
