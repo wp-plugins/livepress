@@ -54,7 +54,7 @@ You can find information for developers [on this page](http://authoravatars.word
 
 == Upgrade Notice ==
 
-**Breaking change** in CSS *.multiwidget_author_avatars* is now *.widget_author_avatars*. This is caused by a library change  inorder to support the jetpack visibility option.
+<strong>Breaking change</strong> in CSS *.multiwidget_author_avatars* is now *.widget_author_avatars*. This is caused by a library change  inorder to support the jetpack visibility option.<br />
 If you have added CSS to your theme you may have to update it for this upgrade (do a find and replace).
 
 == Screenshots ==
