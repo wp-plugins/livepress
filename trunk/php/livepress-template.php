@@ -19,7 +19,9 @@ function livepressTemplate( $auto = false, $minutes_since_last = 0 ) {
         return;
 
 	$since_last = "updated $minutes_since_last minutes ago";
-	if ( $minutes_since_last == 1 ) {
+	if ( $minutes_since_last == 0 ) {
+		$since_last = "updated just now";
+	} else if ( $minutes_since_last == 1 ) {
 		$since_last = "updated 1 minute ago";
 	} else if ( $minutes_since_last >= 60 ) {
 		$since_last = "no recent updates";

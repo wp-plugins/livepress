@@ -42,7 +42,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				tweetTrackerPaused--;
 				if (tweetTrackerPaused <= 0) {
 					tweetTrackerPaused = 0;
-					liveCounter.disable();
+					//liveCounter.disable();
 					twitter.appendGatheredTweets();
 
 					jQuery(tweet_player_id).attr('title', "Click to pause the tweets so you can decide when to display them").removeClass('paused');
@@ -54,7 +54,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 			var pause = function () {
 				tweetTrackerPaused++;
 				if (tweetTrackerPaused === 1) {
-					liveCounter.enable();
+					//liveCounter.enable();
 
 					jQuery(tweet_player_id).attr('title', "Click to copy tweets into the post editor.").addClass('paused');
 					jQuery(tweetContainer).addClass('paused');

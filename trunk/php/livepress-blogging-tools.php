@@ -33,13 +33,13 @@ final class LivePress_Blogging_Tools {
 		add_action( 'admin_enqueue_scripts', array( $this, 'feature_pointer' ) );
 		add_filter( 'postbox_classes_post_livepress_status_meta_box', array( $this, 'add_livepress_status_metabox_classes' ) );
 	}
-	
+
 	/**
 	 * Add appropriate classes to the meta box for proper diaplay of LivePress status
 	 * Adds one of 'live','not-live' or 'globally_disabled'
-	 * 
+	 *
 	 * @param array $classes existing classes for the meta box
-	 * @return array ammended classes for the meta box 
+	 * @return array ammended classes for the meta box
 	 */
 	public function add_livepress_status_metabox_classes( $classes ) {
 		global $post;
@@ -64,7 +64,7 @@ final class LivePress_Blogging_Tools {
 		array_push( $classes, $toggle );
 	    return $classes;
 	}
-	
+
 	/**
 	 * Display the LivePress meta box above the Post Publish meta box
 	 */
@@ -81,12 +81,12 @@ final class LivePress_Blogging_Tools {
 		echo '</div>';
 		echo '</div>';
 		}
-	
+
 	/**
 	 * Add the LivePress meta box above the Post Publish meta box
 	 */
 	public function livepress_status() {
-		
+
 		$screens = array( 'post' );
 		add_meta_box(
             'livepress_status_meta_box',
@@ -97,7 +97,7 @@ final class LivePress_Blogging_Tools {
             'high'
         );
 	}
-	
+
 	/**
 	 * Get all of the tabs for the Live Blogging Tools section.
 	 *
@@ -452,6 +452,24 @@ final class LivePress_Blogging_Tools {
 	}
 
 	/**
+	 * Merge the children of a post via AJAX.
+	 */
+	/*
+	public function ajax_merge_children() {
+
+		$post_id = (int) $_POST['post_id'];
+		$nonce = $_POST['_ajax_nonce'];
+
+		if ( ! wp_verify_nonce( $nonce, 'livepress-merge_post-' . $post_id ) )
+			die();
+
+		// Merge and update the post
+		LivePress_PF_Updates::get_instance()->merge_children( $post_id );
+
+		die();
+	}
+*/
+	/**
 	 * Toggle the live status of the current post via AJAX.
 	 */
 	public function toggle_live_status() {
@@ -506,16 +524,16 @@ final class LivePress_Blogging_Tools {
 			wp_localize_script( 'livepress-pointer', 'livepress_pointer', $pointer );
 		}
 	}
-	
-	/** 
+
+	/**
 	 * Display custom column on the Post list page
 	 */
 	function display_posts_livestatus( $column, $post_id ) {
-	    
+
 	    if ( 'livepress_status' !== $column ) {
 	    	return;
 	    }
-	    
+
 	    $status = $this->get_option( 'live_status', $post_id );
 		if ( ! isset( $status['live'] ) ) {
 			$status['live'] = 0;
@@ -531,5 +549,5 @@ final class LivePress_Blogging_Tools {
 
 	    echo sprintf( '<div title="%s" class="live-status-circle live-status-%s"></div>', $title, $toggle );
 	}
-	
+
 }

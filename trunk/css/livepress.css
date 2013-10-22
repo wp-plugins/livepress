@@ -109,7 +109,7 @@
 	right: 3px;
 	display: none;
 }
-	
+
 /* odd items */
 .odd {	background: #f9f9f9;}
 
@@ -123,7 +123,7 @@
 
 /* @group Update Area */
 #livepress-canvas .update-count {
-	padding: 5px;	
+	padding: 5px;
 }
 
 .livepress-meta {
@@ -418,7 +418,7 @@ x#lp-pane-errors p.lp-pane-warning {
 	cursor: pointer;
 }
 #lp-dashboard-panes .menu-top.active {
-	border: 1px solid #aaaaaa;	
+	border: 1px solid #aaaaaa;
 	background:#f1f1f1 url(../img/menu-bits.gif) repeat-x scroll top left;
 	border-bottom: 0;
 	}
@@ -660,7 +660,7 @@ a.lp-comment-link:hover {
 	margin-top: 0;
 }
 
-#lp-account-list li {	
+#lp-account-list li {
 	border-bottom: 1px solid #efefef;
 	margin-bottom: 0;
 	padding: 5px 10px;
@@ -686,7 +686,7 @@ a.lp-comment-link:hover {
 	border-radius: 8px
 }
 .lp-term:hover {
-		
+
 	}
 
 .lp-term span{
@@ -918,20 +918,40 @@ a.lp-tweet-clean-button:hover {
 }
 
 .live-status-circle {
-    border-radius: 50%;
-    width: 10px;
-    height: 10px; 
-    margin: 20%;
+	border-radius: 50%;
+	width: 10px;
+	height: 10px;
+	margin: 3px 0 0;
+	padding: 0;
 }
 
 .live-status-enabled {
-    background-color: #69ca14;	
-    border: 1px solid #69ca0f;
+	background-color: #69ca14;
+	border: 1px solid #69ca0f;
 }
 
 .live-status-disabled {
-    background-color: #cacaca;	
-    border: 1px solid #999;	
+	background-color: #cacaca;
+	border: 1px solid #999;
+}
+
+#merging_posts {
+	height: 16px;
+	margin: auto;
+	width: 100px;
+	background: url(../img/spin.gif);
+	background-position: left;
+	background-repeat: no-repeat;
+	padding-left: 20px;
+	font-weight: bold;
+	display: none;
+}
+
+.now_merging #merging_posts {
+	display: inline;
+}
+.now_merging #confirmation_message {
+	display: none;
 }
 
 /* @end */

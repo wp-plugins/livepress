@@ -130,14 +130,16 @@ class livepress_administration {
 
 	function admin_footer() {
 		global $post;
-		$change = wp_create_nonce( 'livepress-change_post_update-' . $post->ID );
-		$append = wp_create_nonce( 'livepress-append_post_update-' . $post->ID );
-		$delete = wp_create_nonce( 'livepress-delete_post_update-' . $post->ID );
-		$live_notes = wp_create_nonce( 'livepress-update_live-notes-' . $post->ID );
-		$live_comments = wp_create_nonce( 'livepress-update_live-comments-' . $post->ID );
-		$live_toggle = wp_create_nonce( 'livepress-update_live-status-' . $post->ID );
+		$change =         wp_create_nonce( 'livepress-change_post_update-' . $post->ID );
+		$append =         wp_create_nonce( 'livepress-append_post_update-' . $post->ID );
+		$delete =         wp_create_nonce( 'livepress-delete_post_update-' . $post->ID );
+		$merge_noonce  =  wp_create_nonce( 'livepress-merge_post-' . $post->ID );
+		$live_notes =     wp_create_nonce( 'livepress-update_live-notes-' . $post->ID );
+		$live_comments =  wp_create_nonce( 'livepress-update_live-comments-' . $post->ID );
+		$live_toggle =    wp_create_nonce( 'livepress-update_live-status-' . $post->ID );
+
 		printf( '<span id="livepress-nonces" style="display:none" data-change-nonce="%s" data-append-nonce="%s" data-delete-nonce="%s"></span>', $change, $append, $delete );
-		printf( '<span id="blogging-tool-nonces" style="display:none" data-live-notes="%s" data-live-comments="%s" data-live-status="%s"></span>', $live_notes, $live_comments, $live_toggle );
+		printf( '<span id="blogging-tool-nonces" style="display:none" data-live-notes="%s" data-live-comments="%s" data-live-status="%s" data-merge-post="%s"></span>', $live_notes, $live_comments, $live_toggle, $merge_noonce );
 	}
 
 	public function enable_remote_post($user_id) {

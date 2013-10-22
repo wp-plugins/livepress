@@ -26,6 +26,7 @@ class livepress_config {
 		'JABBER_DOMAIN'             => 'livepress.com',
 		'PLUGIN_SYMLINK'            => FALSE,
 		'SCRAPE_HOOKS'              => FALSE,
+		'PLUGIN_NAME'               => 'livepress-wp',
 	);
 	private static $singleton_instance = null;
 

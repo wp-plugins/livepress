@@ -364,6 +364,22 @@ class livepress_communication {
         return $this->request_content_from_livepress('/blog_user/manage_remote_post_from_twitter', 'post', $params);
     }
 
+
+    /**
+     * Enable/Disable a blog user to remote post from twitter.
+     *
+     * @param   string   $screen_name   The twitter username to follow.
+     * @param   string   $username      Blog user login.
+     *
+     * @return  string     Server HTTP response.
+     * @throws  livepress_communication_exception    If failed at some step.
+     */
+    public function set_phone_number($phone_number, $username) {
+        $params['username'] = $username;
+        $params['blog_user_updates[phone_number]'] = $phone_number;
+        return $this->request_content_from_livepress('/blog_user/set_phone_number', 'post', $params);
+    }
+
     /**
      * Do a request to Twitter api to get an avatar url.
      * @param string $username The username of the Twitter account.

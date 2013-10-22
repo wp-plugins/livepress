@@ -31,6 +31,7 @@ class livepress_user_settings {
 	function save_fields_err(&$errors, $update, &$user) {
 		foreach($this->messages['error'] as $err) {
 			$errors->add('lp_twitter', $err);
+			$errors->add('lp_phone_number', $err);
 		}
 		return $errors;
 	}
@@ -64,14 +65,18 @@ class livepress_user_settings {
 			return;
 
 		$lp_twitter = get_user_meta( $user->ID, 'lp_twitter', true ); // returns empty string if not set, perfect
+		$lp_phone_number = get_user_meta( $user->ID, 'lp_phone_number', true ); // returns empty string if not set, perfect
 
 		$lp_options = get_option('livepress');
 
-		// Only display this form if remote twitter is allowed by an admin.
-		if ( isset( $lp_options['allow_remote_twitter'] ) && $lp_options['allow_remote_twitter'] == 'allow' ):
+		// Only display this form if atremote twitter or remote SMS is allowed by an admin.
+		if ( ( isset( $lp_options['allow_remote_twitter'] ) && $lp_options['allow_remote_twitter'] == 'allow' ) ||  ( isset( $lp_options['allow_sms'] ) && $lp_options['allow_sms'] == 'allow' ) ):
 		?>
 		<h3>LivePress</h3>
 		<table class="form-table">
+		<?php
+			if ( ( isset( $lp_options['allow_remote_twitter'] ) && $lp_options['allow_remote_twitter'] == 'allow' ) ):
+		?>
 			<tr>
 				<th><label for="lp_twitter">Publish from Twitter</label></th>
 				<td class="input-prepend">
@@ -92,6 +97,35 @@ class livepress_user_settings {
 					</table>
 				</td>
 			</tr>
+		<?php
+			endif;
+			if ( ( isset( $lp_options['allow_sms'] ) && $lp_options['allow_sms'] == 'allow' ) ):
+		?>
+		<tr>
+			<th><label for="lp_phone_number">Your Mobile Phone Number, to publish from SMS</label></th>
+			<td class="input-prepend">
+				<input type="text" name="lp_phone_number" id="lp_phone_number" value="<?php echo esc_attr( $lp_phone_number ); ?>" class="regular-text" />
+				<table class="description">
+					<tr>
+						<td colspan="2">Text commands from your phone to LivePress at: <a href="sms:14157020916">1-415-702-0916</a></td>
+					</tr>
+					<tr>
+						<td><code>#new post title</code></td>
+						<td>Create a new live blog post with title "post title"</td>
+					</tr>
+					<tr>
+						<td><code>#list</code></td>
+						<td>List recent live blog posts</td>
+					</tr>
+					<tr>
+						<td colspan="2">...and much more, for a complete list text <code>#help</code> to <a href="sms:14157020916">1-415-702-0916</a></td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<?php
+			endif;
+		?>
 		</table>
 		<?php
 		endif;
@@ -111,15 +145,17 @@ class livepress_user_settings {
 		if ( ! current_user_can( 'edit_user', $user_id ) && wp_verify_nonce( $_POST['_wpnonce'] ) )
 			return $user_id;
 
+			// TOOO: lp_phone_number
+
 		$old_lp_twitter = get_user_meta( $user_id, 'lp_twitter', true ); // returns empty string if not set, perfect
-		$lp_twitter = sanitize_text_field( $_POST['lp_twitter'] );
+		$lp_twitter = isset( $_POST['lp_twitter'] ) ? sanitize_text_field( $_POST['lp_twitter'] ) : '';
 		if($old_lp_twitter != $lp_twitter) {
 			$user = get_userdata( $user_id );
 
 			$options = get_option(livepress_administration::$options_name);
 			$livepress_com = new livepress_communication($options['api_key']);
 
-			$error_message = ''; 
+			$error_message = '';
 			try {
 				$return_code = $livepress_com->manage_remote_post_from_twitter( $lp_twitter, $user->user_login );
 			} catch ( livepress_communication_exception $e ) {
@@ -131,7 +167,7 @@ class livepress_user_settings {
 				$la = new livepress_administration();
 				$error_message = $livepress_com->get_last_error_message();
 				if ( ! $la->enable_remote_post( $user_id ) ) {
-					$this->add_error( "Can't create user at livepress side: ", $error_message );
+					$this->add_error( "Error from the LivePress service: ", $error_message );
 				} else {
 					$error_message = '';
 					try {
@@ -154,6 +190,53 @@ class livepress_user_settings {
 					delete_user_meta( $user_id, 'lp_twitter' );
 				} else { // Update meta with current lp_twitter
 					update_user_meta( $user_id, 'lp_twitter', $lp_twitter );
+				}
+			}
+		}
+
+		$old_lp_phone_number = get_user_meta( $user_id, 'lp_phone_number', true ); // returns empty string if not set, perfect
+		$lp_phone_number = isset( $_POST['lp_phone_number'] ) ? sanitize_text_field( $_POST['lp_phone_number'] ) : '';
+		if($old_lp_phone_number != $lp_phone_number) {
+			$user = get_userdata( $user_id );
+
+			$options = get_option(livepress_administration::$options_name);
+			$livepress_com = new livepress_communication($options['api_key']);
+
+			$error_message = '';
+			try {
+				$return_code = $livepress_com->set_phone_number( $lp_phone_number, $user->user_login );
+			} catch ( livepress_communication_exception $e ) {
+				$return_code = $e->get_code();
+				$error_message = $e->getMessage();
+			}
+
+			if ( $return_code == 403 ) { /* User not found at livepress, or password invalid */
+				$la = new livepress_administration();
+				$error_message = $livepress_com->get_last_error_message();
+				if ( ! $la->enable_remote_post( $user_id ) ) {
+					$this->add_error( "Error from the LivePress service: ", $error_message );
+				} else {
+					$error_message = '';
+					try {
+						$return_code = $livepress_com->set_phone_number( $lp_phone_number, $user->user_login );
+					} catch ( livepress_communication_exception $e ) {
+						$return_code = $e->get_code();
+						$error_message = $e->getMessage();
+					}
+				}
+			}
+
+			if ( $return_code != 200 && $return_code != "OK." ) {
+				if ( strlen( $error_message ) > 0 ) {
+					$this->add_error( "Problem with setting phone number: " . $error_message ); // Show existing error
+				} else {
+					$this->add_error( "Problem with setting phone number: error #" . $return_code ); // Show error code if no msg
+				}
+			} else { // No error
+				if ( empty( $lp_phone_number ) ) { // None left, delete meta
+					delete_user_meta( $user_id, 'lp_phone_number' );
+				} else { // Update meta with current lp_phone_number
+					update_user_meta( $user_id, 'lp_phone_number', $lp_phone_number );
 				}
 			}
 		}
