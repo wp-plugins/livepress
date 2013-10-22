@@ -34,7 +34,7 @@ class livepress_admin_settings {
 				'notifications'                => array( 'tool-tip' ),
 				'byline_style'                 => '',
 				'allow_remote_twitter'         => true,
-
+				'allow_sms'                    => true,
 				'enabled_to'                   => 'all',
 				'disable_comments'             => false,
 				'comment_live_updates_default' => false,
@@ -92,6 +92,7 @@ class livepress_admin_settings {
 		add_settings_field( 'notifications', 'Readers receive these notifications when you update or publish a post', array($this, 'notifications_form'), 'livepress-settings', 'lp-appearance' );
 		//add_settings_field( 'byline_style', 'Byline and Timestamp Format', array($this, 'byline_style_form'), 'livepress-settings', 'lp-appearance' );
 		add_settings_field( 'allow_remote_twitter', 'Allow authors to publish via Twitter', array($this, 'allow_remote_twitter_form'), 'livepress-settings', 'lp-remote' );
+		add_settings_field( 'allow_sms', 'Allow authors to publish via SMS', array($this, 'allow_sms_form'), 'livepress-settings', 'lp-remote' );
 		add_settings_field( 'post_to_twitter', 'Publish Updates to Twitter', array( $this, 'push_to_twitter_form' ), 'livepress-settings', 'lp-remote' );
 		// add_settings_field( 'enabled_to', 'Enabled_to?', array( $this, 'enabled_to_form' ), 'livepress-settings', 'lp-appearance' ); // Whitelist, but don't expose a UI
 	}
@@ -157,6 +158,12 @@ class livepress_admin_settings {
 		$settings = $this->settings;
 		echo '<p><label><input type="checkbox" name="livepress[allow_remote_twitter]" id="lp-remote" value="allow"' .
 		checked( 'allow', $settings->allow_remote_twitter, false ) . '"> Allow</label></p>';
+	}
+
+	function allow_sms_form() {
+		$settings = $this->settings;
+		echo '<p><label><input type="checkbox" name="livepress[allow_sms]" id="lp-sms" value="allow"' .
+		checked( 'allow', $settings->allow_sms, false ) . '"> Allow</label></p>';
 	}
 
 	function push_to_twitter_form() {
@@ -226,6 +233,12 @@ class livepress_admin_settings {
 
 		if ( isset( $input['oauth_authorized_user'] ) ) {
 			$sanitized_input['oauth_authorized_user'] = sanitize_text_field( $input['oauth_authorized_user'] );
+		}
+
+		if ( isset( $input['allow_sms'] ) ) {
+			$sanitized_input['allow_sms'] = 'allow';
+		} else {
+			$sanitized_input['allow_sms'] = 'deny';
 		}
 
 		if ( isset( $input['post_to_twitter'] ) ) {

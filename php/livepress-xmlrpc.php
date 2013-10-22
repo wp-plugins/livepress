@@ -31,7 +31,8 @@ class livepress_xmlrpc {
 
 	function add_livepress_functions_to_xmlrpc( $methods ) {
 		// unfortunatelly, it seems passed function names must relate to global ones
-		$methods['livepress.appendToPost'] = 'livepress_append_to_post';
+		$methods['livepress.appendToPost']      = 'livepress_append_to_post';
+		$methods['livepress.setPostLiveStatus'] = 'livepress_set_post_live_status';
 		if ( livepress_config::get_instance()->scrape_hooks() ) {
 			$methods['scrape.newComment'] = 'new_comment_from_scrape';
 		}
@@ -394,4 +395,35 @@ function livepress_append_to_post( $args ) {
 
 	return $wp_xmlrpc_server->mw_editPost( $args );
 }
+
+/**
+ * Called by livepress webservice to set the live status of a post.
+ *
+ * @param array $args {
+ *		An array of arguments.
+ *		@param string $username    Username for action.
+ *		@param string $password    Livepress generated user access key.
+ *		@param string $post_id     ID of the post to set the status of.
+ *		@param bool   $live_status True to turn live on, false to turn live off.
+ * }
+ */
+function livepress_set_post_live_status( $args ) {
+	global $wp_xmlrpc_server, $wpdb;
+
+	$username       = $wpdb->escape( $args[0] );
+	$password       = $wpdb->escape( $args[1] );
+	$post_id        = (int)  $args[2];
+	$live_status    = (bool) $args[3];
+
+	// Verify user is autorized
+	if ( ! $wp_xmlrpc_server->login( $username, $password ) ) {
+		return $wp_xmlrpc_server->error;
+	}
+
+	// Set the post live status
+	$status = array( 'automatic' => $live_status ? 1 : 0, 'live' => $live_status ? 1 : 0 );
+	update_post_meta( $post_id, '_livepress_live_status', $status );
+}
+
+
 ?>

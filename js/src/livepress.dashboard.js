@@ -12,7 +12,9 @@ Dashboard.Controller = Dashboard.Controller || function () {
 
 	var init = function () {
 		if ( Dashboard.Twitter !== undefined ) {
-			Dashboard.Twitter.init();
+			setTimeout( function() {
+				Dashboard.Twitter.init();
+			}, 500 );
 		}
 		if ( Dashboard.Comments !== undefined ) {
 			if ( Livepress.Config.disable_comments ) {
@@ -65,6 +67,9 @@ Dashboard.Controller = Dashboard.Controller || function () {
 			}
 			publish.removeClass( "button-primary" ).addClass( "button-secondary" );
 			jQuery( window ).trigger( 'start.livepress' );
+
+			// Unbind the editor tab click - only showing live editor when live
+			jQuery( '#wp-content-editor-tools' ).unbind();
 		} else {
 			switchWarning.show();
 			publish.val( publish.data( 'publishText' ) ).removeClass( "button-secondary" ).addClass( "button-primary" );
@@ -246,7 +251,7 @@ function DHelpers() {
 	SELF.createLiveCounter = function ( container ) {
 		return new LiveCounter( container );
 	};
-	
+
 	/**
 	 * Ensure Live Blogging Tools & Real Time open/closed when post is live/not live
 	 */
@@ -257,7 +262,7 @@ function DHelpers() {
 			if ( jQuery( '.livepress-update-form' ).not(':visible') ) { // Is the LivePress live update form hidden?
 				jQuery( '#content-livepress' ).trigger( 'click' ); // If so, click the tab to open it.
 			}
-			
+
 			// Open the Live Blogging Tools area if not already open.
 			if ( 'true' !== jQuery( 'a#blogging-tools-link' ).attr( 'aria-expanded' ) ) { // Is the live blogging closed?
 				jQuery( 'a#blogging-tools-link' ).trigger( 'click' ); // If so, click the tab to open it.
@@ -275,7 +280,7 @@ function DHelpers() {
 			}
 		}
 	};
-	
+
 }
 
 Dashboard.Helpers = Dashboard.Helpers || new DHelpers();

@@ -38,13 +38,17 @@ class livepress_updater {
 		$this->user_options = get_user_option(livepress_administration::$options_name, $current_user->ID, false);
 		$this->lp_comment = new lp_comment($this->options);
 
-		add_action( 'delete_post',            array( $this, 'remove_related_followers' ) );
+		add_action( 'before_delete_post',     array( $this, 'remove_related_followers' ) );
+
 		add_action( 'transition_post_status', array( $this, 'send_to_livepress_new_post' ), 10, 3 );
 		add_action( 'private_to_publish',     array( $this, 'livepress_publish_post' ) );
 
 		add_action( 'wp_ajax_twitter_search_term', array( $this, 'twitter_search_callback' ) );
 		add_action( 'wp_ajax_twitter_follow',      array( $this, 'twitter_follow_callback' ) );
 		add_action( 'wp_ajax_lp_status',           array( $this, 'status' ) );
+
+		// Filter post meta to disable post locking for live posts
+		add_filter( 'update_post_metadata', array( $this, 'livepress_filter_post_locks' ), 10, 5 );
 
 		$this->lp_comment->do_wp_binds( isset($_POST["livepress_update"]) );
 		if ( !isset($_POST["livepress_update"]) ) {
@@ -65,7 +69,9 @@ class livepress_updater {
 				}
 			}
 
-			add_action('pre_post_update', array(&$this, 'save_old_post'),  999);
+			add_action( 'pre_post_update',  array( &$this, 'save_old_post' ),  999 );
+			add_filter( 'edit_post', array( &$this, 'maybe_merge_post' ), 10 );
+
 			//add_action('save_post',       array(&$this, 'send_to_livepress_post_update'));
 			// Ensuring that the post is divided into micro-post livepress chunks
 			$live_update = $this->init_live_update();
@@ -139,7 +145,7 @@ class livepress_updater {
 	  die;
 	}
 
-	// called on delete_post
+	// called on before_delete_post
 	public function remove_related_followers($postId) {
 	  global $current_user;
 	  $login = $current_user->user_login;
@@ -223,6 +229,13 @@ class livepress_updater {
 
 			wp_enqueue_script( 'lp-admin', LP_PLUGIN_URL_BASE . 'js/admin/livepress-admin.' . $mode . '.js', array('jquery'), LP_PLUGIN_VERSION );
 			wp_enqueue_script( 'dashboard-dyn', LP_PLUGIN_URL_BASE . '/js/dashboard-dyn.' . $mode . '.js', array( 'jquery', 'lp-admin' ), LP_PLUGIN_VERSION );
+
+			// Localize strings for merge confirmation.
+			$merge_confirmation = array(
+				'content' => esc_html__( 'Are you sure you want to switch to Not Live?', 'livepress' ),
+			);
+			wp_localize_script( 'lp-admin', 'livepress_merge_confirmation', $merge_confirmation );
+
 		}
 
 		$current_theme = str_replace(' ', '-', strtolower( wp_get_theme()->Name ));
@@ -231,6 +244,53 @@ class livepress_updater {
 			wp_enqueue_style( 'livepress_theme_hacks' );
 		}
 	}
+
+	/**
+	 * Filter update_post_meta, discard post locks for live posts.
+	 * @return false if post is live and meta key is _edit_lock
+	 */
+	function livepress_filter_post_locks() {
+		$args = func_get_args();
+		if( is_admin() && isset( $args[1] ) && isset( $args[2] ) && $args[2] == '_edit_lock' ) {
+			$status = get_post_meta( $args[1], '_livepress_live_status', true );
+			if ( isset( $status['live'] ) && 1 === (int) $status['live'] ) {
+				return false;
+			}
+		}
+	}
+
+	/**
+	* Merge child posts when merge action initiated.
+	**/
+	function maybe_merge_post( $post_id ) {
+
+		if ( ! isset( $_GET['merge_noonce'] ) || ! isset( $_GET['merge_action'] ) ){
+			return false;
+		}
+
+		if ( 'merge_children' !== $_GET['merge_action'] );
+
+		$nonce = $_GET['merge_noonce'];
+
+		if ( ! wp_verify_nonce( $nonce, 'livepress-merge_post-' . $post_id ) ) {
+			return false;
+		}
+
+		// Temporarily remove the edit post filter, so we can update without firing it again.
+		remove_filter( 'edit_post', array( &$this, 'maybe_merge_post' ), 10 );
+
+		// Merge the child posts
+		$post = LivePress_PF_Updates::get_instance()->merge_children( $post_id );
+
+		// Update the post
+		wp_update_post( $post );
+
+		// Re-add the edit_post filter.
+		add_filter( 'edit_post', array( &$this, 'maybe_merge_post' ), 10 );
+
+		return true;
+	}
+
 
 	function add_js_config( $hook = null ) {
 		if ( $hook != null && $hook != 'post-new.php' && $hook != 'post.php' && $hook != 'settings_page_livepress-settings' )
@@ -434,7 +494,7 @@ class livepress_updater {
 
 	/* Adds a div tag surrounding the post text so oortle dom manipulator
 	 * can find where it should do the changes */
-	function add_global_post_content_tag($content){
+	function add_global_post_content_tag($content, $post_modified_gmt = null){
 		global $post;
 		$div_id = null;
 		if ( is_page() || is_single() ) {
@@ -450,11 +510,15 @@ class livepress_updater {
 		}
 
 		if ( $this->inject ) {
-			$modified = new DateTime( $post->post_modified_gmt );
+			if($post_modified_gmt===null) {
+				$post_modified_gmt = $post->post_modified_gmt;
+			}
+
+			$modified = new DateTime( $post_modified_gmt, new DateTimeZone('UTC') );
 			$since = $modified->diff( new DateTime() );
 
 			// If an update is more than an hour old, we don't care how old it is ... it's out-of-date.
-			$last_update = $since->h * 60;
+			$last_update = $since->days*24*60 + $since->h * 60;
 			$last_update += $since->i;
 
 			$content = livepress_themes_helper::instance()->inject_widget( $content, $last_update );
@@ -607,5 +671,9 @@ class livepress_updater {
 	private function delete_from_post($post_id, $key, $value = null) {
 		return delete_post_meta($post_id, "_".PLUGIN_NAME."_". $key, $value);
 	}
+
+
+
+
 }
 ?>

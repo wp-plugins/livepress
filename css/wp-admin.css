@@ -10,8 +10,14 @@
 .input-prepend.add-on {
 	font-size: 12px;
 }
+
 #lp_twitter {
 	width: 15em;
+	margin-right: 10px;
+}
+
+#lp_phone_number {
+	width: 206px;
 	margin-right: 10px;
 }
 

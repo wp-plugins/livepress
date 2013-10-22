@@ -445,7 +445,8 @@ Livepress.Admin.Tools = function () {
 	 */
 	function wireupDefaults () {
 		var nonces = jQuery('#blogging-tool-nonces'),
-			SELF   = this;
+			SELF   = this,
+			promises;
 
 		jQuery('#tab-panel-live-notes').on('click', 'input[type="submit"]', function (e) {
 			var submit = jQuery( this ),
@@ -480,23 +481,57 @@ Livepress.Admin.Tools = function () {
 
 		jQuery('#lp-pub-status-bar').on('click', 'a.toggle-live', function (e) {
 			e.preventDefault();
+			// The following line excludes livepress_merge_confirmation (passed via wp_localize_script) from jshint warnings.
+			/* global livepress_merge_confirmation */
 
-			jQuery.ajax({
-				url:     Livepress.Config.ajax_url,
-				data:    {
-					action:     'update-live-status',
-					post_id:    Livepress.Config.post_id,
-					ajax_nonce: nonces.data('live-status')
-				},
-				type:    'post',
-				success: function (data) {
-					var $bar = jQuery('#livepress_status_meta_box').toggleClass('live').toggleClass('not-live');
-					SELF.Dashboard.Helpers.setupLivePressTabs();
+			// If already live, warn user
+			if ( jQuery( '#livepress_status_meta_box' ).hasClass( 'live' ) ) {
+
+				if ( confirm( livepress_merge_confirmation.content ) ){
+					promises = toggleLiveStatus();
+					jQuery.when( promises ).done( function() {
+						// When toggle complete, redirect to complete the merge
+						jQuery( 'form#post' )
+							.attr( 'action', jQuery( 'form#post' ).attr( 'action' ) +
+								'?post=' + Livepress.Config.post_id + '&action=edit' +
+								'&merge_action=merge_children&merge_noonce=' + nonces.data( 'merge-post' ) )
+							.submit();
+					});
 				}
-			});
+			} else {
+				// Transitioning to live
+				promises = toggleLiveStatus();
+				jQuery.when( promises ).done( function() {
+					setTimeout( function(){
+						jQuery( '#publish' ).removeAttr('disabled').click();
+					}, 50);
+				});
+			}
+
+	});
+
+	/**
+	 * Toggle live status with server
+	 */
+	function toggleLiveStatus() {
+		var promise1,
+			promise2;
+
+		promise1 = jQuery.ajax({
+			url:     Livepress.Config.ajax_url,
+			data:    {
+				action:     'update-live-status',
+				post_id:    Livepress.Config.post_id,
+				ajax_nonce: nonces.data('live-status')
+			},
+			type:    'post',
+			success: function (data) {
+					jQuery('#livepress_status_meta_box').toggleClass('live').toggleClass('not-live');
+					SELF.Dashboard.Helpers.setupLivePressTabs();
+			}
 		});
 
-		jQuery.ajax({
+		promise2 = jQuery.ajax({
 			url:      Livepress.Config.ajax_url,
 			data:     {
 				action:  'update-live-comments',
@@ -510,12 +545,10 @@ Livepress.Admin.Tools = function () {
 			}
 		});
 
-		// Initialize the Twitter handler
-		if ( undefined !== window.Dashboard ) {
-			window.Dashboard.Twitter.init();
-		}
+		// Return a promise combining callbacks
+		return ( jQuery.when( promise1, promise2 ) );
 	}
-
+}
 	/**
 	 * Render the loaded default tabs into the UI.
 	 */

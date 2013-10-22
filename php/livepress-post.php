@@ -75,16 +75,18 @@ class livepress_post {
         $dom = $this->parse_content();
         $all_node = $dom->childNodes->item(0);
         $count = 0;
-        for ($number = 0; $number < $all_node->childNodes->length; $number++) {
-            $top_node = $all_node->childNodes->item($number);
-            $is_chunk_element = $top_node->nodeType == XML_ELEMENT_NODE
-                 && $top_node->tagName == self::$chunks_tag
-                 && in_array(self::$chunks_class,
-                             explode(" ", $top_node->getAttribute('class')));
-            if ($is_chunk_element) {
-                $count++;
-            }
-        }
+        if( isset( $all_node->childNodes->length ) ){
+	        for ($number = 0; $number < $all_node->childNodes->length; $number++) {
+	            $top_node = $all_node->childNodes->item($number);
+	            $is_chunk_element = $top_node->nodeType == XML_ELEMENT_NODE
+	                 && $top_node->tagName == self::$chunks_tag
+	                 && in_array(self::$chunks_class,
+	                             explode(" ", $top_node->getAttribute('class')));
+	            if ($is_chunk_element) {
+	                $count++;
+	            }
+	        }
+	    }
         return $count;
     }
 

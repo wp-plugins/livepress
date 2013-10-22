@@ -1,4 +1,4 @@
-/*! livepress -v1.0.4
+/*! livepress -v1.0.5
  * http://livepress.com/
  * Copyright (c) 2013 LivePress, Inc.
  */
@@ -1208,7 +1208,9 @@ Dashboard.Controller = Dashboard.Controller || function () {
 
 	var init = function () {
 		if ( Dashboard.Twitter !== undefined ) {
-			Dashboard.Twitter.init();
+			setTimeout( function() {
+				Dashboard.Twitter.init();
+			}, 500 );
 		}
 		if ( Dashboard.Comments !== undefined ) {
 			if ( Livepress.Config.disable_comments ) {
@@ -1261,6 +1263,9 @@ Dashboard.Controller = Dashboard.Controller || function () {
 			}
 			publish.removeClass( "button-primary" ).addClass( "button-secondary" );
 			jQuery( window ).trigger( 'start.livepress' );
+
+			// Unbind the editor tab click - only showing live editor when live
+			jQuery( '#wp-content-editor-tools' ).unbind();
 		} else {
 			switchWarning.show();
 			publish.val( publish.data( 'publishText' ) ).removeClass( "button-secondary" ).addClass( "button-primary" );
@@ -1442,7 +1447,7 @@ function DHelpers() {
 	SELF.createLiveCounter = function ( container ) {
 		return new LiveCounter( container );
 	};
-	
+
 	/**
 	 * Ensure Live Blogging Tools & Real Time open/closed when post is live/not live
 	 */
@@ -1453,7 +1458,7 @@ function DHelpers() {
 			if ( jQuery( '.livepress-update-form' ).not(':visible') ) { // Is the LivePress live update form hidden?
 				jQuery( '#content-livepress' ).trigger( 'click' ); // If so, click the tab to open it.
 			}
-			
+
 			// Open the Live Blogging Tools area if not already open.
 			if ( 'true' !== jQuery( 'a#blogging-tools-link' ).attr( 'aria-expanded' ) ) { // Is the live blogging closed?
 				jQuery( 'a#blogging-tools-link' ).trigger( 'click' ); // If so, click the tab to open it.
@@ -1471,7 +1476,7 @@ function DHelpers() {
 			}
 		}
 	};
-	
+
 }
 
 Dashboard.Helpers = Dashboard.Helpers || new DHelpers();
@@ -1601,7 +1606,10 @@ Collaboration.Edit = Livepress.ensureExists(Collaboration.Edit);
 
 jQuery.extend(Collaboration.Edit, {
 	update_live_posts_number: function () {
-		var length = jQuery("#livepress-canvas").find(".livepress-update").length;
+		var length = jQuery("#livepress-canvas")
+			.find(".livepress-update")
+			.filter( function( index ) { return ( 0 === jQuery( this ).find(".livepress-update").length ); } )
+			.length;
 		OORTLE.Livepress.LivepressHUD.updateLivePosts(length);
 	},
 
@@ -3504,7 +3512,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				tweetTrackerPaused--;
 				if (tweetTrackerPaused <= 0) {
 					tweetTrackerPaused = 0;
-					liveCounter.disable();
+					//liveCounter.disable();
 					twitter.appendGatheredTweets();
 
 					jQuery(tweet_player_id).attr('title', "Click to pause the tweets so you can decide when to display them").removeClass('paused');
@@ -3516,7 +3524,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 			var pause = function () {
 				tweetTrackerPaused++;
 				if (tweetTrackerPaused === 1) {
-					liveCounter.enable();
+					//liveCounter.enable();
 
 					jQuery(tweet_player_id).attr('title', "Click to copy tweets into the post editor.").addClass('paused');
 					jQuery(tweetContainer).addClass('paused');

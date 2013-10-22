@@ -67,8 +67,8 @@ class LivePress_PF_Updates {
 		add_action( 'wp_ajax_append_post_update', array( $this, 'append_update' ) );
 		add_action( 'wp_ajax_change_post_update', array( $this, 'change_update' ) );
 		add_action( 'wp_ajax_delete_post_update', array( $this, 'delete_update' ) );
-		add_action( 'wp_insert_post',             array( $this, 'prepend_lp_comment' ), 10, 2 );
-		//add_action( 'delete_post',                array( $this, 'delete_children' ) );
+		//add_action( 'wp_insert_post',             array( $this, 'prepend_lp_comment' ), 10, 2 );
+		add_action( 'before_delete_post',                array( $this, 'delete_children' ) );
 
 		// Wire filters
 		add_filter( 'parse_query',         array( $this, 'hierarchical_posts_filter' ) );
@@ -79,6 +79,7 @@ class LivePress_PF_Updates {
 		add_filter( 'the_content',         array( $this, 'add_children_to_post' ) );
 		add_filter( 'the_content',         array( $this, 'filter_xhtml' ), 999 );
 		add_filter( 'get_comment_text',    array( $this, 'filter_xhtml' ), 999 );
+		add_filter( 'the_content',         array( $this, 'remove_the_content_filters' ), -10 );
 	}
 
 	/**
@@ -114,6 +115,10 @@ class LivePress_PF_Updates {
 
 	/**
 	 * Incredibly hacky way to fix post counts on the post edit screen.
+	 *
+	 * TODO: This method breaks in WordPress 3.7 -
+	 * instead, we should use the new filter when available: apply_filters( 'wp_count_posts', $counts, $type, $perm );
+	 * see http://core.trac.wordpress.org/changeset/25578
 	 *
 	 * By default, the post counts will list all posts, even the hidden child posts that we want to hide.  This
 	 * can cause confusion if the list is only showing 5 posts by shows there are a total of 20 posts in the database.
@@ -156,7 +161,6 @@ class LivePress_PF_Updates {
 
 		foreach ( (array) $count as $row )
 			$stats[$row['post_status']] = $row['num_posts'];
-
 		$stats = (object) $stats;
 		wp_cache_set($cache_key, $stats, 'counts');
 
@@ -179,7 +183,7 @@ class LivePress_PF_Updates {
 			return $content;
 		}
 
-        if ( isset( $post->no_update_tag ) || is_single() || is_admin() || 
+        if ( isset( $post->no_update_tag ) || is_single() || is_admin() ||
              (defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' )) ) {
 			return $content;
 		}
@@ -247,7 +251,7 @@ class LivePress_PF_Updates {
 		}
 
 		$content = join( '', $response );
-		$content = livepress_updater::instance()->add_global_post_content_tag( $content );
+		$content = livepress_updater::instance()->add_global_post_content_tag( $content, $this->post_modified_gmt );
 
 		// Re-add the filter and carry on
 		add_filter( 'the_content', array( $this, 'add_children_to_post' ) );
@@ -327,11 +331,11 @@ class LivePress_PF_Updates {
 		if ( 1 === preg_match( '/\<\!--livepress(.+)--\>/', $post->post_content) ) {
 			$post->post_content = preg_replace( '/\<\!--livepress(.+)--\>/', '', $post->post_content );
 		}
-		
+
 		if ( '' === $post->post_content ) {
 			return;
 		}
-		
+
 		$md5 = md5( $post->post_content );
 
 		$post->post_content = "<!--livepress md5={$md5} id={$post_ID}-->" . $post->post_content;
@@ -366,6 +370,25 @@ class LivePress_PF_Updates {
 		return $content;
 	}
 
+	/**
+	 * Remove specific the_content filters that are known to interfere with live posts
+	 * TODO: Make function more robust to remove any non standard filters during child post loop, then restore
+	 */
+	public function remove_the_content_filters( $content ) {
+		// Check to verify that the current post is marked as live, skip HTMLPurify if not live
+		$lp_active = get_post_meta( get_the_ID(), '_livepress_live_status', true );
+		if( isset( $lp_active['live'] ) ) {
+			$lp_active = (int) $lp_active['live'];
+		} else {
+			$lp_active = 0;
+		}
+
+		if ( 1 ===$lp_active ) {
+			remove_filter ('the_content', 'fbcommentbox', 100);
+		}
+		return $content;
+	}
+
 	/*****************************************************************/
 	/*                         AJAX Functions                        */
 	/*****************************************************************/
@@ -389,7 +412,11 @@ class LivePress_PF_Updates {
 
 		$edit_uuid = lp_wp_utils::get_from_post( $post->ID, "post_update" /*"post_edit"*/, true );
 
-		$user_content = stripslashes( $_POST['content'] );
+		if ( isset( $_POST['content'] ) ) {
+			$user_content = stripslashes( $_POST['content'] );
+		} else {
+			$user_content = '';
+		}
 
 		$this->assemble_pieces( $post );
 
@@ -597,27 +624,98 @@ class LivePress_PF_Updates {
 	}
 
 	/**
+	 * Merge nested child posts into a parent post.
+	 *
+	 * @param  int  $post_id ID of the parent post
+	 * @return $post post object
+	 */
+	public function merge_children( $post_id ) {
+		global $post;
+
+		$post_id = (int) $post_id; // Force a cast as an integer.
+
+		$post = get_post( $post_id );
+
+		// If post has no children bail
+		if ( 0 == count( get_children( $post_id ) ) ) {
+			return $post;
+		}
+
+		// Sanity check: only merge children of top-level posts.
+		if ( 0 !== $post->post_parent ) {
+			return $post;
+		}
+		remove_filter( 'parse_query', array( $this, 'hierarchical_posts_filter' ) );
+
+		$post_content = $post->post_content;
+
+		// Assemble all the children for merging
+		$this->assemble_pieces( $post );
+
+		$response = array();
+		// Wrap each child for display
+		foreach( $this->pieces as $piece ) {
+			$response[] = $piece['prefix'];
+			$response[] = $piece['proceed'];
+			$response[] = $piece['suffix'];
+		}
+
+		// Append the children to the parent post content
+		$post->post_content = join( '', $response );
+
+		// Update the post
+		wp_update_post( $post );
+
+		// Delete the merged children
+		$this->delete_children( $post_id );
+
+		add_filter( 'parse_query',        array( $this, 'hierarchical_posts_filter' ) );
+
+		return $post;
+	}
+
+	/**
 	 * Remove nested child posts when a parent is removed.
 	 *
 	 * @param int $parent ID of the parent post being deleted
 	 */
 	public function delete_children( $parent ) {
+
+		// Remove the query filter.
+		remove_filter( 'parse_query', array( $this, 'hierarchical_posts_filter' ) );
+
+		$parent = (int) $parent; // Force a cast as an integer.
+
+		$post = get_post( $parent );
+		// Only delete children of top-level posts.
+		if ( 0 !== $post->post_parent ) {
+			return;
+		}
+
 		// Get all children
 		$children = get_children(
 			array(
-			     'post_type'   => 'post',
-			     'post_parent' => $parent
+				'post_type'   => 'post',
+				'post_parent' => $parent
 			)
 		);
 
 		// Remove the action so it doesn't fire again
-		remove_action( 'delete_post', array( $this, 'delete_children' ) );
+		remove_action( 'before_delete_post', array( $this, 'delete_children' ) );
 
 		/** @var WP_Post $child */
 		foreach( $children as $child ) {
+			// Never delete top level posts!
+			if ( 0 === (int) $child->post_parent ) {
+				continue;
+			}
+			// Note: before_delete_post filter will also fire remove_related_followers which will call
+			// the LivePress server API clear_guest_blogger
 			wp_delete_post( $child->ID, true );
 		}
-		add_action( 'delete_post', array( $this, 'delete_children' ) );
+		add_action( 'before_delete_post', array( $this, 'delete_children' ) );
+		add_filter( 'parse_query',        array( $this, 'hierarchical_posts_filter' ) );
+
 	}
 
 	/**
@@ -628,6 +726,7 @@ class LivePress_PF_Updates {
 	 * @return string
 	 */
 	public function get_content( $parent ) {
+
 		$this->assemble_pieces( $parent );
 
 		$pieces = array();
@@ -719,6 +818,8 @@ class LivePress_PF_Updates {
 			$parent = get_post( $parent );
 		}
 
+		$this->post_modified_gmt = $parent->post_modified_gmt;
+
 		$pieces = array();
 
 		$parent_lp_id = get_post_meta( $parent->ID, '_livepress_update_id', true );
@@ -731,7 +832,6 @@ class LivePress_PF_Updates {
 				'suffix'  => '</div>'
 			);
 		}
-
 		// Set up child posts
 		$children = get_children(
 			array(
@@ -739,13 +839,13 @@ class LivePress_PF_Updates {
 			     'post_parent' => $parent->ID
 			)
 		);
-
 		$child_pieces = array();
 
 		if ( count( $children ) > 0 ) {
 			foreach( $children as $child ) {
 				$post = $child;
 
+				$this->post_modified_gmt = max($this->post_modified_gmt, $child->post_modified_gmt);
 				$piece_id = get_post_meta( $child->ID, '_livepress_update_id', true );
 				$piece = array(
 					'id'      => $piece_id,
@@ -758,16 +858,13 @@ class LivePress_PF_Updates {
 				$child_pieces[] = $piece;
 			}
 		}
-
 		// Display posts oldest-newest by default
 		$child_pieces = array_reverse( $child_pieces );
 		$pieces = array_merge( $pieces, $child_pieces );
-
 		if ( 'top' == $this->order ) {
 			// Display posts newest-oldest
 			$pieces = array_reverse( $pieces );
 		}
-
 		$this->pieces = $pieces;
 	}
 

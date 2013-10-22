@@ -36,6 +36,8 @@ class livepress_admin_bar_status_menu {
 		}
 
 		wp_enqueue_style( 'livepress_main_sheets', LP_PLUGIN_URL_BASE . 'css/livepress.css' );
+					wp_enqueue_style('wp-jquery-ui-dialog');
+
 	}
 
 	/**
@@ -63,7 +65,7 @@ class livepress_admin_bar_status_menu {
 			'href'   => '',
 			'sticky' => true,
 			'meta'   => array(
-				'title' => 'connected' == $status ? 
+				'title' => 'connected' == $status ?
 					__( 'LivePress connected.', 'livepress' ) :
 					__( 'LivePress connection error.', 'livepress' ),
 				'class' => $class . ' ' . $status,

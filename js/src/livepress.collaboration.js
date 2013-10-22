@@ -124,7 +124,10 @@ Collaboration.Edit = Livepress.ensureExists(Collaboration.Edit);
 
 jQuery.extend(Collaboration.Edit, {
 	update_live_posts_number: function () {
-		var length = jQuery("#livepress-canvas").find(".livepress-update").length;
+		var length = jQuery("#livepress-canvas")
+			.find(".livepress-update")
+			.filter( function( index ) { return ( 0 === jQuery( this ).find(".livepress-update").length ); } )
+			.length;
 		OORTLE.Livepress.LivepressHUD.updateLivePosts(length);
 	},
 
