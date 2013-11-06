@@ -255,6 +255,28 @@ class livepress_admin_settings {
 		<div class="wrap">
 			<form action="options.php" method="post">
 				<?php echo screen_icon( 'livepress-settings' ); ?><h2>LivePress Settings</h2>
+		<?php
+			$this->options = get_option( livepress_administration::$options_name );
+			// If the API key is blank and the show=enetr-api-key toggle is not passed, prompt the user to register
+			if ( ( ! ( isset( $_GET['show'] ) && 'enter-api-key' ==  $_GET['show'] ) ) && empty( $this->options['api_key'] ) && ! isset( $_POST[ 'submit' ] ) ) {
+				echo
+					'<div class="updated" style="padding: 0; margin: 0; border: none; background: none;">
+							<div class="livepress_admin_warning">
+								<div class="aa_button_container" onclick="window.open(\'http://www.livepress.com/wordpress\', \'_blank\' );">
+									<div class="aa_button_border">
+										<div class="aa_button">'. esc_html__('Sign up for LivePress').'</div>
+									</div>
+								</div>
+								<div class="aa_description">
+									<a href = "' . esc_url( add_query_arg( array( 'page' => 'livepress-settings' ), admin_url( 'options-general.php' ) ) ) .
+									'&show=enter-api-key">' .
+									esc_html__('I have already activated my LivePress account', 'livepress' ).'</a></div>
+							</div>
+					</div>
+				';
+			} else {
+				// Otherwise, display the settings page as usual
+		?>
 				<?php settings_fields( 'livepress' ); ?>
 				<?php do_settings_sections( 'livepress-settings' ); ?>
 				<?php wp_nonce_field( 'activate_license', '_lp_nonce' ); ?>
@@ -262,6 +284,7 @@ class livepress_admin_settings {
 			</form>
 		</div>
 		<?php
+			}
 	}
 
 

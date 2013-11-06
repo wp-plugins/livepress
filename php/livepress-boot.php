@@ -58,6 +58,39 @@ add_action( 'wp_ajax_update-live-status',   array( $blogging_tools, 'toggle_live
 
 add_action( 'manage_posts_custom_column' , array( $blogging_tools, 'display_posts_livestatus' ) , 10, 2 );
 
+add_action( 'init', 'alter_category_update_count_callback', 100 );
+
+/**
+ * Override the default update_count_callback for the category taxonomy
+ * @since  1.0.6
+ */
+function alter_category_update_count_callback() {
+	global $wp_taxonomies;
+	if ( ! taxonomy_exists( 'category' ) )
+		return false;
+
+	$cat_tax_callback = & $wp_taxonomies['category']->update_count_callback;
+	$cat_tax_callback = 'livepress_category_update_count_callback';
+}
+/**
+ * Alter the category post counts to exclude the live subposts
+ * @param  String $terms    Array of terms
+ * @param  Object $taxonomy Passed taxonomy
+ * @since  1.0.6
+ */
+function livepress_category_update_count_callback( $terms, $taxonomy ) {
+	global $wpdb;
+	foreach ( (array) $terms as $term ) {
+		do_action( 'edit_term_taxonomy', $term, $taxonomy );
+
+		$count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status = 'publish' AND post_parent='0' AND term_taxonomy_id = %d", $term ) );
+
+		$wpdb->update( $wpdb->term_taxonomy, array( 'count' => (int) $count ), array( 'term_taxonomy_id' => $term ) );
+
+		do_action( 'edited_term_taxonomy', $term, $taxonomy );
+	}
+}
+
 /* Add custom column to post list */
 function add_livepress_status_column( $columns ) {
     return array_merge( $columns,

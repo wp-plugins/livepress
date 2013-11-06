@@ -100,6 +100,9 @@ class livepress_administration {
 			$action = 'render_livepress_administration_author';
 		}
 
+		// Add admin message on plugins page when API key not present
+		$this->add_admin_messages();
+
 		/*add_menu_page( $title, $title, 'publish_posts', $link,
 			array(&$this, $action), LP_PLUGIN_URL_BASE . 'img/icon.png' );
 		$admin_page = add_submenu_page( $link, $admin_settings_title,
@@ -126,6 +129,43 @@ class livepress_administration {
 
 	function load_post() {
 		add_action( 'admin_footer', array($this, 'admin_footer') );
+	}
+
+	/**
+	 * Add a notification on plugins page if the API key is blank informing users they need to sign up for a LivePress API key
+	 */
+	function add_admin_messages() {
+		$this->options = get_option( self::$options_name );
+
+		if ( empty( $this->options['api_key'] ) && ! isset( $_POST[ 'submit' ] ) ) {
+
+		function livepress_api_key_missing_warning() {
+			global $hook_suffix, $current_user;
+
+			if ( $hook_suffix == 'plugins.php' ) {
+				echo '
+				<div class="updated" style="padding: 0; margin: 0; border: none; background: none;">
+					<form name="livepress_admin_warning" action="' . esc_url( add_query_arg( array( 'page' => 'livepress-settings' ), admin_url( 'options-general.php' ) ) ) . '" method="POST" >
+						<input type="hidden" name="return" value="1"/>
+						<input type="hidden" name="user" value="' . esc_attr( $current_user->user_login ).'"/>
+						<div class="livepress_admin_warning">
+							<div class="aa_button_container" onclick="document.livepress_admin_warning.submit();">
+								<div class="aa_button_border">
+									<div class="aa_button">'. esc_html__('Activate your LivePress account').'</div>
+								</div>
+							</div>
+							<div class="aa_description">'. esc_html__( 'Almost done - activate your account to go live with LivePress', 'livepress' ) . '</div>
+						</div>
+					</form>
+				</div>
+				';
+			}
+		}
+
+		// Hook into the admin_notices section to display the notice
+		add_action('admin_notices', 'livepress_api_key_missing_warning');
+		return;
+		}
 	}
 
 	function admin_footer() {

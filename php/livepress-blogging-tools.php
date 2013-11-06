@@ -55,6 +55,8 @@ final class LivePress_Blogging_Tools {
 		if ( $globally_enabled ) {
 			if ( 1 === (int) $status['live'] ) {
 				$toggle = 'live';
+				// Also delete the post lock since the post is live - allow simultaneous editing
+				delete_post_meta( $post->ID, '_edit_lock' );
 			} else {
 				$toggle = 'not-live';
 			}

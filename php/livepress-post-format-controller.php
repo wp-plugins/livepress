@@ -67,19 +67,24 @@ class LivePress_PF_Updates {
 		add_action( 'wp_ajax_append_post_update', array( $this, 'append_update' ) );
 		add_action( 'wp_ajax_change_post_update', array( $this, 'change_update' ) );
 		add_action( 'wp_ajax_delete_post_update', array( $this, 'delete_update' ) );
-		//add_action( 'wp_insert_post',             array( $this, 'prepend_lp_comment' ), 10, 2 );
-		add_action( 'before_delete_post',                array( $this, 'delete_children' ) );
+		add_action( 'before_delete_post',         array( $this, 'delete_children' ) );
 
 		// Wire filters
-		add_filter( 'parse_query',         array( $this, 'hierarchical_posts_filter' ) );
-		add_filter( 'pre_get_posts',       array( $this, 'filter_children_from_query' ) );
-		add_filter( 'edit_posts_per_page', array( $this, 'setup_post_counts' ), 10, 2 );
-		add_filter( 'the_content',         array( $this, 'process_oembeds' ), -10 );
-		add_filter( 'the_content',         array( $this, 'append_more_tag' ) );
-		add_filter( 'the_content',         array( $this, 'add_children_to_post' ) );
-		add_filter( 'the_content',         array( $this, 'filter_xhtml' ), 999 );
-		add_filter( 'get_comment_text',    array( $this, 'filter_xhtml' ), 999 );
-		add_filter( 'the_content',         array( $this, 'remove_the_content_filters' ), -10 );
+		add_filter( 'parse_query',                array( $this, 'hierarchical_posts_filter' ) );
+		add_filter( 'pre_get_posts',              array( $this, 'filter_children_from_query' ) );
+
+		// WordPress 3.7 introduces a new filter for the Post count
+		if ( get_bloginfo('version') < 3.7 ) {
+			add_filter( 'edit_posts_per_page',    array( $this, 'setup_post_counts' ), 10, 2 );
+		} else {
+			add_filter( 'wp_count_posts',         array( $this, 'setup_post_counts_37' ), 10, 3 );
+		}
+		add_filter( 'the_content',                array( $this, 'process_oembeds' ), -10 );
+		add_filter( 'the_content',                array( $this, 'append_more_tag' ) );
+		add_filter( 'the_content',                array( $this, 'add_children_to_post' ) );
+		add_filter( 'the_content',                array( $this, 'filter_xhtml' ), 999 );
+		add_filter( 'get_comment_text',           array( $this, 'filter_xhtml' ), 999 );
+		add_filter( 'the_content',                array( $this, 'remove_the_content_filters' ), -10 );
 	}
 
 	/**
@@ -113,12 +118,40 @@ class LivePress_PF_Updates {
 		return $query;
 	}
 
+ /**
+   * Modify returned post counts by status to avoid counting the live sub-posts.
+   *
+   * @since 1.0.6
+   *
+   * @param object $counts An object containing the current post_type's post counts by status.
+   * @param string $type   The post type.
+   * @param string $perm   The permission to determine if the posts are 'readable' by the current user.
+   */
+	public function setup_post_counts_37( $counts, $post_type, $perm ) {
+
+		global $wpdb;
+
+		$user = wp_get_current_user();
+
+		$query = "SELECT post_status, COUNT( * ) AS num_posts FROM {$wpdb->posts} WHERE post_type = %s AND post_parent = '0'";
+			if ( is_user_logged_in() ) {
+				$post_type_object = get_post_type_object( $post_type );
+				if ( ! current_user_can( $post_type_object->cap->read_private_posts ) ) {
+					$query .= " AND (post_status != 'private' OR ( post_author = '$user->ID' AND post_status = 'private' ))";
+				}
+			}
+		$query .= ' GROUP BY post_status';
+		$new_count = $wpdb->get_results( $wpdb->prepare( $query, $post_type ), ARRAY_A );
+		$post_status = wp_list_pluck( $new_count, 'num_posts' );
+
+		if ( isset($post_status[1]) )
+			$counts->publish = $post_status[1];
+
+		return $counts;
+	}
+
 	/**
-	 * Incredibly hacky way to fix post counts on the post edit screen.
-	 *
-	 * TODO: This method breaks in WordPress 3.7 -
-	 * instead, we should use the new filter when available: apply_filters( 'wp_count_posts', $counts, $type, $perm );
-	 * see http://core.trac.wordpress.org/changeset/25578
+	 * Hacky way to fix post counts on the post edit screen, required before WordPress 3.7.
 	 *
 	 * By default, the post counts will list all posts, even the hidden child posts that we want to hide.  This
 	 * can cause confusion if the list is only showing 5 posts by shows there are a total of 20 posts in the database.
@@ -152,7 +185,6 @@ class LivePress_PF_Updates {
 			}
 		}
 		$query .= ' GROUP BY post_status';
-
 		$count = $wpdb->get_results( $wpdb->prepare( $query, $post_type ), ARRAY_A );
 
 		$stats = array();

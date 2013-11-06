@@ -11,11 +11,7 @@ Dashboard.Controller = Dashboard.Controller || function () {
 	var $searchTabs = jQuery( '#twitter-search-subtabs li' );
 
 	var init = function () {
-		if ( Dashboard.Twitter !== undefined ) {
-			setTimeout( function() {
-				Dashboard.Twitter.init();
-			}, 500 );
-		}
+
 		if ( Dashboard.Comments !== undefined ) {
 			if ( Livepress.Config.disable_comments ) {
 				jQuery( "#bar-controls .comment-count" ).hide();
@@ -25,6 +21,12 @@ Dashboard.Controller = Dashboard.Controller || function () {
 				Dashboard.Comments.init();
 			}
 		}
+
+		// Wait until livepress.connected before initializing Twitter
+		jQuery(window).on( 'connected.livepress', function() {
+			Dashboard.Twitter.init();
+			Dashboard.Twitter.conditionallyEnable();
+		});
 
 		/* Hints */
 		$hintedInput.bind( 'click', function () {
@@ -89,61 +91,26 @@ Dashboard.Controller = Dashboard.Controller || function () {
 	jQuery( '#poststuff' ).on( 'click', '.secondary-editor-tools .switch-tmce, .secondary-editor-tools .switch-html', live_switcher );
 	Dashboard.Helpers.setupLivePressTabs();  //Set up the LivePress tabs after brief pause
 
-	var hidePane = function () {
-		jQuery( '#lp-pane-holder div.active' ).removeClass( 'active' );
-		jQuery( '.lp-pane-active' ).slideUp().removeClass( 'lp-pane-active' );
-		jQuery( '#lp-pane-holder span.count-update' ).show();
-		jQuery.each( ['Twitter', 'Comments'], function ( i, name ) {
-			if ( ! Dashboard[name].liveCounter.enabled ) {
-				Dashboard[name].liveCounter.enable();
-			}
-		} );
-	};
-
-	var switchPane = function ( currPane ) {
-		hidePane();
-		var currPaneName = currPane.attr( 'data-pane-name' );
-		jQuery.each( ['Twitter', 'Comments'], function ( i, name ) {
-			if ( name === currPaneName ) {
-				Dashboard[name].liveCounter.disable();
-			}
-		} );
-
-		currPane.addClass( 'active' );
-		currPane.siblings( '.lp-pane' ).slideDown().addClass( 'lp-pane-active' );
+	var switchToPane = function( currPane ) {
+		Dashboard.Twitter.conditionallyEnable();
+		Dashboard.Comments.conditionallyEnable();
 		currPane.find( 'span.count-update' ).hide();
 	};
 
-	var switchTab = function ( currTab ) {
-		var currTabName = currTab.attr( 'data-tab-name' );
-		console.log( currTabName );
-		console.log( currTab );
-		currTab.addClass( 'tabs' );
-		jQuery( '.lp-search-pane' ).hide();
-		var pane = jQuery( '#lp-on-top' ).find( 'div.' + currTabName ).show();
-	};
-
-	$searchTabs.bind( 'click', function () {
-		if ( ! jQuery( this ).is( '.tabs' ) ) {
-			$searchTabs.removeClass( 'tabs' );
-			switchTab( jQuery( this ) );
-		}
-	} );
-
-	$paneBookmarks.bind( 'click', function () {
+	jQuery( '.blogging-tools-tabs ul li' ).on( 'click', function() {
 		var $this = jQuery( this );
 		if ( $this.is( '.active' ) === false ) {
-			switchPane( $this );
-		} else {
-			hidePane();
+			switchToPane( $this );
 		}
-	} );
+	});
 
 	init();
 
-	if ( Dashboard.Helpers.getEEState() ) {
+	// Switch to live if the live class was added to the livepress_status_meta_box
+	if ( jQuery( '#livepress_status_meta_box' ).hasClass( 'live' ) ) {
 		live_switcher( {srcElement: null} );
 	}
+
 };
 
 function DHelpers() {
@@ -162,19 +129,32 @@ function DHelpers() {
 		};
 
 		SELF.reset = function() {
+			if ( 'undefined' === typeof SELF.counterContainer ) {
+				return;
+			}
 			SELF.count = 0;
 			SELF.counterContainer.text( '0' );
 		};
 
 		SELF.disable = function() {
+			if ( 'undefined' === typeof SELF.counterContainer ) {
+				return;
+			}
 			SELF.enabled = false;
 			SELF.count = 0;
 			SELF.counterContainer.text( '0' ).hide();
 		};
 
 		SELF.increment = function( num ) {
+			if ( 'undefined' === typeof SELF.counterContainer ) {
+				return;
+			}
 			SELF.count += num || 1;
 			SELF.counterContainer.text( SELF.count );
+		};
+
+		SELF.isEnabled = function() {
+			return SELF.enabled;
 		};
 	}
 
@@ -223,6 +203,8 @@ function DHelpers() {
 		jQuery( document.getElementById( 'live-switcher' ) )
 			.removeClass( state === 'connected' ? 'disconnected' : 'connected' )
 			.addClass( state );
+		// Trigger that communications connected or disconnected
+		jQuery( window ).trigger( state + '.livepress' );
 	};
 
 	SELF.handleErrors = function ( errors ) {
@@ -267,6 +249,7 @@ function DHelpers() {
 			if ( 'true' !== jQuery( 'a#blogging-tools-link' ).attr( 'aria-expanded' ) ) { // Is the live blogging closed?
 				jQuery( 'a#blogging-tools-link' ).trigger( 'click' ); // If so, click the tab to open it.
 			}
+
 		} else {
 
 			// Post not marked as live, switch off the tabs if open.

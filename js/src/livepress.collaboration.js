@@ -236,6 +236,7 @@ jQuery.extend(Collaboration.Edit, {
 
 		handle_terms = function (terms) {
 			var getContainer, i;
+
 			jQuery.each(terms, function (i, term) {
 				Dashboard.Twitter.addTerm(term, true);
 			});
