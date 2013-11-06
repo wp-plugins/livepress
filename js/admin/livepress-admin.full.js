@@ -440,7 +440,7 @@ ImIntegration.send_test_message = function (source, protocol) {
 		}
 	});
 };
-/*global Livepress, Dashboard, Collaboration, tinymce, tinyMCE, console, confirm, switchEditors */
+/*global Livepress, Dashboard, Collaboration, tinymce, tinyMCE, console, confirm, switchEditors, livepress_merge_confirmation */
 
 /**
  * Global object into which we add our other functionality.
@@ -922,8 +922,6 @@ Livepress.Admin.Tools = function () {
 
 		jQuery('#lp-pub-status-bar').on('click', 'a.toggle-live', function (e) {
 			e.preventDefault();
-			// The following line excludes livepress_merge_confirmation (passed via wp_localize_script) from jshint warnings.
-			/* global livepress_merge_confirmation */
 
 			// If already live, warn user
 			if ( jQuery( '#livepress_status_meta_box' ).hasClass( 'live' ) ) {
@@ -1053,6 +1051,8 @@ jQuery(function () {
 	 *
 	 * start.livepress       -  _(event)_ Triggered when LivePress is starting.
 	 * stop.livepress        -  _(event)_ Triggered when LivePress is stopping.
+	 * connected.livepress    -  _(event)_ Triggered when LivePress is connected.
+	 * disconnected.livepress -  _(event)_ Triggered when LivePress is disconnected.
 	 * livepress.post_update -  _(event)_ Triggered when a new post update is made.
 	 *
 	 * Example: To listen for a livepress event run the following.
@@ -1203,10 +1203,7 @@ jQuery(function () {
 			 */
 			function LivepressHUD () {
 				var $livepressHud,
-					$readers,
-					$posts,
-					$comments,
-					$labels = {};
+					$posts;
 
 				/** Hide the HUD. */
 				this.hide = function () {
@@ -1225,12 +1222,7 @@ jQuery(function () {
 				 */
 				this.init = function () {
 					$livepressHud = $j('.inner-lp-dashboard');
-					$readers = $j('#livepress-online_num');
 					$posts = $j('#livepress-updates_num');
-					$comments = $j('#livepress-comments_num');
-					$labels['readers'] = $readers.siblings( '.label' );
-					//$labels['authors'] = $posts.siblings( '.label' );
-					$labels['comments'] = $comments.siblings( '.label' );
 					this.show();
 				};
 
@@ -1241,10 +1233,9 @@ jQuery(function () {
 				 * @returns {Object} jQuery object containing the readers display element.
 				 */
 				this.updateReaders = function (number) {
-					var label = ( 1 === number ) ? 'Person Online' : 'People Online';
-
-					$labels['readers'].text( label );
-
+					var label = ( 1 === number ) ? 'Person Online' : 'People Online',
+						$readers = $j('#livepress-online_num');
+					$readers.siblings( '.label' ).text( label );
 					return $readers.text(number);
 				};
 
@@ -1269,9 +1260,10 @@ jQuery(function () {
 				 * @return {Object} jQuery object containing the comments display element.
 				 */
 				this.updateComments = function (number) {
-					var label = ( 1 === number ) ? 'Comment' : 'Comments';
+					var label = ( 1 === number ) ? 'Comment' : 'Comments',
+						$comments = $j('#livepress-comments_num');
 
-					$labels['comments'].text( label );
+					$comments.siblings( '.label' ).text( label );
 
 					return $comments.text(number);
 				};
@@ -1287,8 +1279,7 @@ jQuery(function () {
 						count = actual + number,
 						label = ( 1 === count ) ? 'Comment' : 'Comments';
 
-					$labels['comments'].text( label );
-
+					$comments.siblings( '.label' ).text( label );
 					$comments.text( count );
 				};
 

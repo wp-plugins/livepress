@@ -157,7 +157,7 @@ class livepress_communication {
         $return_data = json_decode($this->request_content_from_livepress('/message/new_post', 'post', $params));
         return array(
             'oortle_msg' => $params['uuid'],
-            'feed_link'  => $return_data->feed_link,
+            'feed_link'  => isset( $return_data ) ? $return_data->feed_link : '',
         );
     }
 

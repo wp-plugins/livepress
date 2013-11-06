@@ -43,6 +43,7 @@ jQuery(function () {
 			$api_key.attr("value", "");
 			jQuery(api_key_button_id).attr("value", "Check");
 			filled = false;
+			jQuery( 'input#submit' ).click();
 			return false;
 		}
 

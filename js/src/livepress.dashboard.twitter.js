@@ -15,7 +15,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 		var tweetContainer = "#lp-twitter-results";
 		var tweetHolder = "#lp-hidden-tweets";
 		var getTweetTarget = function(){
-			return jQuery(tweetTrackerPaused>0 ? tweetHolder : tweetContainer); 
+			return jQuery(tweetTrackerPaused>0 ? tweetHolder : tweetContainer);
 		};
 
 		var binders = (function () {
@@ -42,7 +42,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				tweetTrackerPaused--;
 				if (tweetTrackerPaused <= 0) {
 					tweetTrackerPaused = 0;
-					//liveCounter.disable();
+					liveCounter.disable();
 					twitter.appendGatheredTweets();
 
 					jQuery(tweet_player_id).attr('title', "Click to pause the tweets so you can decide when to display them").removeClass('paused');
@@ -54,7 +54,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 			var pause = function () {
 				tweetTrackerPaused++;
 				if (tweetTrackerPaused === 1) {
-					//liveCounter.enable();
+					liveCounter.enable();
 
 					jQuery(tweet_player_id).attr('title', "Click to copy tweets into the post editor.").addClass('paused');
 					jQuery(tweetContainer).addClass('paused');
@@ -293,7 +293,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 					jQuery("#lp-on-top").show();
 				}
 				binders.bindRemoveTermButtons();
-				
+
 				liveCounter.reset();
 				if ( 0 === terms.length ) {
 					jQuery(tweetContainer).html(''); // No more terms, clear the container
@@ -613,6 +613,14 @@ if (Dashboard.Twitter.twitter === undefined) {
 					success
 				);
 				return true;
+			},
+
+			conditionallyEnable: function() {
+				if ( 0 >= this.terms.length ) {
+					this.liveCounter.disable();
+				} else {
+					this.liveCounter.enable();
+				}
 			},
 
 			init: function () {

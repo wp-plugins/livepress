@@ -343,8 +343,8 @@ function new_comment_from_scrape( $args ) {
  */
 function livepress_append_to_post( $args ) {
 	global $wp_xmlrpc_server, $wpdb;
-	$username       = $wpdb->escape( $args[1] );
-	$password       = $wpdb->escape( $args[2] );
+	$username       = esc_sql( $args[1] );
+	$password       = esc_sql( $args[2] );
 	$post_id        = (int) $args[0];
 	$content_struct = $args[3];
 
@@ -410,8 +410,8 @@ function livepress_append_to_post( $args ) {
 function livepress_set_post_live_status( $args ) {
 	global $wp_xmlrpc_server, $wpdb;
 
-	$username       = $wpdb->escape( $args[0] );
-	$password       = $wpdb->escape( $args[1] );
+	$username       = esc_sql( $args[0] );
+	$password       = esc_sql( $args[1] );
 	$post_id        = (int)  $args[2];
 	$live_status    = (bool) $args[3];
 

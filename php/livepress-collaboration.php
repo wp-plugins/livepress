@@ -91,7 +91,7 @@ class Collaboration {
 		$sql = "SELECT term FROM $lts WHERE term in (%s) LIMIT 1";
 		$terms = array();
 		foreach($dbterms as $term) {
-			$terms[] = '"'.$wpdb->escape($term).'"';
+			$terms[] = '"'. esc_sql($term).'"';
 		}
 		$sql = sprintf($sql, join(",",$terms));
         $leftterms = sizeof($dbterms)==0 ? array() : $leftterms = $wpdb->get_results($sql, ARRAY_N);

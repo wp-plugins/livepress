@@ -15,15 +15,10 @@ if (Dashboard.Comments === undefined) {
 			return Collaboration.post_topic() + "_comment";
 		};
 
-		var liveCounter = Dashboard.Helpers.createLiveCounter('#live-comments-mark');
+
+		var liveCounter = Dashboard.Helpers.createLiveCounter('#tab-link-live-comments a');
 
 		var new_comment_callback = function (data) {
-			console.log("Dashboard.Comments.new_comment_callback: " + data.comment_id);
-
-			if (liveCounter.enabled) {
-				liveCounter.increment();
-			}
-
 			if (hold_comments) {
 				comments_on_hold.push(data);
 			} else {
@@ -35,6 +30,12 @@ if (Dashboard.Comments === undefined) {
 					var rowActions = Dashboard.Comments.Builder.prepareCommentActions(data.comment_id, data);
 					contentDiv.append(rowActions);
 					OORTLE.Livepress.LivepressHUD.sumToComments(1);
+					if ( ! jQuery( '#tab-link-live-comments' ).hasClass( 'active' ) ) {
+						if ( ! liveCounter.enabled ) {
+							liveCounter.enable();
+						}
+						liveCounter.increment();
+					}
 				} else {
 					commentDiv.removeClass("approved").removeClass("unapproved");
 				}
@@ -57,6 +58,7 @@ if (Dashboard.Comments === undefined) {
 		var bind_pause_on_hover = function () {
 			jQuery('#live-comments-pane').hover(function (e) {
 				hold_comments = true;
+				liveCounter.reset();
 				liveCounter.enable();
 			}, function (e) {
 				hold_comments = false;
@@ -69,6 +71,14 @@ if (Dashboard.Comments === undefined) {
 		};
 
 		return {
+			conditionallyEnable: function() {
+				if ( 0 >= jQuery('#lp-comments-results').has('.comment-item').length ) {
+					this.liveCounter.disable();
+				} else {
+					this.liveCounter.reset();
+				}
+			},
+
 			unsubscribe_comment_channels: function () {
 				if (disabled) {
 					return;
@@ -143,7 +153,6 @@ if (Dashboard.Comments === undefined) {
 				if (disabled) {
 					return;
 				}
-				liveCounter.enable();
 				bind_pause_on_hover();
 			}
 		};
