@@ -1,8 +1,8 @@
 === LivePress ===
 Requires at least: 3.5
-Tested up to: 3.6.1
+Tested up to: 3.7
 Tags: LivePress, live, live blogging, liveblogging, realtime, collaboration, Twitter
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 
 LivePress is a hosted live blogging solution that integrates seamlessly with your WordPress blog.
 
@@ -95,6 +95,13 @@ The default tab IDs used in LivePress are:
 2. New update sent -- it appears for all readers of this post at the same time.
 
 == Changelog ==
+
+= 1.0.6 =
+* Add post-activation workflow, API signup link
+* Correct category/list post counts - use 3.7 filter when available
+* Imnprove count of unviewed Twitter results and Comments
+* Refine Twitter component initialization
+* Miscellaneous bug fixes, remove depreciated warnings
 
 = 1.0.5 =
 * New live blogging via SMS
