@@ -266,6 +266,7 @@ class UserList {
 	
 	// create axjax calls
 	wp_register_script('author-avatars-shortcode-paging', WP_PLUGIN_URL . '/author-avatars/js/AuthorAvatarsShortcode.paging.ajax.js', array('jquery-ui-core'), '', true);
+
 	// pass values to JS
 	$params = array(
 	
@@ -287,7 +288,8 @@ class UserList {
 		'sort_direction' => $this->sort_direction,
 		'postCommentNonce' => wp_create_nonce( 'author-avatars-shortcode-paging-nonce') , 
 		'action' => 'AA_shortcode_paging',
-		'aa_page' => 0,   
+		'aa_page' => 0,
+		'ajax_url' => admin_url( 'admin-ajax.php' )  
 	);
 
 	wp_enqueue_script('author-avatars-shortcode-paging');
@@ -452,11 +454,14 @@ class UserList {
 			$avatar = preg_replace('@alt=["\'][\w]*["\'] ?@', '', $avatar);
 			$avatar = preg_replace('@title=["\'][\w]*["\'] ?@', '', $avatar);
 			/* insert alt and title parameters */
-			$avatar = preg_replace('@ ?\/>@', ' alt="'.$alt.'" title="'.$title.'" />', $avatar);
+			if(!stripos($avatar, 'title='))
+				$avatar = preg_replace('@ ?\/>@', ' title="'.$title.'" />', $avatar);
+			if(!stripos($avatar, 'alt='))
+				$avatar = preg_replace('@ ?\/>@', ' alt="'.$alt.'"  />', $avatar);
 		}
 
 		$html = '';
-		if ($link) $html .= '<a href="'. $link .'" alt="'. $title .'">';
+		if ($link) $html .= '<a href="'. $link .'" title="'. $title .'">';
 		$html .= '<span class="avatar">'. $avatar .'</span>';
 		if ($this->show_name || $this->show_bbpress_post_count || $this->show_postcount)
 			$html .= '<span class="name">'. $name . '</span>';
