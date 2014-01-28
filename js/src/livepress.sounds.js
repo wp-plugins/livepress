@@ -9,7 +9,7 @@ Livepress.sounds = (function () {
 	soundManager.url = Livepress.Config.lp_plugin_url + "/swf/";
 	soundManager.useHTML5Audio = true;
 	soundManager.flashLoadTimeout = 5000;
-	soundManager.useFlashBlock = true;
+	soundManager.useFlashBlock = false;
 	soundManager.useHighPerformance = true;
 
 	var soundFiles = {

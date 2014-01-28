@@ -12,7 +12,7 @@
 		if (Livepress.Config.debug) {
 			mode = 'full';
 		}
-		Livepress.JSQueue = [(jQuery === undefined ? 'jquery://' : ''), 'wpstatic://js/' + '/livepress-release.' + mode + '.js?v=' + Livepress.Config.ver];
+		Livepress.JSQueue = [(jQuery === undefined ? 'jquery://' : ''), 'wpstatic://js/' + '/livepress-release.full.js?v=' + Livepress.Config.ver];
 		var loader = document.createElement('script');
 		loader.setAttribute('id', 'LivePress-loader-script');
 		loader.setAttribute('src', Livepress.Config.wpstatic_url + 'js/livepress_loader.' + mode + '.js?v=' + Livepress.Config.ver);

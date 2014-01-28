@@ -1,5 +1,5 @@
 /*jslint nomen:true, plusplus:true */
-/*global Livepress, Dashboard, console, OORTLE */
+/*global lp_strings, Livepress, Dashboard, console, OORTLE */
 var Collaboration = Livepress.ensureExists(Collaboration);
 Collaboration.chat_topic_id = function () {
 	var topic = Collaboration.post_topic() + "_chat";
@@ -18,7 +18,7 @@ Collaboration.Chat = {
 		'<div id="chat-form-message"><hr />',
 		'<form>',
 		'<input id="chat_message" type="text" name="chat_message" style="width:240px;" />',
-		'<input id="chat-submit" type="submit" class="button" value="submit" />',
+		'<input id="chat-submit" type="submit" class="button" value="' + lp_strings.submit + '" />',
 		'</form></div>',
 		'</div>'
 	].join(''),
@@ -81,7 +81,7 @@ Collaboration.Chat = {
 			};
 
 			console.log(this, this.html);
-			jQuery('<div id="livepress-chat-window" title="Live Press <span>Live Chat</span>">' + this.html + '</div>')
+			jQuery('<div id="livepress-chat-window" title="' + lp_strings.live_press + ' <span>' + lp_strings.live_chat + '</span>">' + this.html + '</div>')
 				.dialog({
 					/*position: 'right',*/
 					width:      330,
@@ -135,6 +135,7 @@ jQuery.extend(Collaboration.Edit, {
 		data = JSON.parse(data);
 
 		if ( null !== data ) {
+			window.twttr.widgets.load(data);
 			OORTLE.Livepress.mergeLiveCanvasData(data);
 		}
 	}
@@ -338,12 +339,12 @@ Collaboration.reconnect = function () {
 };
 
 Collaboration.errorMessages = {
-	max_connection_attempts_reached: '<strong>Warning:</strong> The connection to the server has been lost. Will try to reconnect in some time.', // It's really Math.rand
-	server_list_empty:               '<strong>Warning:</strong> The connection to server has been lost. Please try to reconnect later.',
-	disconnected:                    '<strong>Warning:</strong> The connection to the server has been lost.',
-	message_order_broken:            '<strong>Warning:</strong> Syncronization of live editor seems to be lost. Try to enable/disable live editor or reload page.',
-	cache_empty:                     '<strong>Warning:</strong> Collaboration state may be out of sync. Try to reload page.',
-	cache_miss:                      '<strong>Warning:</strong> Collaboration may be out of sync. Try to reload page.'
+	max_connection_attempts_reached: '<strong>' + lp_strings.warning + '</strong> ' + lp_strings.connection_just_lost + lp_strings.connection_lost, // It's really Math.rand
+	server_list_empty:               '<strong>' + lp_strings.warning + '</strong> ' + lp_strings.connection_just_lost + lp_strings.connect_again,
+	disconnected:                    '<strong>' + lp_strings.warning + '</strong> ' + lp_strings.connection_just_lost,
+	message_order_broken:            '<strong>' + lp_strings.warning + '</strong> ' + lp_strings.sync_lost,
+	cache_empty:                     '<strong>' + lp_strings.warning + '</strong> ' + lp_strings.collabst_sync_lost,
+	cache_miss:                      '<strong>' + lp_strings.warning + '</strong> ' + lp_strings.collab_sync_lost
 };
 
 Collaboration.onError = function (key, arg) {

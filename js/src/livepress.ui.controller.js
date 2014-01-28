@@ -1,5 +1,5 @@
 /*jslint vars:true */
-/*global Livepress, OORTLE, console */
+/*global lp_client_strings, Livepress, OORTLE, console */
 /**
  *  Connects to Oortle, apply diff messages and handles the view, playing sounds for each task.
  *
@@ -134,7 +134,7 @@ Livepress.Ui.Controller = function (config, hooks) {
 			};
 
 			if (!should_attach) {
-				options.scrollToText = "Refresh page";
+				options.scrollToText = lp_client_strings.refresh_page;
 				options.scrollToCallback = function () {
 					location.reload();
 				};
@@ -231,13 +231,13 @@ Livepress.Ui.Controller = function (config, hooks) {
 		current += 1;
 
 		if ( current === 0 ) {
-			$counter.html('updated just now');
+			$counter.html( lp_client_strings.updated_just_now );
 		} else if ( current === 1 ) {
-			$counter.html('updated 1 minute ago');
+			$counter.html( lp_client_strings.uptated_amin_ago );
 		} else if ( current <= 60 ) {
-			$counter.html('updated ' + current + ' minutes ago');
+			$counter.html( lp_client_strings.updated + ' ' + current + ' ' + lp_client_strings.minutes_ago );
 		} else {
-			$counter.html('no recent updates');
+			$counter.html( lp_client_strings.no_recent_updates );
 			return;
 		}
 
@@ -273,6 +273,7 @@ Livepress.Ui.Controller = function (config, hooks) {
 		$livepress.find('.lp-updated-counter').data('min', -1);
 		$livepress.find('.lp-bar .lp-status').removeClass('lp-off').addClass('lp-on');
 		update_timer();
+		jQuery("abbr.livepress-timestamp").timeago();
 	}
 
 	function new_post_update_box (post, topic, msg_id) {

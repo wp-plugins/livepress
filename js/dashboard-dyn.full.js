@@ -1,6 +1,6 @@
-/*! livepress -v1.0.5
+/*! livepress -v1.0.7
  * http://livepress.com/
- * Copyright (c) 2013 LivePress, Inc.
+ * Copyright (c) 2014 LivePress, Inc.
  */
 var Livepress = Livepress || {};
 
@@ -49,6 +49,19 @@ String.prototype.replaceAll = function (from, to) {
 	str = str.split(from).join(to);
 	return str;
 };
+
+// Ensure we have a twitter handler, even when the page starts with no embeds
+// because they may be added later. Corrects issue where twitter embeds failed on live posts when
+// original page load contained no embeds.
+if ( 'undefined' === typeof window.twttr ) {
+	window.twttr = (function (d,s,id) {
+						var t, js, fjs = d.getElementsByTagName(s)[0];
+						if (d.getElementById(id)) { return; } js=d.createElement(s); js.id=id;
+						js.src="https://platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs);
+						return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f); } });
+					}(document, "script", "twitter-wjs"));
+}
+
 jQuery.fn.getBg = function () {
 	var $this = jQuery(this),
 		actual_bg, newBackground, color;
@@ -888,22 +901,17 @@ Livepress.DOMManipulator.prototype = {
 						if (childIndex > -1 && parent !== null) {
 							el = document.createElement('span');
 							var html = change[2];
-							var found = html.match( /(<p>)?<script.*?src="\/\/platform.twitter.com\/widgets.js".*?<\/script>(<\/p>)?/i );
-							html = html.replace( /(<p>)?<script.*?src="\/\/platform.twitter.com\/widgets.js".*?<\/script>(<\/p>)?/i, '' );
+							var found = html.match( /<blockquote[^>]*twitter-tweet/i );
 							el.innerHTML = html;
 
 							var content = el.childNodes[0];
 							childRef = parent.childNodes.length <= childIndex ? null : parent.childNodes[childIndex];
 
 							this.log("the case, childRef = ", childRef, ', content = ', content);
-							parent.insertBefore(content, childRef);
-
-							if ( null !== found ) {
-								var script = document.createElement( 'script' );
-								script.src = '//platform.twitter.com/widgets.js';
-
-								parent.appendChild( script );
+							if ( null !== found && 'twttr' in window ) {
+								window.twttr.widgets.load(content);
 							}
+							parent.insertBefore(content, childRef);
 						}
 					} catch (ein1) {
 						this.log('Exception on ins_node: ', ein1);
@@ -1195,6 +1203,7 @@ Livepress.DOMManipulator.clean_updates = function (el) {
 	var temp_manipulator = new Livepress.DOMManipulator(el);
 	temp_manipulator.clean_updates();
 };
+
 /*jslint vars:true */
 var Dashboard = Dashboard || {};
 
@@ -1259,9 +1268,9 @@ Dashboard.Controller = Dashboard.Controller || function () {
 			switchWarning.hide();
 			publish.data( 'publishText', publish.val() );
 			if ( publish.val() === "Update" ) {
-				publish.val( 'Save and Refresh' );
+				publish.val( lp_strings.save_and_refresh );
 			} else {
-				publish.val( 'Publish and Refresh' );
+				publish.val( lp_strings.publish_and_refresh );
 			}
 			publish.removeClass( "button-primary" ).addClass( "button-secondary" );
 			jQuery( window ).trigger( 'start.livepress' );
@@ -1464,7 +1473,7 @@ function DHelpers() {
 
 Dashboard.Helpers = Dashboard.Helpers || new DHelpers();
 
-/*global Livepress, Dashboard, console, OORTLE */
+/*global lp_strings, Livepress, Dashboard, console, OORTLE */
 var Collaboration = Livepress.ensureExists(Collaboration);
 Collaboration.chat_topic_id = function () {
 	var topic = Collaboration.post_topic() + "_chat";
@@ -1483,7 +1492,7 @@ Collaboration.Chat = {
 		'<div id="chat-form-message"><hr />',
 		'<form>',
 		'<input id="chat_message" type="text" name="chat_message" style="width:240px;" />',
-		'<input id="chat-submit" type="submit" class="button" value="submit" />',
+		'<input id="chat-submit" type="submit" class="button" value="' + lp_strings.submit + '" />',
 		'</form></div>',
 		'</div>'
 	].join(''),
@@ -1546,7 +1555,7 @@ Collaboration.Chat = {
 			};
 
 			console.log(this, this.html);
-			jQuery('<div id="livepress-chat-window" title="Live Press <span>Live Chat</span>">' + this.html + '</div>')
+			jQuery('<div id="livepress-chat-window" title="' + lp_strings.live_press + ' <span>' + lp_strings.live_chat + '</span>">' + this.html + '</div>')
 				.dialog({
 					/*position: 'right',*/
 					width:      330,
@@ -1600,6 +1609,7 @@ jQuery.extend(Collaboration.Edit, {
 		data = JSON.parse(data);
 
 		if ( null !== data ) {
+			window.twttr.widgets.load(data);
 			OORTLE.Livepress.mergeLiveCanvasData(data);
 		}
 	}
@@ -1803,12 +1813,12 @@ Collaboration.reconnect = function () {
 };
 
 Collaboration.errorMessages = {
-	max_connection_attempts_reached: '<strong>Warning:</strong> The connection to the server has been lost. Will try to reconnect in some time.', // It's really Math.rand
-	server_list_empty:               '<strong>Warning:</strong> The connection to server has been lost. Please try to reconnect later.',
-	disconnected:                    '<strong>Warning:</strong> The connection to the server has been lost.',
-	message_order_broken:            '<strong>Warning:</strong> Syncronization of live editor seems to be lost. Try to enable/disable live editor or reload page.',
-	cache_empty:                     '<strong>Warning:</strong> Collaboration state may be out of sync. Try to reload page.',
-	cache_miss:                      '<strong>Warning:</strong> Collaboration may be out of sync. Try to reload page.'
+	max_connection_attempts_reached: '<strong>' + lp_strings.warning + '</strong> ' + lp_strings.connection_just_lost + lp_strings.connection_lost, // It's really Math.rand
+	server_list_empty:               '<strong>' + lp_strings.warning + '</strong> ' + lp_strings.connection_just_lost + lp_strings.connect_again,
+	disconnected:                    '<strong>' + lp_strings.warning + '</strong> ' + lp_strings.connection_just_lost,
+	message_order_broken:            '<strong>' + lp_strings.warning + '</strong> ' + lp_strings.sync_lost,
+	cache_empty:                     '<strong>' + lp_strings.warning + '</strong> ' + lp_strings.collabst_sync_lost,
+	cache_miss:                      '<strong>' + lp_strings.warning + '</strong> ' + lp_strings.collab_sync_lost
 };
 
 Collaboration.onError = function (key, arg) {
@@ -1841,7 +1851,7 @@ Collaboration.initialize = function () {
 	}
 };
 
-/*global Dashboard, console, Collaboration, OORTLE, Livepress, tinyMCE */
+/*global lp_strings, Dashboard, console, Collaboration, OORTLE, Livepress, tinyMCE */
 if (Dashboard.Comments === undefined) {
 	Dashboard.Comments = (function () {
 		var comments_on_hold = [];
@@ -1948,6 +1958,8 @@ if (Dashboard.Comments === undefined) {
 					fetch_all: true
 				};
 				OORTLE.instance.subscribe(approved_comment_post_topic(), approved_comment_callback, opt);
+				liveCounter.reset();
+				liveCounter.disable();
 			},
 
 			clear_container_and_count: function (env) {
@@ -2059,7 +2071,7 @@ if (Dashboard.Comments.Builder === undefined) {
 			var href = location.href;
 			var linkForSpamAndTrash = href.substring(0, href.lastIndexOf('/')) + "/edit-comments.php";
 			var defaultAjaxData = {
-				_ajax_nonce:      Livepress.Config.ajax_nonce,
+				_ajax_nonce:      data._ajax_nonce,
 				id:               commentId,
 				livepress_action: 1
 			};
@@ -2068,22 +2080,22 @@ if (Dashboard.Comments.Builder === undefined) {
 				return jQuery("<a></a>").attr("href", href).text(text).attr('title', title);
 			};
 
-			var postAndCommentIds = "&p=" + Livepress.Config.post_id + "&c=" + commentId + "&_wpnonce=" + Livepress.Config.ajax_nonce;
+			var postAndCommentIds = "&p=" + Livepress.Config.post_id + "&c=" + commentId + "&_wpnonce=" + data._ajax_nonce;
 			var linkAction = function (action) {
 				return "comment.php?action=" + action + postAndCommentIds;
 			};
 
 			var rowActions = jQuery("<div class='row-actions'></div>");
 
-			var postLink = linkTag("Copy the commenter name and full text into the post text box", "#", "Send to editor");
+			var postLink = linkTag( lp_strings.post_link, "#", lp_strings.send_to_editor );
 			rowActions.append(commentLink('post', postLink, true));
-			var approveLink = linkTag("Approve this comment", linkAction('approvecomment'), "Approve");
+			var approveLink = linkTag( lp_strings.approve_comment, linkAction('approvecomment'), lp_strings.approve );
 			rowActions.append(commentLink('approve', approveLink));
-			var unapproveLink = linkTag("Unapprove this comment", linkAction("unapprovecomment"), "Unapprove");
+			var unapproveLink = linkTag( lp_strings.unapprove_comment, linkAction("unapprovecomment"), lp_strings.unapprove );
 			rowActions.append(commentLink('unapprove', unapproveLink));
-			var spamLink = linkTag("Mark this comment as spam", linkAction("spamcomment"), "Spam");
+			var spamLink = linkTag( lp_strings.mark_as_spam, linkAction("spamcomment"), lp_strings.spam );
 			rowActions.append(commentLink('spam', spamLink));
-			var trashLink = linkTag("Move this comment to the trash", linkAction("trashcomment"), "Trash");
+			var trashLink = linkTag( lp_strings.move_comment_trash, linkAction("trashcomment"), lp_strings.trash );
 			rowActions.append(commentLink('trash', trashLink));
 
 			var removeComment = function () {
@@ -3462,7 +3474,7 @@ if (typeof twttr === "undefined" || twttr === null) {
 	}
 
 }());
-/*global Dashboard, Livepress, tinyMCE, OORTLE, twttr */
+/*global lp_strings, Dashboard, Livepress, tinyMCE, OORTLE, twttr */
 Dashboard.Twitter = Livepress.ensureExists(Dashboard.Twitter);
 
 Dashboard.Twitter.terms = [];
@@ -3483,7 +3495,9 @@ if (Dashboard.Twitter.twitter === undefined) {
 
 		var binders = (function () {
 			var bindRemoveButtons = function (elToBind, type) {
-				elToBind.bind('click', function () {
+
+				// Bind term close action, removing exisitng action 1st to avoid double firing
+				elToBind.off( 'click' ).on( 'click', function () {
 					var container = jQuery(this).parent('.lp-' + type),
 						text = container.find(".lp-" + type + "-text").text(),
 						id = container.attr('id');
@@ -3508,7 +3522,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 					liveCounter.disable();
 					twitter.appendGatheredTweets();
 
-					jQuery(tweet_player_id).attr('title', "Click to pause the tweets so you can decide when to display them").removeClass('paused');
+					jQuery(tweet_player_id).attr('title', lp_strings.click_pause_tweets ).removeClass('paused');
 					jQuery(tweetContainer).removeClass('paused');
 					jQuery('#pausedmsg').hide();
 				}
@@ -3519,7 +3533,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				if (tweetTrackerPaused === 1) {
 					liveCounter.enable();
 
-					jQuery(tweet_player_id).attr('title', "Click to copy tweets into the post editor.").addClass('paused');
+					jQuery(tweet_player_id).attr('title', lp_strings.click_copy_tweets ).addClass('paused');
 					jQuery(tweetContainer).addClass('paused');
 					jQuery('#pausedmsg').show();
 				}
@@ -3527,10 +3541,11 @@ if (Dashboard.Twitter.twitter === undefined) {
 
 			return {
 				bindCleaners: function () {
-					var $tweetCleaner = $paneHolder.find('a.lp-tweet-cleaner');
-					var $termCleaner = $paneHolder.find('.lp-term-cleaner a');
+					//var $tweetCleaner = $paneHolder.find('a.lp-tweet-cleaner');
+					//var $termCleaner = $paneHolder.find('a.lp-term-cleaner');
 
-					$tweetCleaner.live('click', function (e) {
+					// Clear all tweet terms
+					$paneHolder.on( 'click', 'a.lp-tweet-cleaner', function (e) {
 						e.preventDefault();
 						e.stopPropagation();
 						// Dashboard.Helpers.disableAndDisplaySpinner(jQuery(this));
@@ -3538,7 +3553,8 @@ if (Dashboard.Twitter.twitter === undefined) {
 						return false;
 					});
 
-					$termCleaner.live('click', function (e) {
+					// Clear all terms
+					$paneHolder.on( 'click','.lp-term-cleaner a', function (e) {
 						e.preventDefault();
 						e.stopPropagation();
 						// Dashboard.Helpers.disableAndDisplaySpinner(jQuery(this));
@@ -3677,12 +3693,12 @@ if (Dashboard.Twitter.twitter === undefined) {
 			contentDiv.find('a').attr("target", "_blank");
 
 			var rowActions = jQuery("<div class='row-actions'></div>");
-			var postLink = jQuery("<span class='post'><a href='#' title='Copy the tweet into the post editing area'>Send to editor</a><span>");
+			var postLink = jQuery("<span class='post'><a href='#' title='" + lp_strings.copy_tweets + "'>" + lp_strings.send_to_editor + "</a><span>");
 			rowActions.append(postLink);
 			postLink.bind('click', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				var t = tinyMCE.activeEditor;
+				var t = tinyMCE.editors[ 1 ]; // 1 should always be the 'Real Time' editor
 
 				var created_at = new Date(tweet.created_at);
 				var textToAppend = "[embed]http://twitter.com/"+tweet.author+"/status/"+tweet.id+"[/embed]\n";
@@ -3746,7 +3762,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				var termHtml = "";
 
 				for (var i = 0; i < terms.length; i += 1) {
-					termHtml += '<div class="lp-term" id="term-' + i + '"><a class="lp-term-clean-button" title="Remove this term"></a><span class="lp-term-text">' + terms[i] + '</span></div>';
+					termHtml += '<div class="lp-term" id="term-' + i + '"><a class="lp-term-clean-button" title="' + lp_strings.remove_term + '"></a><span class="lp-term-text">' + terms[i] + '</span></div>';
 				}
 
 				termHtml += '<div class="clear"></div>';
@@ -3771,7 +3787,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				for (var i = 0; i < tweets.length; i += 1) {
 					tweetHtml += '<li id="tweet-' + i + '" class="' + ((i % 2 === 1) ? 'odd' : 'even') + ' lp-tweet">';
 					tweetHtml += '<span class="lp-tweet-text">@' + tweets[i] + '</span>';
-					tweetHtml += '<a class="lp-tweet-clean-button" title="Remove this account">remove</a>';
+					tweetHtml += '<a class="lp-tweet-clean-button" title="' + lp_strings.remove_account + '">' + lp_strings.remove_lower + '</a>';
 					tweetHtml += '</li>';
 				}
 				jQuery('#lp-account-list').html(tweetHtml);
@@ -3784,7 +3800,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 
 				var $authors = jQuery( document.getElementById( 'livepress-authors_num' ) ),
 					$author_label = $authors.siblings( '.label' );
-				var label = ( 1 === tweets.length ) ? 'Remote Author' : 'Remote Authors';
+				var label = ( 1 === tweets.length ) ? lp_strings.remove_author : lp_strings.remove_authors;
 
 				$authors.html( tweets.length );
 				$author_label.text( label );
@@ -3835,6 +3851,9 @@ if (Dashboard.Twitter.twitter === undefined) {
 							options.afterPushFunction();
 						} else {
 							if (env.errors) {
+								if ( 'undefined' !== typeof( options.afterPushFailedFunction ) ){
+									options.afterPushFailedFunction( env.errors );
+								}
 								Dashboard.Helpers.handleErrors(env.errors);
 								if (options.inputToClean) {
 									Dashboard.Helpers.enableAndHideSpinner(options.inputToClean);
@@ -3951,38 +3970,14 @@ if (Dashboard.Twitter.twitter === undefined) {
 				if ( 0 === container.find( '.lp-spinner' ).length ) {
 					$spinner.appendTo( container );
 				}
-
-				// Static Twitter search was dependent on the deprecated v1 API. This code does not work!
-				/*if (!limit) {
-					limit = 20;
-				}
-
-				jQuery.getJSON("http://search.twitter.com/search.json?callback=?", {
-					q:   query,
-					rpp: limit
-				}, function (response) {
-					var tweets = response.results;
-					var container = target();
-					jQuery.each(tweets.reverse(), function (idx, tweet) {
-						pushTweet(container, {
-							id:         tweet.id_str,
-							user_id:    tweet.from_user_id,
-							author:     tweet.from_user,
-							created_at: tweet.created_at,
-							text:       tweet.text,
-							avatar_url: tweet.profile_image_url,
-							term:       query
-						});
-					});
-				});*/
 			},
 
 			/**
 			 * Sends ajax with twitter search terms to follow or remove
 			 *
-			 * @param {String} term   Twitter search term
+			 * @param {String} term        Twitter search term
 			 * @param {String} action_type Should be 'add', 'remove' or 'clear'
-			 * @param {function} success Function to be run on success callback
+			 * @param {function} success   Function to be run on success callback
 			 * @returns Always true
 			 */
 			postTweetSearch:          function (term, action_type, success) {
@@ -3990,7 +3985,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 					"admin-ajax.php",
 					{
 						livepress_action: true,
-						_ajax_nonce:      Livepress.Config.ajax_nonce,
+						_ajax_nonce:      Livepress.Config.ajax_twitter_search_nonce,
 						action:           'twitter_search_term',
 						term:             term,
 						action_type:      action_type,
@@ -4019,13 +4014,19 @@ if (Dashboard.Twitter.twitter === undefined) {
 			},
 
 			addGuestBlogger: function (username, dontPostToLivepress) {
-				var $newTweetInput = jQuery("#new-twitter-account");
+				var $newTweetInput = jQuery("#new-twitter-account"),
+					$errorField    = jQuery( '#termadderror' );
 				username = username.replace("@", '');
 				var options = {
 					dontPostToLivepress: dontPostToLivepress,
 					afterPushFunction:   function () {
 						twitter.refresh_tweets();
 						Dashboard.Helpers.enableAndHideSpinner($newTweetInput);
+					},
+					afterPushFailedFunction: function( err ){
+						$errorField.show();
+						$errorField.find('#errmsg').html( err.username.replace( '[', '' ).replace( ']', '' ) );
+						setTimeout( function(){ $errorField.fadeOut( 750 ); }, 2000 );
 					},
 					ajaxRequest:         this.postTwitterFollow,
 					inputToClean:        $newTweetInput
@@ -4067,7 +4068,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 					"admin-ajax.php",
 					{
 						livepress_action: true,
-						_ajax_nonce:      Livepress.Config.ajax_nonce,
+						_ajax_nonce:      Livepress.Config.ajax_twitter_follow_nonce,
 						action:           'twitter_follow',
 						username:         username,
 						action_type:      action_type,
@@ -4246,12 +4247,13 @@ if (Dashboard.Twitter.twitter === undefined) {
 	} else {
 		// IE
 		try {
-			F = new ActiveXObject('Gears.Factory');
-			// privateSetGlobalObject is only required and supported on WinCE.
-			if (F.getBuildInfo().indexOf('ie_mobile') != -1) {
-				F.privateSetGlobalObject(this);
+			if ( 'undefined' !== typeof window.ActiveXObject ){
+				F = new ActiveXObject('Gears.Factory');
+				// privateSetGlobalObject is only required and supported on WinCE.
+				if (F.getBuildInfo().indexOf('ie_mobile') != -1) {
+					F.privateSetGlobalObject(this);
+				}
 			}
-
 		} catch (e) {
 			// Safari
 			if ((typeof navigator.mimeTypes != 'undefined') && navigator.mimeTypes["application/x-googlegears"]) {
@@ -4286,1035 +4288,72 @@ if (Dashboard.Twitter.twitter === undefined) {
 	}
 
 })();
-Persist = (function () {
-	var VERSION = '0.3.0', P, B, esc, init, empty, ec;
+/**
+* storage.js - Simple namespaced browser storage.
+*
+* Creates a window.Storage function that gives you an easy API to access localStorage,
+* with fallback to cookie storage. Each Storage object is namespaced:
+*
+* var foo = Storage('foo'), bar = Storage('bar');
+* foo.set('test', 'A'); bar.set('test', 'B');
+* foo.get('test'); // 'A'
+* bar.remove('test');
+* foo.get('test'); // still 'A'
+*
+* Requires jQuery.
+* Based on https://github.com/jbalogh/zamboni/blob/master/media/js/zamboni/storage.js
+* Everything clever written by Chris Van.
+*/
+var internalStorage = (function () {
+	var cookieStorage = {
+			expires: 30,
+			get: function ( key ) {
+			return jQuery.cookie( key );
+			},
 
-	ec = (function () {
-		var EPOCH = 'Thu, 01-Jan-1970 00:00:01 GMT',
-		// milliseconds per day
-			RATIO = 1000 * 60 * 60 * 24,
-		// keys to encode
-			KEYS = ['expires', 'path', 'domain'],
-		// wrappers for common globals
-			esc = escape, un = unescape, doc = document,
-			me;
+			set: function ( key, value ) {
+				return jQuery.cookie( key, value, {path: "/", expires: this.expires} );
+			},
 
-		// private methods
-
-		/*
-		 * Get the current time.
-		 *
-		 * This method is private.
-		 */
-		var get_now = function () {
-			var r = new Date();
-			r.setTime(r.getTime());
-			return r;
+			remove: function ( key ) {
+				return jQuery.cookie( key, null );
+			}
 		};
 
-		/*
-		 * Convert the given key/value pair to a cookie.
-		 *
-		 * This method is private.
-		 */
-		var cookify = function (c_key, c_val /*, opt */) {
-			var i, key, val, r = [],
-				opt = (arguments.length > 2) ? arguments[2] : {};
+	var engine = cookieStorage;
+	try {
+		if ( 'localStorage' in window && window['localStorage'] !== null ) {
+			engine = window.localStorage;
+		}
+	} catch ( e ) {
+		}
+	return function ( namespace ) {
+		if ( !namespace ) {
+			namespace = '';
+		}
 
-			// add key and value
-			r.push(esc(c_key) + '=' + esc(c_val));
+		return {
+			get: function ( key, def ) {
+				return engine.getItem( namespace + "-" + key );
+			},
 
-			// iterate over option keys and check each one
-			for (var idx = 0; idx < KEYS.length; idx++) {
-				key = KEYS[idx];
-				val = opt[key];
-				if (val) {
-					r.push(key + '=' + val);
-				}
+			set: function ( key, value ) {
+				return engine.setItem( namespace + "-" + key, value );
+			},
 
+			remove: function ( key ) {
+				return engine.remoteItem( namespace + "-" + key);
 			}
-
-			// append secure (if specified)
-			if (opt.secure) {
-				r.push('secure');
-			}
-
-			// build and return result string
-			return r.join('; ');
 		};
-
-		/*
-		 * Check to see if cookies are enabled.
-		 *
-		 * This method is private.
-		 */
-		var alive = function () {
-			var k = '__EC_TEST__',
-				v = new Date();
-
-			// generate test value
-			v = v.toGMTString();
-
-			// set test value
-			this.set(k, v);
-
-			// return cookie test
-			this.enabled = (this.remove(k) == v);
-			return this.enabled;
-		};
-
-		// public methods
-
-		// build return object
-		me = {
-			/*
-			 * Set a cookie value.
-			 *
-			 * Examples:
-			 *
-			 *   // simplest-case
-			 *   EasyCookie.set('test_cookie', 'test_value');
-			 *
-			 *   // more complex example
-			 *   EasyCookie.set('test_cookie', 'test_value', {
-			 *     // expires in 13 days
-			 *     expires: 13,
-			 *
-			 *     // restrict to given domain
-			 *     domain: 'foo.example.com',
-			 *
-			 *     // restrict to given path
-			 *     path: '/some/path',
-			 *
-			 *     // secure cookie only
-			 *     secure: true
-			 *   });
-			 *
-			 */
-			set:    function (key, val /*, opt */) {
-				var opt = (arguments.length > 2) ? arguments[2] : {},
-					now = get_now(),
-					expire_at,
-					cfg = {};
-
-				// if expires is set, convert it from days to milliseconds
-				if (opt.expires) {
-					// Needed to assign to a temporary variable because of pass by reference issues
-					var expires = opt.expires * RATIO;
-
-					// set cookie expiration date
-					cfg.expires = new Date(now.getTime() + expires);
-					cfg.expires = cfg.expires.toGMTString();
-				}
-
-				// set remaining keys
-				var keys = ['path', 'domain', 'secure'];
-				for (var i = 0; i < keys.length; i++) {
-					if (opt[keys[i]]) {
-						cfg[keys[i]] = opt[keys[i]];
-					}
-				}
-
-				var r = cookify(key, val, cfg);
-				doc.cookie = r;
-
-				return val;
-			},
-
-			/*
-			 * Check to see if the given cookie exists.
-			 *
-			 * Example:
-			 *
-			 *   val = EasyCookie.get('test_cookie');
-			 *
-			 */
-			has:    function (key) {
-				key = esc(key);
-
-				var c = doc.cookie,
-					ofs = c.indexOf(key + '='),
-					len = ofs + key.length + 1,
-					sub = c.substring(0, key.length);
-
-				// check to see if key exists
-				return ((!ofs && key != sub) || ofs < 0) ? false : true;
-			},
-
-			/*
-			 * Get a cookie value.
-			 *
-			 * Example:
-			 *
-			 *   val = EasyCookie.get('test_cookie');
-			 *
-			 */
-			get:    function (key) {
-				key = esc(key);
-
-				var c = doc.cookie,
-					ofs = c.indexOf(key + '='),
-					len = ofs + key.length + 1,
-					sub = c.substring(0, key.length),
-					end;
-
-				// check to see if key exists
-				if ((!ofs && key != sub) || ofs < 0) {
-					return null;
-				}
-
-				// grab end of value
-				end = c.indexOf(';', len);
-				if (end < 0) {
-					end = c.length;
-				}
-
-				// return unescaped value
-				return un(c.substring(len, end));
-			},
-
-			/*
-			 * Remove a preset cookie.  If the cookie is already set, then
-			 * return the value of the cookie.
-			 *
-			 * Example:
-			 *
-			 *   old_val = EasyCookie.remove('test_cookie');
-			 *
-			 */
-			remove: function (k) {
-				var r = me.get(k),
-					opt = { expires:EPOCH };
-
-				// delete cookie
-				doc.cookie = cookify(k, '', opt);
-
-				// return value
-				return r;
-			},
-
-			/*
-			 * Get a list of cookie names.
-			 *
-			 * Example:
-			 *
-			 *   // get all cookie names
-			 *   cookie_keys = EasyCookie.keys();
-			 *
-			 */
-			keys:   function () {
-				var c = doc.cookie,
-					ps = c.split('; '),
-					i, p, r = [];
-
-				// iterate over each key=val pair and grab the key
-				for (var idx = 0; idx < ps.length; idx++) {
-					p = ps[idx].split('=');
-					r.push(un(p[0]));
-				}
-
-				// return results
-				return r;
-			},
-
-			/*
-			 * Get an array of all cookie key/value pairs.
-			 *
-			 * Example:
-			 *
-			 *   // get all cookies
-			 *   all_cookies = EasyCookie.all();
-			 *
-			 */
-			all:    function () {
-				var c = doc.cookie,
-					ps = c.split('; '),
-					i, p, r = [];
-
-				// iterate over each key=val pair and grab the key
-				for (var idx = 0; idx < ps.length; idx++) {
-					p = ps[idx].split('=');
-					r.push([un(p[0]), un(p[1])]);
-				}
-
-				// return results
-				return r;
-			},
-
-			/*
-			 * Version of EasyCookie
-			 */
-			version:'0.2.1',
-
-			/*
-			 * Are cookies enabled?
-			 *
-			 * Example:
-			 *
-			 *   have_cookies = EasyCookie.enabled
-			 *
-			 */
-			enabled:false
-		};
-
-		// set enabled attribute
-		me.enabled = alive.call(me);
-
-		// return self
-		return me;
-	}());
-
-	// wrapper for Array.prototype.indexOf, since IE doesn't have it
-	var index_of = (function () {
-		if (Array.prototype.indexOf) {
-			return function (ary, val) {
-				return Array.prototype.indexOf.call(ary, val);
-			};
-		} else {
-			return function (ary, val) {
-				var i, l;
-
-				for (var idx = 0, len = ary.length; idx < len; idx++) {
-					if (ary[idx] == val) {
-						return idx;
-					}
-				}
-
-				return -1;
-			};
-		}
-	})();
-
-
-	// empty function
-	empty = function () {
 	};
-
-	/**
-	 * Escape spaces and underscores in name.  Used to generate a "safe"
-	 * key from a name.
-	 *
-	 * @private
-	 */
-	esc = function (str) {
-		return 'PS' + str.replace(/_/g, '__').replace(/ /g, '_s');
-	};
-
-	var C = {
-		/*
-		 * Backend search order.
-		 *
-		 * Note that the search order is significant; the backends are
-		 * listed in order of capacity, and many browsers
-		 * support multiple backends, so changing the search order could
-		 * result in a browser choosing a less capable backend.
-		 */
-		search_order:[
-			// TODO: air
-			'localstorage',
-			'globalstorage',
-			'gears',
-			'cookie',
-			'ie',
-			'flash'
-		],
-
-		// valid name regular expression
-		name_re:     /^[a-z][a-z0-9_ \-]+$/i,
-
-		// list of backend methods
-		methods:     [
-			'init',
-			'get',
-			'set',
-			'remove',
-			'load',
-			'save',
-			'iterate'
-			// TODO: clear method?
-		],
-
-		// sql for db backends (gears and db)
-		sql:         {
-			version:'1', // db schema version
-
-			// XXX: the "IF NOT EXISTS" is a sqlite-ism; fortunately all the
-			// known DB implementations (safari and gears) use sqlite
-			create: "CREATE TABLE IF NOT EXISTS persist_data (k TEXT UNIQUE NOT NULL PRIMARY KEY, v TEXT NOT NULL)",
-			get:    "SELECT v FROM persist_data WHERE k = ?",
-			set:    "INSERT INTO persist_data(k, v) VALUES (?, ?)",
-			remove: "DELETE FROM persist_data WHERE k = ?",
-			keys:   "SELECT * FROM persist_data"
-		},
-
-		// default flash configuration
-		flash:       {
-			// ID of wrapper element
-			div_id:'_persist_flash_wrap',
-
-			// id of flash object/embed
-			id:    '_persist_flash',
-
-			// default path to flash object
-			path:  'persist.swf',
-			size:  { w:1, h:1 },
-
-			// arguments passed to flash object
-			args:  {
-				autostart:true
-			}
-		}
-	};
-
-	// built-in backends
-	B = {
-		// gears db backend
-		// (src: http://code.google.com/apis/gears/api_database.html)
-		gears:        {
-			// no known limit
-			size:-1,
-
-			test:function () {
-				// test for gears
-				return (window.google && window.google.gears) ? true : false;
-			},
-
-			methods:{
-
-				init:function () {
-					var db;
-
-					// create database handle (TODO: add schema version?)
-					db = this.db = google.gears.factory.create('beta.database');
-
-					// open database
-					// from gears ref:
-					//
-					// Currently the name, if supplied and of length greater than
-					// zero, must consist only of visible ASCII characters
-					// excluding the following characters:
-					//
-					//   / \ : * ? " < > | ; ,
-					//
-					// (this constraint is enforced in the Store constructor)
-					db.open(esc(this.name));
-
-					// create table
-					db.execute(C.sql.create).close();
-				},
-
-				get:function (key) {
-					var r, sql = C.sql.get;
-					var db = this.db;
-					var ret;
-
-					// begin transaction
-					db.execute('BEGIN').close();
-
-					// exec query
-					r = db.execute(sql, [key]);
-
-					// check result and get value
-					ret = r.isValidRow() ? r.field(0) : null;
-
-					// close result set
-					r.close();
-
-					// commit changes
-					db.execute('COMMIT').close();
-					return ret;
-				},
-
-				set:function (key, val) {
-					var rm_sql = C.sql.remove,
-						sql = C.sql.set, r;
-					var db = this.db;
-					var ret;
-
-					// begin transaction
-					db.execute('BEGIN').close();
-
-					// exec remove query
-					db.execute(rm_sql, [key]).close();
-
-					// exec set query
-					db.execute(sql, [key, val]).close();
-
-					// commit changes
-					db.execute('COMMIT').close();
-
-					return val;
-				},
-
-				remove: function (key) {
-					var get_sql = C.sql.get;
-					sql = C.sql.remove,
-						r, val = null, is_valid = false;
-					var db = this.db;
-
-					// begin transaction
-					db.execute('BEGIN').close();
-
-					// exec remove query
-					db.execute(sql, [key]).close();
-
-					// commit changes
-					db.execute('COMMIT').close();
-
-					return true;
-				},
-				iterate:function (fn, scope) {
-					var key_sql = C.sql.keys;
-					var r;
-					var db = this.db;
-
-					// exec keys query
-					r = db.execute(key_sql);
-					while (r.isValidRow()) {
-						fn.call(scope || this, r.field(0), r.field(1));
-						r.next();
-					}
-					r.close();
-				}
-			}
-		},
-
-		// globalstorage backend (globalStorage, FF2+, IE8+)
-		// (src: http://developer.mozilla.org/en/docs/DOM:Storage#globalStorage)
-		// https://developer.mozilla.org/En/DOM/Storage
-		//
-		// TODO: test to see if IE8 uses object literal semantics or
-		// getItem/setItem/removeItem semantics
-		globalstorage:{
-			// (5 meg limit, src: http://ejohn.org/blog/dom-storage-answers/)
-			size:5 * 1024 * 1024,
-
-			test:function () {
-				if (window.globalStorage) {
-					var domain = '127.0.0.1';
-					if (this.o && this.o.domain) {
-						domain = this.o.domain;
-					}
-					try {
-						var dontcare = globalStorage[domain];
-						return true;
-					} catch (e) {
-						if (window.console && window.console.warn) {
-							console.warn("globalStorage exists, but couldn't use it because your browser is running on domain:", domain);
-						}
-						return false;
-					}
-				} else {
-					return false;
-				}
-			},
-
-			methods:{
-				key:function (key) {
-					return esc(this.name) + esc(key);
-				},
-
-				init:function () {
-					this.store = globalStorage[this.o.domain];
-				},
-
-				get:function (key) {
-					// expand key
-					key = this.key(key);
-
-					return  this.store.getItem(key);
-				},
-
-				set:function (key, val) {
-					// expand key
-					key = this.key(key);
-
-					// set value
-					this.store.setItem(key, val);
-
-					return val;
-				},
-
-				remove:function (key) {
-					var val;
-
-					// expand key
-					key = this.key(key);
-
-					// get value
-					val = this.store.getItem[key];
-
-					// delete value
-					this.store.removeItem(key);
-
-					return val;
-				}
-			}
-		},
-
-		// localstorage backend (globalStorage, FF2+, IE8+)
-		// (src: http://www.whatwg.org/specs/web-apps/current-work/#the-localstorage)
-		// also http://msdn.microsoft.com/en-us/library/cc197062(VS.85).aspx#_global
-		localstorage: {
-			// (unknown?)
-			// ie has the remainingSpace property, see:
-			// http://msdn.microsoft.com/en-us/library/cc197016(VS.85).aspx
-			size:-1,
-
-			test:function () {
-				return window.localStorage ? true : false;
-			},
-
-			methods:{
-				key:function (key) {
-					return this.name + '>' + key;
-					//return esc(this.name) + esc(key);
-				},
-
-				init:function () {
-					this.store = localStorage;
-				},
-
-				get:function (key) {
-					// expand key
-					key = this.key(key);
-					return this.store.getItem(key);
-				},
-
-				set:function (key, val) {
-					// expand key
-					key = this.key(key);
-
-					// set value
-					this.store.setItem(key, val);
-
-					return val;
-				},
-
-				remove:function (key) {
-					var val;
-
-					// expand key
-					key = this.key(key);
-
-					// get value
-					val = this.store.getItem(key);
-
-					// delete value
-					this.store.removeItem(key);
-
-					return val;
-				},
-
-				iterate:function (fn, scope) {
-					var l = this.store;
-					for (i = 0; i < l.length; i++) {
-						keys = l[i].split('>');
-						if ((keys.length == 2) && (keys[0] == this.name)) {
-							fn.call(scope || this, keys[1], l[l[i]]);
-						}
-					}
-				}
-			}
-		},
-
-		// IE backend
-		ie:           {
-			prefix:'_persist_data-',
-			// style:    'display:none; behavior:url(#default#userdata);',
-
-			// 64k limit
-			size:  64 * 1024,
-
-			test:function () {
-				// make sure we're dealing with IE
-				// (src: http://javariet.dk/shared/browser_dom.htm)
-				return window.ActiveXObject ? true : false;
-			},
-
-			make_userdata:function (id) {
-				var el = document.createElement('div');
-
-				// set element properties
-				// http://msdn.microsoft.com/en-us/library/ms531424(VS.85).aspx
-				// http://www.webreference.com/js/column24/userdata.html
-				el.id = id;
-				el.style.display = 'none';
-				el.addBehavior('#default#userdata');
-
-				// append element to body
-				document.body.appendChild(el);
-
-				// return element
-				return el;
-			},
-
-			methods:{
-				init:function () {
-					var id = B.ie.prefix + esc(this.name);
-
-					// save element
-					this.el = B.ie.make_userdata(id);
-
-					// load data
-					if (this.o.defer) {
-						this.load();
-					}
-				},
-
-				get:function (key) {
-					var val;
-
-					// expand key
-					key = esc(key);
-
-					// load data
-					if (!this.o.defer) {
-						this.load();
-					}
-
-					// get value
-					val = this.el.getAttribute(key);
-
-					return val;
-				},
-
-				set:function (key, val) {
-					// expand key
-					key = esc(key);
-
-					// set attribute
-					this.el.setAttribute(key, val);
-
-					// save data
-					if (!this.o.defer) {
-						this.save();
-					}
-
-					return val;
-				},
-
-				remove:function (key) {
-					var val;
-
-					// expand key
-					key = esc(key);
-
-					// load data
-					if (!this.o.defer) {
-						this.load();
-					}
-
-					// get old value and remove attribute
-					val = this.el.getAttribute(key);
-					this.el.removeAttribute(key);
-
-					// save data
-					if (!this.o.defer) {
-						this.save();
-					}
-
-					return val;
-				},
-
-				load:function () {
-					this.el.load(esc(this.name));
-				},
-
-				save:function () {
-					this.el.save(esc(this.name));
-				}
-			}
-		},
-
-		// cookie backend
-		// uses easycookie: http://pablotron.org/software/easy_cookie/
-		cookie:       {
-			delim:':',
-
-			// 4k limit (low-ball this limit to handle browser weirdness, and
-			// so we don't hose session cookies)
-			size: 4000,
-
-			test:function () {
-				// XXX: use easycookie to test if cookies are enabled
-				return P.Cookie.enabled ? true : false;
-			},
-
-			methods:{
-				key:function (key) {
-					return this.name + B.cookie.delim + key;
-				},
-
-				get:function (key, fn) {
-					var val;
-
-					// expand key
-					key = this.key(key);
-
-					// get value
-					val = ec.get(key);
-
-					return val;
-				},
-
-				set:function (key, val, fn) {
-					// expand key
-					key = this.key(key);
-
-					// save value
-					ec.set(key, val, this.o);
-
-					return val;
-				},
-
-				remove:function (key, val) {
-					var val;
-
-					// expand key
-					key = this.key(key);
-
-					// remove cookie
-					val = ec.remove(key);
-
-					return val;
-				}
-			}
-		},
-
-		// flash backend (requires flash 8 or newer)
-		// http://kb.adobe.com/selfservice/viewContent.do?externalId=tn_16194&sliceId=1
-		// http://livedocs.adobe.com/flash/8/main/wwhelp/wwhimpl/common/html/wwhelp.htm?context=LiveDocs_Parts&file=00002200.html
-		flash:        {
-			test:function () {
-				// TODO: better flash detection
-				if (!deconcept || !deconcept.SWFObjectUtil) {
-					return false;
-				}
-
-				// get the major version
-				var major = deconcept.SWFObjectUtil.getPlayerVersion().major;
-
-				// check flash version (require 8.0 or newer)
-				return (major >= 8) ? true : false;
-			},
-
-			methods:{
-				init:function () {
-					if (!B.flash.el) {
-						var o, key, el, cfg = C.flash;
-
-						// create wrapper element
-						el = document.createElement('div');
-						el.id = cfg.div_id;
-
-						// FIXME: hide flash element
-						// el.style.display = 'none';
-
-						// append element to body
-						document.body.appendChild(el);
-
-						// create new swf object
-						o = new deconcept.SWFObject(this.o.swf_path || cfg.path, cfg.id, cfg.size.w, cfg.size.h, '8');
-
-						// set parameters
-						for (key in cfg.args) {
-							if (cfg.args[key] != 'function') {
-								o.addVariable(key, cfg.args[key]);
-							}
-						}
-
-						// write flash object
-						o.write(el);
-
-						// save flash element
-						B.flash.el = document.getElementById(cfg.id);
-					}
-
-					// use singleton flash element
-					this.el = B.flash.el;
-				},
-
-				get:function (key) {
-					var val;
-
-					// escape key
-					key = esc(key);
-
-					// get value
-					val = this.el.get(this.name, key);
-
-					return val;
-				},
-
-				set:function (key, val) {
-					var old_val;
-
-					// escape key
-					key = esc(key);
-
-					// set value
-					old_val = this.el.set(this.name, key, val);
-
-					return old_val;
-				},
-
-				remove:function (key) {
-					var val;
-
-					// get key
-					key = esc(key);
-
-					// remove old value
-					val = this.el.remove(this.name, key);
-					return val;
-				}
-			}
-		}
-	};
-
-	/**
-	 * Test for available backends and pick the best one.
-	 * @private
-	 */
-	init = function () {
-		var i, l, b, key, fns = C.methods, keys = C.search_order;
-
-		// set all functions to the empty function
-		for (var idx = 0, len = fns.length; idx < len; idx++) {
-			P.Store.prototype[fns[idx]] = empty;
-		}
-
-		// clear type and size
-		P.type = null;
-		P.size = -1;
-
-		// loop over all backends and test for each one
-		for (var idx2 = 0, len2 = keys.length; !P.type && idx2 < len2; idx2++) {
-			b = B[keys[idx2]];
-
-			// test for backend
-			if (b.test()) {
-				// found backend, save type and size
-				P.type = keys[idx2];
-				P.size = b.size;
-				// extend store prototype with backend methods
-				for (key in b.methods) {
-					P.Store.prototype[key] = b.methods[key];
-				}
-			}
-		}
-
-		// mark library as initialized
-		P._init = true;
-	};
-
-	// create top-level namespace
-	P = {
-		// version of persist library
-		VERSION:VERSION,
-
-		// backend type and size limit
-		type:   null,
-		size:   0,
-
-		// XXX: expose init function?
-		// init: init,
-
-		add:function (o) {
-			// add to backend hash
-			B[o.id] = o;
-
-			// add backend to front of search order
-			C.search_order = [o.id].concat(C.search_order);
-
-			// re-initialize library
-			init();
-		},
-
-		remove:function (id) {
-			var ofs = index_of(C.search_order, id);
-			if (ofs < 0) {
-				return;
-			}
-
-			// remove from search order
-			C.search_order.splice(ofs, 1);
-
-			// delete from lut
-			delete B[id];
-
-			// re-initialize library
-			init();
-		},
-
-		// expose easycookie API
-		Cookie:ec,
-
-		// store API
-		Store: function (name, o) {
-			// verify name
-			if (!C.name_re.exec(name)) {
-				throw new Error("Invalid name");
-			}
-
-			// XXX: should we lazy-load type?
-			// if (!P._init)
-			//   init();
-
-			if (!P.type) {
-				throw new Error("No suitable storage found");
-			}
-
-			o = o || {};
-			this.name = name;
-
-			// get domain (XXX: does this localdomain fix work?)
-			o.domain = o.domain || location.hostname || 'localhost';
-
-			// strip port from domain (XXX: will this break ipv6?)
-			o.domain = o.domain.replace(/:\d+$/, '');
-
-			// Specifically for IE6 and localhost
-			o.domain = (o.domain == 'localhost') ? '' : o.domain;
-
-			// append localdomain to domains w/o '."
-			// (see https://bugzilla.mozilla.org/show_bug.cgi?id=357323)
-			// (file://localhost/ works, see:
-			// https://bugzilla.mozilla.org/show_bug.cgi?id=469192)
-			/*
-			 *       if (!o.domain.match(/\./))
-			 *         o.domain += '.localdomain';
-			 */
-
-			this.o = o;
-
-			// expires in 2 years
-			o.expires = o.expires || 365 * 2;
-
-			// set path to root
-			o.path = o.path || '/';
-
-			// call init function
-			this.init();
-		}
-	};
-
-	// init persist
-	init();
-
-	// return top-level namespace
-	return P;
 })();
+
 Livepress.storage = (function () {
-	var storage = new Persist.Store('Livepress', {
-		defer:    false,
-		swf_path: Livepress.Config.lp_plugin_url + '/swf/persist.swf'
-	});
+	var storage = new internalStorage('Livepress' );
 	return {
 		get: function (key, def) {
 			var val = storage.get(key);
-			return (val === null || val === undefined) ? def : val;
+			return (val === null || typeof val === 'undefined' ) ? def : val;
 		},
 		set: function (key, value) {
 			return storage.set(key, value);

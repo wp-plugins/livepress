@@ -1,4 +1,4 @@
-/*global Livepress, console */
+/*global lp_client_strings, Livepress, console */
 
 jQuery(function () {
 	Livepress.Comment = (function () {
@@ -33,7 +33,7 @@ jQuery(function () {
 				var $btn = jQuery('#submit');
 				var btn_text = $btn.attr("value");
 
-				$btn.attr("value", "Sending...");
+				$btn.attr("value", lp_client_strings.sending + '...' );
 				$btn.attr("disabled", true);
 				jQuery("textarea#comment").attr("disabled", true);
 				set_comment_status("");
@@ -55,7 +55,7 @@ jQuery(function () {
 				params.redirect_to = '';
 				params.livepress_update = 'true';
 				params.action = 'post_comment';
-				params._ajax_nonce = Livepress.Config.ajax_nonce;
+				params._ajax_nonce = Livepress.Config.ajax_comment_nonce;
 
 				Livepress.sounds.commented.play();
 
@@ -68,12 +68,12 @@ jQuery(function () {
 						// TODO: Display message that send failed.
 						console.log("comment response: " + request.status + ' :: ' + request.statusText);
 						console.log("comment ajax failed: %s", textStatus);
-						set_comment_status("Unknown error.");
+						set_comment_status( lp_client_strings.unknown_error );
 						unblock_comment_textarea(false);
 					},
 					success: function (data, textStatus) {
 						// TODO: Improve display message that send successed.
-						set_comment_status("Comment Status: " + data.msg);
+						set_comment_status( lp_client_strings.comment_status + ": " + data.msg);
 						unblock_comment_textarea(data.code === "200");
 					},
 					complete:function (request, textStatus) {
@@ -85,7 +85,7 @@ jQuery(function () {
 				});
 			} catch (error) {
 				console.log("EXCEPTION: %s", error);
-				set_comment_status("Sending error.");
+				set_comment_status( lp_client_strings.sending_error );
 			}
 
 			return false;

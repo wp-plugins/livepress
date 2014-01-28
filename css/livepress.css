@@ -307,13 +307,13 @@ x#lp-pane-errors p.lp-pane-warning {
 	margin: auto;
 	width: 16px;
 	text-indent: -5000px;
-	background: url(../../../../wp-admin/images/wpspin_light.gif);
+	background: url(../img/wpspin_light.gif);
 	/*background: url(../img/spin.gif) left top no-repeat;*/
 }
 
 #lp-twitter-search-terms .lp-spinner, #lp-autotweet-terms .lp-spinner {
 	/*background: url(../img/spin2.gif) left top no-repeat;*/
-	background: url(../../../../wp-admin/images/wpspin_light.gif);
+	background: url(../img/wpspin_light.gif);
 	left: 0;
 	position: absolute;
 	top: -1px;
@@ -857,8 +857,17 @@ a.lp-tweet-clean-button:hover {
 	background-color: #eaf2fa;
 }
 
+#wpadminbar>#wp-toolbar>#wp-admin-bar-root-default #wp-admin-bar-livepress-status .ab-icon,
 #wpadminbar #wp-admin-bar-livepress-status .ab-icon {
-	background-image: url("../img/admin-bar-status-sprite.png");
+	background-image: url("../img/admin-bar-status-sprite.png")!important;
+	float: left;
+	height: 16px;
+	margin-top: 6px;
+	position: relative;
+	width: 16px;
+}
+
+#wpadminbar #wp-admin-bar-livepress-status .ab-icon {
 	background-position: -2px -33px;
 }
 
@@ -1020,6 +1029,14 @@ a.lp-tweet-clean-button:hover {
 }
 
 /* @end */
+
+/* Plugin specific CSS Fixes */
+
+/* Hide front end addthis buttons on each child post */
+
+.livepress-update .addthis_toolbox {
+	display: none;
+}
 
 /**
  * HiDPI Graphics

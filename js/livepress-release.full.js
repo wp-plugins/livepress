@@ -1,6 +1,6 @@
-/*! livepress -v1.0.5
+/*! livepress -v1.0.7
  * http://livepress.com/
- * Copyright (c) 2013 LivePress, Inc.
+ * Copyright (c) 2014 LivePress, Inc.
  */
 var Livepress = Livepress || {};
 
@@ -49,6 +49,19 @@ String.prototype.replaceAll = function (from, to) {
 	str = str.split(from).join(to);
 	return str;
 };
+
+// Ensure we have a twitter handler, even when the page starts with no embeds
+// because they may be added later. Corrects issue where twitter embeds failed on live posts when
+// original page load contained no embeds.
+if ( 'undefined' === typeof window.twttr ) {
+	window.twttr = (function (d,s,id) {
+						var t, js, fjs = d.getElementsByTagName(s)[0];
+						if (d.getElementById(id)) { return; } js=d.createElement(s); js.id=id;
+						js.src="https://platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs);
+						return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f); } });
+					}(document, "script", "twitter-wjs"));
+}
+
 jQuery.fn.getBg = function () {
 	var $this = jQuery(this),
 		actual_bg, newBackground, color;
@@ -787,68 +800,39 @@ Date.replaceChars = {
 } (jQuery));
 
 
-/*jslint white: false, onevar: false, browser: true */
-/*global window, jQuery, console */
-(function($) {
-  var $t;
-
-  var distance = function(date) {
-    return (new Date().getTime() - date.getTime());
-  };
-
-  var substitute = function(stringOrFunction, value) {
-    var string = $.isFunction(stringOrFunction) ? stringOrFunction(value) : stringOrFunction;
-    return string.replace(/%d/i, value);
-  };
-
-  var inWords = function(date) {
-    return $t.inWords(distance(date));
-  };
-
-  var prepareData = function(element) {
-    element = $(element);
-    if (!element.data("timeago")) {
-      element.data("timeago", { datetime: $t.datetime(element) });
-      var text = $.trim(element.text());
-      if (text.length > 0) {
-		 element.attr("title", text);
-      }
-    }
-    return element.data("timeago");
-  };
-
-  var refresh = function() {
-    var data = prepareData(this);
-    if (!isNaN(data.datetime)) {
-      $(this).text(inWords(data.datetime));
-    }
-    return this;
-  };
-
+(function (factory) {
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define(['jquery'], factory);
+  } else {
+    // Browser globals
+    factory(jQuery);
+  }
+}(function ($) {
   $.timeago = function(timestamp) {
     if (timestamp instanceof Date) {
-		return inWords(timestamp);
-	}
-    else if (typeof timestamp === "string") {
-		return inWords($.timeago.parse(timestamp));
-	}
-    else {
-		return inWords($.timeago.datetime(timestamp));
-	}
+      return inWords(timestamp);
+    } else if (typeof timestamp === "string") {
+      return inWords($.timeago.parse(timestamp));
+    } else if (typeof timestamp === "number") {
+      return inWords(new Date(timestamp));
+    } else {
+      return inWords($.timeago.datetime(timestamp));
+    }
   };
-  $t = $.timeago;
+  var $t = $.timeago;
 
   $.extend($.timeago, {
     settings: {
       refreshMillis: 60000,
       allowFuture: false,
+      localeTitle: false,
+      cutoff: 0,
       strings: {
         prefixAgo: null,
         prefixFromNow: null,
         suffixAgo: "ago",
         suffixFromNow: "from now",
-        ago: null, // DEPRECATED, use suffixAgo
-        fromNow: null, // DEPRECATED, use suffixFromNow
         seconds: "less than a minute",
         minute: "about a minute",
         minutes: "%d minutes",
@@ -859,73 +843,151 @@ Date.replaceChars = {
         month: "about a month",
         months: "%d months",
         year: "about a year",
-        years: "%d years"
+        years: "%d years",
+        wordSeparator: " ",
+        numbers: []
       }
     },
     inWords: function(distanceMillis) {
       var $l = this.settings.strings;
       var prefix = $l.prefixAgo;
-      var suffix = $l.suffixAgo || $l.ago;
+      var suffix = $l.suffixAgo;
       if (this.settings.allowFuture) {
         if (distanceMillis < 0) {
           prefix = $l.prefixFromNow;
-          suffix = $l.suffixFromNow || $l.fromNow;
+          suffix = $l.suffixFromNow;
         }
-        distanceMillis = Math.abs(distanceMillis);
       }
 
-      var seconds = distanceMillis / 1000;
+      var seconds = Math.abs(distanceMillis) / 1000;
       var minutes = seconds / 60;
       var hours = minutes / 60;
       var days = hours / 24;
       var years = days / 365;
+
+      function substitute(stringOrFunction, number) {
+        var string = $.isFunction(stringOrFunction) ? stringOrFunction(number, distanceMillis) : stringOrFunction;
+        var value = ($l.numbers && $l.numbers[number]) || number;
+        return string.replace(/%d/i, value);
+      }
 
       var words = seconds < 45 && substitute($l.seconds, Math.round(seconds)) ||
         seconds < 90 && substitute($l.minute, 1) ||
         minutes < 45 && substitute($l.minutes, Math.round(minutes)) ||
         minutes < 90 && substitute($l.hour, 1) ||
         hours < 24 && substitute($l.hours, Math.round(hours)) ||
-        hours < 48 && substitute($l.day, 1) ||
-        days < 30 && substitute($l.days, Math.floor(days)) ||
-        days < 60 && substitute($l.month, 1) ||
-        days < 365 && substitute($l.months, Math.floor(days / 30)) ||
-        years < 2 && substitute($l.year, 1) ||
-        substitute($l.years, Math.floor(years));
+        hours < 42 && substitute($l.day, 1) ||
+        days < 30 && substitute($l.days, Math.round(days)) ||
+        days < 45 && substitute($l.month, 1) ||
+        days < 365 && substitute($l.months, Math.round(days / 30)) ||
+        years < 1.5 && substitute($l.year, 1) ||
+        substitute($l.years, Math.round(years));
 
-      return $.trim([prefix, words, suffix].join(" "));
+      var separator = $l.wordSeparator || "";
+      if ($l.wordSeparator === undefined) { separator = " "; }
+      return $.trim([prefix, words, suffix].join(separator));
     },
     parse: function(iso8601) {
       var s = $.trim(iso8601);
+      s = s.replace(/\.\d+/,""); // remove milliseconds
       s = s.replace(/-/,"/").replace(/-/,"/");
       s = s.replace(/T/," ").replace(/Z/," UTC");
       s = s.replace(/([\+\-]\d\d)\:?(\d\d)/," $1$2"); // -04:00 -> -0400
+      s = s.replace(/([\+\-]\d\d)$/," $100"); // +09 -> +0900
       return new Date(s);
     },
     datetime: function(elem) {
-      // jQuery's `is()` doesn't play well with HTML5 in IE
-      var isTime = $(elem).get(0).tagName.toLowerCase() === "time"; // $(elem).is("time");
-      var iso8601 = isTime ? $(elem).attr("datetime") : $(elem).attr("title");
+      var iso8601 = $t.isTime(elem) ? $(elem).attr("datetime") : $(elem).attr("title");
       return $t.parse(iso8601);
+    },
+    isTime: function(elem) {
+      // jQuery's `is()` doesn't play well with HTML5 in IE
+      return $(elem).get(0).tagName.toLowerCase() === "time"; // $(elem).is("time");
     }
   });
 
-  $.fn.timeago = function() {
-    var self = this;
-    self.each(refresh);
-
-    var $s = $t.settings;
-    if ($s.refreshMillis > 0) {
-      setInterval(function() { self.each(refresh); }, $s.refreshMillis);
+  // functions that can be called via $(el).timeago('action')
+  // init is default when no action is given
+  // functions are called with context of a single element
+  var functions = {
+    init: function(){
+      var refresh_el = $.proxy(refresh, this);
+      refresh_el();
+      var $s = $t.settings;
+      if ($s.refreshMillis > 0) {
+        this._timeagoInterval = setInterval(refresh_el, $s.refreshMillis);
+      }
+    },
+    update: function(time){
+      var parsedTime = $t.parse(time);
+      $(this).data('timeago', { datetime: parsedTime });
+      if($t.settings.localeTitle) $(this).attr("title", parsedTime.toLocaleString());
+      refresh.apply(this);
+    },
+    updateFromDOM: function(){
+      $(this).data('timeago', { datetime: $t.parse( $t.isTime(this) ? $(this).attr("datetime") : $(this).attr("title") ) });
+      refresh.apply(this);
+    },
+    dispose: function () {
+      if (this._timeagoInterval) {
+        window.clearInterval(this._timeagoInterval);
+        this._timeagoInterval = null;
+      }
     }
-    return self;
   };
+
+  $.fn.timeago = function(action, options) {
+    var fn = action ? functions[action] : functions.init;
+    if(!fn){
+      throw new Error("Unknown function name '"+ action +"' for timeago");
+    }
+    // each over objects here and call the requested function
+    this.each(function(){
+      fn.call(this, options);
+    });
+    return this;
+  };
+
+  function refresh() {
+    var data = prepareData(this);
+    var $s = $t.settings;
+
+    if (!isNaN(data.datetime)) {
+      if ( $s.cutoff == 0 || distance(data.datetime) < $s.cutoff) {
+        $(this).text(inWords(data.datetime));
+      }
+    }
+    return this;
+  }
+
+  function prepareData(element) {
+    element = $(element);
+    if (!element.data("timeago")) {
+      element.data("timeago", { datetime: $t.datetime(element) });
+      var text = $.trim(element.text());
+      if ($t.settings.localeTitle) {
+        element.attr("title", element.data('timeago').datetime.toLocaleString());
+      } else if (text.length > 0 && !($t.isTime(element) && element.attr("title"))) {
+        element.attr("title", text);
+      }
+    }
+    return element.data("timeago");
+  }
+
+  function inWords(date) {
+    return $t.inWords(distance(date));
+  }
+
+  function distance(date) {
+    return (new Date().getTime() - date.getTime());
+  }
 
   // fix for IE6 suckage
   document.createElement("abbr");
   document.createElement("time");
-}(jQuery));
+}));
 
-/*global Livepress, console */
+/*global lp_client_strings, Livepress, console */
 Livepress.Ui = {};
 
 Livepress.Ui.View = function (disable_comments) {
@@ -1009,7 +1071,7 @@ Livepress.Ui.View = function (disable_comments) {
 	});
 
 	var control = function (initial, $checkbox, fOn, fOff) {
-		$checkbox.attr('checked', initial).change(function () {
+		$checkbox.prop('checked', initial).change(function () {
 			return $checkbox.is(':checked') ? fOn(1) : fOff(1);
 		});
 		return initial ? fOn() : fOff();
@@ -1051,12 +1113,12 @@ Livepress.Ui.View = function (disable_comments) {
 
 	this.handleImFeedback = function (response, username) {
 		var messages = {
-			'INVALID_JID':          "Error: [USERNAME] isn't a valid Google Talk account",
-			'NOT_IN_ROSTER':        "Error: [USERNAME] wasn't find in jabber client bot roster",
-			'NOT_AUTHORIZED':       "[USERNAME] has been authorized",
-			'AUTHORIZED':           "[USERNAME] has been authorized",
-			'INTERNAL_SERVER_ERROR':"LivePress! error. Try again in a few minutes",
-			'AUTHORIZATION_SENT':   'Authorization request sent to [USERNAME]'
+			'INVALID_JID':           lp_client_strings.no_google_acct,
+			'NOT_IN_ROSTER':         lp_client_strings.no_acct_in_jabber,
+			'NOT_AUTHORIZED':        lp_client_strings.username_not_auth,
+			'AUTHORIZED':            lp_client_strings.username_authorized,
+			'INTERNAL_SERVER_ERROR': lp_client_strings.livepress_err_retry,
+			'AUTHORIZATION_SENT':    lp_client_strings.auth_request_sent
 		};
 
 		var message = messages[response];
@@ -1122,7 +1184,7 @@ Livepress.Ui.View = function (disable_comments) {
 			time:      7000
 		});
 		update_gritter_settings_click();
-		jQuery("abbr.timeago").timeago();
+		jQuery("abbr.livepress-timestamp").timeago();
 	};
 
 	this.comment_alert = function (options, date) {
@@ -1141,7 +1203,7 @@ Livepress.Ui.View = function (disable_comments) {
 			jQuery().scrollTo('#respond, #commentform, #submit', 900);
 		});
 		update_gritter_settings_click();
-		jQuery("abbr.timeago").timeago();
+		jQuery("abbr.livepress-timestamp").timeago();
 	};
 
 };
@@ -1156,8 +1218,8 @@ Livepress.Ui.UpdateBoxView = function (homepage_mode) {
 		'<div class="update-box-content">',
 		'<div class="lp-update-count">',
 		'<strong class="lp-update-num">0</strong>',
-		'<strong class="lp-update-new-update"> new updates. </strong>',
-		'<a href="javascript:location.reload();" class="lp-refresher">Refresh</a> to see <span class="lp-update-it-them">them</span>.',
+		'<strong class="lp-update-new-update"> ' + lp_client_strings.new_updates + '. </strong>',
+		'<a href="javascript:location.reload();" class="lp-refresher">' + lp_client_strings.refresh + '</a> ' + lp_client_strings.to_see + ' <span class="lp-update-it-them">' + lp_client_strings.them + '</span>.',
 		'</div>',
 		'<div class="lp-balloon">',
 		'<img class="lp-close-button" title="Close" />',
@@ -1229,7 +1291,7 @@ Livepress.Ui.UpdateBoxView = function (homepage_mode) {
 			$update_box.slideDown(600);
 			$update_box.css('display', 'inline-block');
 		}
-		jQuery("abbr.timeago").timeago();
+		jQuery("abbr.livepress-timestamp").timeago();
 	}
 
 	this.reposition_balloon = function () {
@@ -1487,7 +1549,7 @@ Livepress.Ui.ReactButtons = function (update, types) {
 		this.useFlashBlock = false;        // *requires flashblock.css, see demos* - allow recovery from flash blockers. Wait indefinitely and apply timeout CSS to SWF, if applicable.
 		this.useHTML5Audio = true;         // use HTML5 Audio() where API is supported (most Safari, Chrome versions), Firefox (no MP3/MP4.) Ideally, transparent vs. Flash API where possible.
 		this.html5Test = /^(probably|maybe)$/i; // HTML5 Audio() format support test. Use /^probably$/i; if you want to be more conservative.
-		this.preferFlash = true;           // overrides useHTML5audio. if true and flash support present, will try to use flash for MP3/MP4 as needed since HTML5 audio support is still quirky in browsers.
+		this.preferFlash = false;           // overrides useHTML5audio. if true and flash support present, will try to use flash for MP3/MP4 as needed since HTML5 audio support is still quirky in browsers.
 		this.noSWFCache = false;           // if true, appends ?ts={date} to break aggressive SWF caching.
 
 		this.audioFormats = {
@@ -6536,7 +6598,7 @@ Livepress.sounds = (function () {
 	soundManager.url = Livepress.Config.lp_plugin_url + "/swf/";
 	soundManager.useHTML5Audio = true;
 	soundManager.flashLoadTimeout = 5000;
-	soundManager.useFlashBlock = true;
+	soundManager.useFlashBlock = false;
 	soundManager.useHighPerformance = true;
 
 	var soundFiles = {
@@ -6980,22 +7042,17 @@ Livepress.DOMManipulator.prototype = {
 						if (childIndex > -1 && parent !== null) {
 							el = document.createElement('span');
 							var html = change[2];
-							var found = html.match( /(<p>)?<script.*?src="\/\/platform.twitter.com\/widgets.js".*?<\/script>(<\/p>)?/i );
-							html = html.replace( /(<p>)?<script.*?src="\/\/platform.twitter.com\/widgets.js".*?<\/script>(<\/p>)?/i, '' );
+							var found = html.match( /<blockquote[^>]*twitter-tweet/i );
 							el.innerHTML = html;
 
 							var content = el.childNodes[0];
 							childRef = parent.childNodes.length <= childIndex ? null : parent.childNodes[childIndex];
 
 							this.log("the case, childRef = ", childRef, ', content = ', content);
-							parent.insertBefore(content, childRef);
-
-							if ( null !== found ) {
-								var script = document.createElement( 'script' );
-								script.src = '//platform.twitter.com/widgets.js';
-
-								parent.appendChild( script );
+							if ( null !== found && 'twttr' in window ) {
+								window.twttr.widgets.load(content);
 							}
+							parent.insertBefore(content, childRef);
 						}
 					} catch (ein1) {
 						this.log('Exception on ins_node: ', ein1);
@@ -7287,6 +7344,7 @@ Livepress.DOMManipulator.clean_updates = function (el) {
 	var temp_manipulator = new Livepress.DOMManipulator(el);
 	temp_manipulator.clean_updates();
 };
+
 //
 // Copyright (c) 2008, 2009 Paul Duncan (paul@pablotron.org)
 //
@@ -7324,12 +7382,13 @@ Livepress.DOMManipulator.clean_updates = function (el) {
 	} else {
 		// IE
 		try {
-			F = new ActiveXObject('Gears.Factory');
-			// privateSetGlobalObject is only required and supported on WinCE.
-			if (F.getBuildInfo().indexOf('ie_mobile') != -1) {
-				F.privateSetGlobalObject(this);
+			if ( 'undefined' !== typeof window.ActiveXObject ){
+				F = new ActiveXObject('Gears.Factory');
+				// privateSetGlobalObject is only required and supported on WinCE.
+				if (F.getBuildInfo().indexOf('ie_mobile') != -1) {
+					F.privateSetGlobalObject(this);
+				}
 			}
-
 		} catch (e) {
 			// Safari
 			if ((typeof navigator.mimeTypes != 'undefined') && navigator.mimeTypes["application/x-googlegears"]) {
@@ -7364,1042 +7423,80 @@ Livepress.DOMManipulator.clean_updates = function (el) {
 	}
 
 })();
-Persist = (function () {
-	var VERSION = '0.3.0', P, B, esc, init, empty, ec;
+/**
+* storage.js - Simple namespaced browser storage.
+*
+* Creates a window.Storage function that gives you an easy API to access localStorage,
+* with fallback to cookie storage. Each Storage object is namespaced:
+*
+* var foo = Storage('foo'), bar = Storage('bar');
+* foo.set('test', 'A'); bar.set('test', 'B');
+* foo.get('test'); // 'A'
+* bar.remove('test');
+* foo.get('test'); // still 'A'
+*
+* Requires jQuery.
+* Based on https://github.com/jbalogh/zamboni/blob/master/media/js/zamboni/storage.js
+* Everything clever written by Chris Van.
+*/
+var internalStorage = (function () {
+	var cookieStorage = {
+			expires: 30,
+			get: function ( key ) {
+			return jQuery.cookie( key );
+			},
 
-	ec = (function () {
-		var EPOCH = 'Thu, 01-Jan-1970 00:00:01 GMT',
-		// milliseconds per day
-			RATIO = 1000 * 60 * 60 * 24,
-		// keys to encode
-			KEYS = ['expires', 'path', 'domain'],
-		// wrappers for common globals
-			esc = escape, un = unescape, doc = document,
-			me;
+			set: function ( key, value ) {
+				return jQuery.cookie( key, value, {path: "/", expires: this.expires} );
+			},
 
-		// private methods
-
-		/*
-		 * Get the current time.
-		 *
-		 * This method is private.
-		 */
-		var get_now = function () {
-			var r = new Date();
-			r.setTime(r.getTime());
-			return r;
+			remove: function ( key ) {
+				return jQuery.cookie( key, null );
+			}
 		};
 
-		/*
-		 * Convert the given key/value pair to a cookie.
-		 *
-		 * This method is private.
-		 */
-		var cookify = function (c_key, c_val /*, opt */) {
-			var i, key, val, r = [],
-				opt = (arguments.length > 2) ? arguments[2] : {};
+	var engine = cookieStorage;
+	try {
+		if ( 'localStorage' in window && window['localStorage'] !== null ) {
+			engine = window.localStorage;
+		}
+	} catch ( e ) {
+		}
+	return function ( namespace ) {
+		if ( !namespace ) {
+			namespace = '';
+		}
 
-			// add key and value
-			r.push(esc(c_key) + '=' + esc(c_val));
+		return {
+			get: function ( key, def ) {
+				return engine.getItem( namespace + "-" + key );
+			},
 
-			// iterate over option keys and check each one
-			for (var idx = 0; idx < KEYS.length; idx++) {
-				key = KEYS[idx];
-				val = opt[key];
-				if (val) {
-					r.push(key + '=' + val);
-				}
+			set: function ( key, value ) {
+				return engine.setItem( namespace + "-" + key, value );
+			},
 
+			remove: function ( key ) {
+				return engine.remoteItem( namespace + "-" + key);
 			}
-
-			// append secure (if specified)
-			if (opt.secure) {
-				r.push('secure');
-			}
-
-			// build and return result string
-			return r.join('; ');
 		};
-
-		/*
-		 * Check to see if cookies are enabled.
-		 *
-		 * This method is private.
-		 */
-		var alive = function () {
-			var k = '__EC_TEST__',
-				v = new Date();
-
-			// generate test value
-			v = v.toGMTString();
-
-			// set test value
-			this.set(k, v);
-
-			// return cookie test
-			this.enabled = (this.remove(k) == v);
-			return this.enabled;
-		};
-
-		// public methods
-
-		// build return object
-		me = {
-			/*
-			 * Set a cookie value.
-			 *
-			 * Examples:
-			 *
-			 *   // simplest-case
-			 *   EasyCookie.set('test_cookie', 'test_value');
-			 *
-			 *   // more complex example
-			 *   EasyCookie.set('test_cookie', 'test_value', {
-			 *     // expires in 13 days
-			 *     expires: 13,
-			 *
-			 *     // restrict to given domain
-			 *     domain: 'foo.example.com',
-			 *
-			 *     // restrict to given path
-			 *     path: '/some/path',
-			 *
-			 *     // secure cookie only
-			 *     secure: true
-			 *   });
-			 *
-			 */
-			set:    function (key, val /*, opt */) {
-				var opt = (arguments.length > 2) ? arguments[2] : {},
-					now = get_now(),
-					expire_at,
-					cfg = {};
-
-				// if expires is set, convert it from days to milliseconds
-				if (opt.expires) {
-					// Needed to assign to a temporary variable because of pass by reference issues
-					var expires = opt.expires * RATIO;
-
-					// set cookie expiration date
-					cfg.expires = new Date(now.getTime() + expires);
-					cfg.expires = cfg.expires.toGMTString();
-				}
-
-				// set remaining keys
-				var keys = ['path', 'domain', 'secure'];
-				for (var i = 0; i < keys.length; i++) {
-					if (opt[keys[i]]) {
-						cfg[keys[i]] = opt[keys[i]];
-					}
-				}
-
-				var r = cookify(key, val, cfg);
-				doc.cookie = r;
-
-				return val;
-			},
-
-			/*
-			 * Check to see if the given cookie exists.
-			 *
-			 * Example:
-			 *
-			 *   val = EasyCookie.get('test_cookie');
-			 *
-			 */
-			has:    function (key) {
-				key = esc(key);
-
-				var c = doc.cookie,
-					ofs = c.indexOf(key + '='),
-					len = ofs + key.length + 1,
-					sub = c.substring(0, key.length);
-
-				// check to see if key exists
-				return ((!ofs && key != sub) || ofs < 0) ? false : true;
-			},
-
-			/*
-			 * Get a cookie value.
-			 *
-			 * Example:
-			 *
-			 *   val = EasyCookie.get('test_cookie');
-			 *
-			 */
-			get:    function (key) {
-				key = esc(key);
-
-				var c = doc.cookie,
-					ofs = c.indexOf(key + '='),
-					len = ofs + key.length + 1,
-					sub = c.substring(0, key.length),
-					end;
-
-				// check to see if key exists
-				if ((!ofs && key != sub) || ofs < 0) {
-					return null;
-				}
-
-				// grab end of value
-				end = c.indexOf(';', len);
-				if (end < 0) {
-					end = c.length;
-				}
-
-				// return unescaped value
-				return un(c.substring(len, end));
-			},
-
-			/*
-			 * Remove a preset cookie.  If the cookie is already set, then
-			 * return the value of the cookie.
-			 *
-			 * Example:
-			 *
-			 *   old_val = EasyCookie.remove('test_cookie');
-			 *
-			 */
-			remove: function (k) {
-				var r = me.get(k),
-					opt = { expires:EPOCH };
-
-				// delete cookie
-				doc.cookie = cookify(k, '', opt);
-
-				// return value
-				return r;
-			},
-
-			/*
-			 * Get a list of cookie names.
-			 *
-			 * Example:
-			 *
-			 *   // get all cookie names
-			 *   cookie_keys = EasyCookie.keys();
-			 *
-			 */
-			keys:   function () {
-				var c = doc.cookie,
-					ps = c.split('; '),
-					i, p, r = [];
-
-				// iterate over each key=val pair and grab the key
-				for (var idx = 0; idx < ps.length; idx++) {
-					p = ps[idx].split('=');
-					r.push(un(p[0]));
-				}
-
-				// return results
-				return r;
-			},
-
-			/*
-			 * Get an array of all cookie key/value pairs.
-			 *
-			 * Example:
-			 *
-			 *   // get all cookies
-			 *   all_cookies = EasyCookie.all();
-			 *
-			 */
-			all:    function () {
-				var c = doc.cookie,
-					ps = c.split('; '),
-					i, p, r = [];
-
-				// iterate over each key=val pair and grab the key
-				for (var idx = 0; idx < ps.length; idx++) {
-					p = ps[idx].split('=');
-					r.push([un(p[0]), un(p[1])]);
-				}
-
-				// return results
-				return r;
-			},
-
-			/*
-			 * Version of EasyCookie
-			 */
-			version:'0.2.1',
-
-			/*
-			 * Are cookies enabled?
-			 *
-			 * Example:
-			 *
-			 *   have_cookies = EasyCookie.enabled
-			 *
-			 */
-			enabled:false
-		};
-
-		// set enabled attribute
-		me.enabled = alive.call(me);
-
-		// return self
-		return me;
-	}());
-
-	// wrapper for Array.prototype.indexOf, since IE doesn't have it
-	var index_of = (function () {
-		if (Array.prototype.indexOf) {
-			return function (ary, val) {
-				return Array.prototype.indexOf.call(ary, val);
-			};
-		} else {
-			return function (ary, val) {
-				var i, l;
-
-				for (var idx = 0, len = ary.length; idx < len; idx++) {
-					if (ary[idx] == val) {
-						return idx;
-					}
-				}
-
-				return -1;
-			};
-		}
-	})();
-
-
-	// empty function
-	empty = function () {
 	};
-
-	/**
-	 * Escape spaces and underscores in name.  Used to generate a "safe"
-	 * key from a name.
-	 *
-	 * @private
-	 */
-	esc = function (str) {
-		return 'PS' + str.replace(/_/g, '__').replace(/ /g, '_s');
-	};
-
-	var C = {
-		/*
-		 * Backend search order.
-		 *
-		 * Note that the search order is significant; the backends are
-		 * listed in order of capacity, and many browsers
-		 * support multiple backends, so changing the search order could
-		 * result in a browser choosing a less capable backend.
-		 */
-		search_order:[
-			// TODO: air
-			'localstorage',
-			'globalstorage',
-			'gears',
-			'cookie',
-			'ie',
-			'flash'
-		],
-
-		// valid name regular expression
-		name_re:     /^[a-z][a-z0-9_ \-]+$/i,
-
-		// list of backend methods
-		methods:     [
-			'init',
-			'get',
-			'set',
-			'remove',
-			'load',
-			'save',
-			'iterate'
-			// TODO: clear method?
-		],
-
-		// sql for db backends (gears and db)
-		sql:         {
-			version:'1', // db schema version
-
-			// XXX: the "IF NOT EXISTS" is a sqlite-ism; fortunately all the
-			// known DB implementations (safari and gears) use sqlite
-			create: "CREATE TABLE IF NOT EXISTS persist_data (k TEXT UNIQUE NOT NULL PRIMARY KEY, v TEXT NOT NULL)",
-			get:    "SELECT v FROM persist_data WHERE k = ?",
-			set:    "INSERT INTO persist_data(k, v) VALUES (?, ?)",
-			remove: "DELETE FROM persist_data WHERE k = ?",
-			keys:   "SELECT * FROM persist_data"
-		},
-
-		// default flash configuration
-		flash:       {
-			// ID of wrapper element
-			div_id:'_persist_flash_wrap',
-
-			// id of flash object/embed
-			id:    '_persist_flash',
-
-			// default path to flash object
-			path:  'persist.swf',
-			size:  { w:1, h:1 },
-
-			// arguments passed to flash object
-			args:  {
-				autostart:true
-			}
-		}
-	};
-
-	// built-in backends
-	B = {
-		// gears db backend
-		// (src: http://code.google.com/apis/gears/api_database.html)
-		gears:        {
-			// no known limit
-			size:-1,
-
-			test:function () {
-				// test for gears
-				return (window.google && window.google.gears) ? true : false;
-			},
-
-			methods:{
-
-				init:function () {
-					var db;
-
-					// create database handle (TODO: add schema version?)
-					db = this.db = google.gears.factory.create('beta.database');
-
-					// open database
-					// from gears ref:
-					//
-					// Currently the name, if supplied and of length greater than
-					// zero, must consist only of visible ASCII characters
-					// excluding the following characters:
-					//
-					//   / \ : * ? " < > | ; ,
-					//
-					// (this constraint is enforced in the Store constructor)
-					db.open(esc(this.name));
-
-					// create table
-					db.execute(C.sql.create).close();
-				},
-
-				get:function (key) {
-					var r, sql = C.sql.get;
-					var db = this.db;
-					var ret;
-
-					// begin transaction
-					db.execute('BEGIN').close();
-
-					// exec query
-					r = db.execute(sql, [key]);
-
-					// check result and get value
-					ret = r.isValidRow() ? r.field(0) : null;
-
-					// close result set
-					r.close();
-
-					// commit changes
-					db.execute('COMMIT').close();
-					return ret;
-				},
-
-				set:function (key, val) {
-					var rm_sql = C.sql.remove,
-						sql = C.sql.set, r;
-					var db = this.db;
-					var ret;
-
-					// begin transaction
-					db.execute('BEGIN').close();
-
-					// exec remove query
-					db.execute(rm_sql, [key]).close();
-
-					// exec set query
-					db.execute(sql, [key, val]).close();
-
-					// commit changes
-					db.execute('COMMIT').close();
-
-					return val;
-				},
-
-				remove: function (key) {
-					var get_sql = C.sql.get;
-					sql = C.sql.remove,
-						r, val = null, is_valid = false;
-					var db = this.db;
-
-					// begin transaction
-					db.execute('BEGIN').close();
-
-					// exec remove query
-					db.execute(sql, [key]).close();
-
-					// commit changes
-					db.execute('COMMIT').close();
-
-					return true;
-				},
-				iterate:function (fn, scope) {
-					var key_sql = C.sql.keys;
-					var r;
-					var db = this.db;
-
-					// exec keys query
-					r = db.execute(key_sql);
-					while (r.isValidRow()) {
-						fn.call(scope || this, r.field(0), r.field(1));
-						r.next();
-					}
-					r.close();
-				}
-			}
-		},
-
-		// globalstorage backend (globalStorage, FF2+, IE8+)
-		// (src: http://developer.mozilla.org/en/docs/DOM:Storage#globalStorage)
-		// https://developer.mozilla.org/En/DOM/Storage
-		//
-		// TODO: test to see if IE8 uses object literal semantics or
-		// getItem/setItem/removeItem semantics
-		globalstorage:{
-			// (5 meg limit, src: http://ejohn.org/blog/dom-storage-answers/)
-			size:5 * 1024 * 1024,
-
-			test:function () {
-				if (window.globalStorage) {
-					var domain = '127.0.0.1';
-					if (this.o && this.o.domain) {
-						domain = this.o.domain;
-					}
-					try {
-						var dontcare = globalStorage[domain];
-						return true;
-					} catch (e) {
-						if (window.console && window.console.warn) {
-							console.warn("globalStorage exists, but couldn't use it because your browser is running on domain:", domain);
-						}
-						return false;
-					}
-				} else {
-					return false;
-				}
-			},
-
-			methods:{
-				key:function (key) {
-					return esc(this.name) + esc(key);
-				},
-
-				init:function () {
-					this.store = globalStorage[this.o.domain];
-				},
-
-				get:function (key) {
-					// expand key
-					key = this.key(key);
-
-					return  this.store.getItem(key);
-				},
-
-				set:function (key, val) {
-					// expand key
-					key = this.key(key);
-
-					// set value
-					this.store.setItem(key, val);
-
-					return val;
-				},
-
-				remove:function (key) {
-					var val;
-
-					// expand key
-					key = this.key(key);
-
-					// get value
-					val = this.store.getItem[key];
-
-					// delete value
-					this.store.removeItem(key);
-
-					return val;
-				}
-			}
-		},
-
-		// localstorage backend (globalStorage, FF2+, IE8+)
-		// (src: http://www.whatwg.org/specs/web-apps/current-work/#the-localstorage)
-		// also http://msdn.microsoft.com/en-us/library/cc197062(VS.85).aspx#_global
-		localstorage: {
-			// (unknown?)
-			// ie has the remainingSpace property, see:
-			// http://msdn.microsoft.com/en-us/library/cc197016(VS.85).aspx
-			size:-1,
-
-			test:function () {
-				return window.localStorage ? true : false;
-			},
-
-			methods:{
-				key:function (key) {
-					return this.name + '>' + key;
-					//return esc(this.name) + esc(key);
-				},
-
-				init:function () {
-					this.store = localStorage;
-				},
-
-				get:function (key) {
-					// expand key
-					key = this.key(key);
-					return this.store.getItem(key);
-				},
-
-				set:function (key, val) {
-					// expand key
-					key = this.key(key);
-
-					// set value
-					this.store.setItem(key, val);
-
-					return val;
-				},
-
-				remove:function (key) {
-					var val;
-
-					// expand key
-					key = this.key(key);
-
-					// get value
-					val = this.store.getItem(key);
-
-					// delete value
-					this.store.removeItem(key);
-
-					return val;
-				},
-
-				iterate:function (fn, scope) {
-					var l = this.store;
-					for (i = 0; i < l.length; i++) {
-						keys = l[i].split('>');
-						if ((keys.length == 2) && (keys[0] == this.name)) {
-							fn.call(scope || this, keys[1], l[l[i]]);
-						}
-					}
-				}
-			}
-		},
-
-		// IE backend
-		ie:           {
-			prefix:'_persist_data-',
-			// style:    'display:none; behavior:url(#default#userdata);',
-
-			// 64k limit
-			size:  64 * 1024,
-
-			test:function () {
-				// make sure we're dealing with IE
-				// (src: http://javariet.dk/shared/browser_dom.htm)
-				return window.ActiveXObject ? true : false;
-			},
-
-			make_userdata:function (id) {
-				var el = document.createElement('div');
-
-				// set element properties
-				// http://msdn.microsoft.com/en-us/library/ms531424(VS.85).aspx
-				// http://www.webreference.com/js/column24/userdata.html
-				el.id = id;
-				el.style.display = 'none';
-				el.addBehavior('#default#userdata');
-
-				// append element to body
-				document.body.appendChild(el);
-
-				// return element
-				return el;
-			},
-
-			methods:{
-				init:function () {
-					var id = B.ie.prefix + esc(this.name);
-
-					// save element
-					this.el = B.ie.make_userdata(id);
-
-					// load data
-					if (this.o.defer) {
-						this.load();
-					}
-				},
-
-				get:function (key) {
-					var val;
-
-					// expand key
-					key = esc(key);
-
-					// load data
-					if (!this.o.defer) {
-						this.load();
-					}
-
-					// get value
-					val = this.el.getAttribute(key);
-
-					return val;
-				},
-
-				set:function (key, val) {
-					// expand key
-					key = esc(key);
-
-					// set attribute
-					this.el.setAttribute(key, val);
-
-					// save data
-					if (!this.o.defer) {
-						this.save();
-					}
-
-					return val;
-				},
-
-				remove:function (key) {
-					var val;
-
-					// expand key
-					key = esc(key);
-
-					// load data
-					if (!this.o.defer) {
-						this.load();
-					}
-
-					// get old value and remove attribute
-					val = this.el.getAttribute(key);
-					this.el.removeAttribute(key);
-
-					// save data
-					if (!this.o.defer) {
-						this.save();
-					}
-
-					return val;
-				},
-
-				load:function () {
-					this.el.load(esc(this.name));
-				},
-
-				save:function () {
-					this.el.save(esc(this.name));
-				}
-			}
-		},
-
-		// cookie backend
-		// uses easycookie: http://pablotron.org/software/easy_cookie/
-		cookie:       {
-			delim:':',
-
-			// 4k limit (low-ball this limit to handle browser weirdness, and
-			// so we don't hose session cookies)
-			size: 4000,
-
-			test:function () {
-				// XXX: use easycookie to test if cookies are enabled
-				return P.Cookie.enabled ? true : false;
-			},
-
-			methods:{
-				key:function (key) {
-					return this.name + B.cookie.delim + key;
-				},
-
-				get:function (key, fn) {
-					var val;
-
-					// expand key
-					key = this.key(key);
-
-					// get value
-					val = ec.get(key);
-
-					return val;
-				},
-
-				set:function (key, val, fn) {
-					// expand key
-					key = this.key(key);
-
-					// save value
-					ec.set(key, val, this.o);
-
-					return val;
-				},
-
-				remove:function (key, val) {
-					var val;
-
-					// expand key
-					key = this.key(key);
-
-					// remove cookie
-					val = ec.remove(key);
-
-					return val;
-				}
-			}
-		},
-
-		// flash backend (requires flash 8 or newer)
-		// http://kb.adobe.com/selfservice/viewContent.do?externalId=tn_16194&sliceId=1
-		// http://livedocs.adobe.com/flash/8/main/wwhelp/wwhimpl/common/html/wwhelp.htm?context=LiveDocs_Parts&file=00002200.html
-		flash:        {
-			test:function () {
-				// TODO: better flash detection
-				if (!deconcept || !deconcept.SWFObjectUtil) {
-					return false;
-				}
-
-				// get the major version
-				var major = deconcept.SWFObjectUtil.getPlayerVersion().major;
-
-				// check flash version (require 8.0 or newer)
-				return (major >= 8) ? true : false;
-			},
-
-			methods:{
-				init:function () {
-					if (!B.flash.el) {
-						var o, key, el, cfg = C.flash;
-
-						// create wrapper element
-						el = document.createElement('div');
-						el.id = cfg.div_id;
-
-						// FIXME: hide flash element
-						// el.style.display = 'none';
-
-						// append element to body
-						document.body.appendChild(el);
-
-						// create new swf object
-						o = new deconcept.SWFObject(this.o.swf_path || cfg.path, cfg.id, cfg.size.w, cfg.size.h, '8');
-
-						// set parameters
-						for (key in cfg.args) {
-							if (cfg.args[key] != 'function') {
-								o.addVariable(key, cfg.args[key]);
-							}
-						}
-
-						// write flash object
-						o.write(el);
-
-						// save flash element
-						B.flash.el = document.getElementById(cfg.id);
-					}
-
-					// use singleton flash element
-					this.el = B.flash.el;
-				},
-
-				get:function (key) {
-					var val;
-
-					// escape key
-					key = esc(key);
-
-					// get value
-					val = this.el.get(this.name, key);
-
-					return val;
-				},
-
-				set:function (key, val) {
-					var old_val;
-
-					// escape key
-					key = esc(key);
-
-					// set value
-					old_val = this.el.set(this.name, key, val);
-
-					return old_val;
-				},
-
-				remove:function (key) {
-					var val;
-
-					// get key
-					key = esc(key);
-
-					// remove old value
-					val = this.el.remove(this.name, key);
-					return val;
-				}
-			}
-		}
-	};
-
-	/**
-	 * Test for available backends and pick the best one.
-	 * @private
-	 */
-	init = function () {
-		var i, l, b, key, fns = C.methods, keys = C.search_order;
-
-		// set all functions to the empty function
-		for (var idx = 0, len = fns.length; idx < len; idx++) {
-			P.Store.prototype[fns[idx]] = empty;
-		}
-
-		// clear type and size
-		P.type = null;
-		P.size = -1;
-
-		// loop over all backends and test for each one
-		for (var idx2 = 0, len2 = keys.length; !P.type && idx2 < len2; idx2++) {
-			b = B[keys[idx2]];
-
-			// test for backend
-			if (b.test()) {
-				// found backend, save type and size
-				P.type = keys[idx2];
-				P.size = b.size;
-				// extend store prototype with backend methods
-				for (key in b.methods) {
-					P.Store.prototype[key] = b.methods[key];
-				}
-			}
-		}
-
-		// mark library as initialized
-		P._init = true;
-	};
-
-	// create top-level namespace
-	P = {
-		// version of persist library
-		VERSION:VERSION,
-
-		// backend type and size limit
-		type:   null,
-		size:   0,
-
-		// XXX: expose init function?
-		// init: init,
-
-		add:function (o) {
-			// add to backend hash
-			B[o.id] = o;
-
-			// add backend to front of search order
-			C.search_order = [o.id].concat(C.search_order);
-
-			// re-initialize library
-			init();
-		},
-
-		remove:function (id) {
-			var ofs = index_of(C.search_order, id);
-			if (ofs < 0) {
-				return;
-			}
-
-			// remove from search order
-			C.search_order.splice(ofs, 1);
-
-			// delete from lut
-			delete B[id];
-
-			// re-initialize library
-			init();
-		},
-
-		// expose easycookie API
-		Cookie:ec,
-
-		// store API
-		Store: function (name, o) {
-			// verify name
-			if (!C.name_re.exec(name)) {
-				throw new Error("Invalid name");
-			}
-
-			// XXX: should we lazy-load type?
-			// if (!P._init)
-			//   init();
-
-			if (!P.type) {
-				throw new Error("No suitable storage found");
-			}
-
-			o = o || {};
-			this.name = name;
-
-			// get domain (XXX: does this localdomain fix work?)
-			o.domain = o.domain || location.hostname || 'localhost';
-
-			// strip port from domain (XXX: will this break ipv6?)
-			o.domain = o.domain.replace(/:\d+$/, '');
-
-			// Specifically for IE6 and localhost
-			o.domain = (o.domain == 'localhost') ? '' : o.domain;
-
-			// append localdomain to domains w/o '."
-			// (see https://bugzilla.mozilla.org/show_bug.cgi?id=357323)
-			// (file://localhost/ works, see:
-			// https://bugzilla.mozilla.org/show_bug.cgi?id=469192)
-			/*
-			 *       if (!o.domain.match(/\./))
-			 *         o.domain += '.localdomain';
-			 */
-
-			this.o = o;
-
-			// expires in 2 years
-			o.expires = o.expires || 365 * 2;
-
-			// set path to root
-			o.path = o.path || '/';
-
-			// call init function
-			this.init();
-		}
-	};
-
-	// init persist
-	init();
-
-	// return top-level namespace
-	return P;
 })();
+
 Livepress.storage = (function () {
-	var storage = new Persist.Store('Livepress', {
-		defer:    false,
-		swf_path: Livepress.Config.lp_plugin_url + '/swf/persist.swf'
-	});
+	var storage = new internalStorage('Livepress' );
 	return {
 		get: function (key, def) {
 			var val = storage.get(key);
-			return (val === null || val === undefined) ? def : val;
+			return (val === null || typeof val === 'undefined' ) ? def : val;
 		},
 		set: function (key, value) {
 			return storage.set(key, value);
 		}
 	};
 }());
-/*global Livepress, OORTLE, console */
+
+/*global lp_client_strings, Livepress, OORTLE, console */
 /**
  *  Connects to Oortle, apply diff messages and handles the view, playing sounds for each task.
  *
@@ -8534,7 +7631,7 @@ Livepress.Ui.Controller = function (config, hooks) {
 			};
 
 			if (!should_attach) {
-				options.scrollToText = "Refresh page";
+				options.scrollToText = lp_client_strings.refresh_page;
 				options.scrollToCallback = function () {
 					location.reload();
 				};
@@ -8631,13 +7728,13 @@ Livepress.Ui.Controller = function (config, hooks) {
 		current += 1;
 
 		if ( current === 0 ) {
-			$counter.html('updated just now');
+			$counter.html( lp_client_strings.updated_just_now );
 		} else if ( current === 1 ) {
-			$counter.html('updated 1 minute ago');
+			$counter.html( lp_client_strings.uptated_amin_ago );
 		} else if ( current <= 60 ) {
-			$counter.html('updated ' + current + ' minutes ago');
+			$counter.html( lp_client_strings.updated + ' ' + current + ' ' + lp_client_strings.minutes_ago );
 		} else {
-			$counter.html('no recent updates');
+			$counter.html( lp_client_strings.no_recent_updates );
 			return;
 		}
 
@@ -8673,6 +7770,7 @@ Livepress.Ui.Controller = function (config, hooks) {
 		$livepress.find('.lp-updated-counter').data('min', -1);
 		$livepress.find('.lp-bar .lp-status').removeClass('lp-off').addClass('lp-on');
 		update_timer();
+		jQuery("abbr.livepress-timestamp").timeago();
 	}
 
 	function new_post_update_box (post, topic, msg_id) {
@@ -8886,7 +7984,7 @@ jQuery(function () {
 				var $btn = jQuery('#submit');
 				var btn_text = $btn.attr("value");
 
-				$btn.attr("value", "Sending...");
+				$btn.attr("value", lp_client_strings.sending + '...' );
 				$btn.attr("disabled", true);
 				jQuery("textarea#comment").attr("disabled", true);
 				set_comment_status("");
@@ -8908,7 +8006,7 @@ jQuery(function () {
 				params.redirect_to = '';
 				params.livepress_update = 'true';
 				params.action = 'post_comment';
-				params._ajax_nonce = Livepress.Config.ajax_nonce;
+				params._ajax_nonce = Livepress.Config.ajax_comment_nonce;
 
 				Livepress.sounds.commented.play();
 
@@ -8921,12 +8019,12 @@ jQuery(function () {
 						// TODO: Display message that send failed.
 						console.log("comment response: " + request.status + ' :: ' + request.statusText);
 						console.log("comment ajax failed: %s", textStatus);
-						set_comment_status("Unknown error.");
+						set_comment_status( lp_client_strings.unknown_error );
 						unblock_comment_textarea(false);
 					},
 					success: function (data, textStatus) {
 						// TODO: Improve display message that send successed.
-						set_comment_status("Comment Status: " + data.msg);
+						set_comment_status( lp_client_strings.comment_status + ": " + data.msg);
 						unblock_comment_textarea(data.code === "200");
 					},
 					complete:function (request, textStatus) {
@@ -8938,7 +8036,7 @@ jQuery(function () {
 				});
 			} catch (error) {
 				console.log("EXCEPTION: %s", error);
-				set_comment_status("Sending error.");
+				set_comment_status( lp_client_strings.sending_error );
 			}
 
 			return false;
@@ -9029,6 +8127,7 @@ Livepress.Ready = function () {
 		get_comment_container:Livepress.Comment.get_comment_container,
 		on_comment_update:    Livepress.Comment.on_comment_update
 	};
+	jQuery( "abbr.livepress-timestamp" ).timeago();
 	return new Livepress.Ui.Controller(Livepress.Config, hooks);
 };
 jQuery.effects || (function($, undefined) {

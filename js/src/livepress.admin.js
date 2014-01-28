@@ -1,5 +1,5 @@
 /*jslint vars:true */
-/*global Livepress, Dashboard, Collaboration, tinymce, tinyMCE, console, confirm, switchEditors, livepress_merge_confirmation */
+/*global lp_strings, Livepress, Dashboard, Collaboration, tinymce, tinyMCE, console, confirm, switchEditors, livepress_merge_confirmation */
 
 /**
  * Global object into which we add our other functionality.
@@ -131,12 +131,13 @@ Livepress.Admin.PostStatus = function () {
 	 * @requires Livepress.Config#post_id
 	 */
 	SELF.check = function () {
+		var nonces = jQuery('#blogging-tool-nonces');
 		add_spin();
 		jQuery.ajax({
 			url:     'admin-ajax.php',
 			data:    {
 				livepress_action: true,
-				_ajax_nonce:      Livepress.Config.ajax_nonce,
+				_ajax_nonce:      nonces.data( 'lp-status' ),
 				post_id:          Livepress.Config.post_id,
 				action:           'lp_status'
 			},
@@ -207,7 +208,7 @@ Livepress.Admin.PostToTwitter = function () {
 			times = attempts || 1,
 			params = {action: 'check_oauth_authorization_status'};
 
-		$msg_span.html('Checking authorization status... (' + times + ')');
+		$msg_span.html( lp_strings.checking_auth + '... (' + times + ')');
 
 		jQuery.ajax({
 			url:   "./admin-ajax.php",
@@ -216,12 +217,12 @@ Livepress.Admin.PostToTwitter = function () {
 			async: true,
 
 			error:   function (XMLHttpRequest) {
-				$msg_span.html('Failed to check status.');
+				$msg_span.html( lp_strings.failed_to_check );
 			},
 			success: function (data) {
 				if (data.status === 'authorized') {
 					$msg_span.html(
-						'Sending out alerts on Twitter account: <strong>' + data.username + '</strong>.');
+						lp_strings.sending_twitter + ': <strong>' + data.username + '</strong>.');
 					jQuery("#lp-post-to-twitter-change_link").show();
 					jQuery("#lp-post-to-twitter-change").hide();
 				} else if (data.status === 'unauthorized') {
@@ -242,13 +243,13 @@ Livepress.Admin.PostToTwitter = function () {
 					if (oauth_popup !== undefined && closed) {
 						handle_twitter_deauthorization();
 					} else {
-						$msg_span.html("Status isn't available yet.");
+						$msg_span.html( lp_strings.status_not_avail );
 						check_timeout = setTimeout(function () {
 							check_oauth_authorization_status(++times);
 						}, TIME_BETWEEN_CHECK_OAUTH_REQUESTS * 1000);
 					}
 				} else {
-					$msg_span.html('Internal server error.');
+					$msg_span.html( lp_strings.internal_error );
 				}
 			}
 		});
@@ -294,13 +295,13 @@ Livepress.Admin.PostToTwitter = function () {
 					$msg_span.html('Already ' + ((params.enable) ? 'enabled.' : 'disabled.'));
 				} else if (XMLHttpRequest.status === 502) {
 					if (XMLHttpRequest.responseText === "404") {
-						$msg_span.html("Can't connect to Twitter.");
+						$msg_span.html( lp_strings.noconnect_twitter );
 					} else {
-						$msg_span.html("Can't connect to livepress service.");
+						$msg_span.html(lp_strings.noconnect_livepress );
 					}
 				} else {
 					$msg_span.html(
-						'Failed for an unknown reason. (return code: ' + XMLHttpRequest.status + ')'
+						lp_strings.failed_unknown + ' (' + lp_strings.return_code + ': ' + XMLHttpRequest.status + ')'
 					);
 				}
 				clearTimeout(check_timeout);
@@ -309,7 +310,7 @@ Livepress.Admin.PostToTwitter = function () {
 				if (params.enable) {
 					console.log('OAuth url: ', data);
 					$msg_span.html(
-						'A new window should be open to Twitter.com awaiting your login.'
+						lp_strings.new_twitter_window
 					);
 					show_oauth_popup(data);
 					check_timeout = setTimeout(check_oauth_authorization_status,
@@ -336,7 +337,7 @@ Livepress.Admin.PostToTwitter = function () {
 	 */
 	function handle_twitter_deauthorization() {
 		var $msg_span = jQuery( '#' + msg_span_id );
-		$msg_span.html( 'Twitter access unauthorized.' );
+		$msg_span.html( lp_strings.twitter_unauthorized );
 		update_post_to_twitter( false, true );
 	}
 
@@ -363,7 +364,7 @@ Livepress.Admin.PostToTwitter = function () {
 
 	jQuery( "#lp-post-to-twitter-not-authorized" ).on( 'click', function ( e ) {
 		jQuery( '#' + msg_span_id ).html(
-			'A new window should be open to Twitter.com awaiting your login.'
+			lp_strings.new_twitter_window
 		);
 		show_oauth_popup( this.href );
 		check_timeout = window.setTimeout( check_oauth_authorization_status, TIME_BETWEEN_CHECK_OAUTH_REQUESTS * 1000 );
@@ -484,8 +485,9 @@ Livepress.Admin.Tools = function () {
 
 			// If already live, warn user
 			if ( jQuery( '#livepress_status_meta_box' ).hasClass( 'live' ) ) {
-
-				if ( confirm( livepress_merge_confirmation.content ) ){
+				if ( confirm( lp_strings.confirm_switch ) ){
+					Dashboard.Twitter.removeAllTerms();
+					Dashboard.Twitter.removeAllTweets();
 					promises = toggleLiveStatus();
 					jQuery.when( promises ).done( function() {
 						// When toggle complete, redirect to complete the merge
@@ -715,18 +717,18 @@ jQuery(function () {
 			// local i18n object, merges into tinyMCE.i18n
 			each({
 				// HUD
-				'start':      'Start live blogging',
-				'stop':       'Stop live blogging',
-				'readers':    'readers online',
-				'updates':    'live updates posted',
-				'comments':   'comments',
+				'start':      lp_strings.start_live,
+				'stop':       lp_strings.stop_live,
+				'readers':    lp_strings.readers_online,
+				'updates':    lp_strings.lp_updates_posted,
+				'comments':   lp_strings.comments,
 
 				// TOGGLE
-				'toggle':     'Click to toggle',
-				'title':      'Live Blogging Real-Time Editor',
-				'toggleOff':  'off',
-				'toggleOn':   'on',
-				'toggleChat': 'Private chat'
+				'toggle':     lp_strings.click_to_toggle,
+				'title':      lp_strings.real_time_editor,
+				'toggleOff':  lp_strings.off,
+				'toggleOn':   lp_strings.on,
+				'toggleChat': lp_strings.private_chat
 			}, function (val, name, obj) {
 				i18n[pluginNamespace + name] = val;
 			});
@@ -792,7 +794,7 @@ jQuery(function () {
 				 * @returns {Object} jQuery object containing the readers display element.
 				 */
 				this.updateReaders = function (number) {
-					var label = ( 1 === number ) ? 'Person Online' : 'People Online',
+					var label = ( 1 === number ) ? lp_strings.persons_online : lp_strings.people_online,
 						$readers = $j('#livepress-online_num');
 					$readers.siblings( '.label' ).text( label );
 					return $readers.text(number);
@@ -819,7 +821,7 @@ jQuery(function () {
 				 * @return {Object} jQuery object containing the comments display element.
 				 */
 				this.updateComments = function (number) {
-					var label = ( 1 === number ) ? 'Comment' : 'Comments',
+					var label = ( 1 === number ) ? lp_strings.comment : lp_strings.comments,
 						$comments = $j('#livepress-comments_num');
 
 					$comments.siblings( '.label' ).text( label );
@@ -836,7 +838,7 @@ jQuery(function () {
 					var $comments = $j('#livepress-comments_num'),
 						actual = parseInt($comments.text(), 10 ),
 						count = actual + number,
-						label = ( 1 === count ) ? 'Comment' : 'Comments';
+						label = ( 1 === count ) ? lp_strings.comment : lp_strings.comments;
 
 					$comments.siblings( '.label' ).text( label );
 					$comments.text( count );
@@ -875,10 +877,24 @@ jQuery(function () {
 			 * Initialize the Livepress HUD.
 			 */
 			livepress_init = function () {
+
+				// Ensure we have a twitter handler, even when the page starts with no embeds
+				// because they may be added later. Corrects issue where twitter embeds failed on live posts when
+				// original page load contained no embeds.
+				if ( 'undefined' === typeof window.twttr ) {
+					window.twttr = (function (d,s,id) {
+										var t, js, fjs = d.getElementsByTagName(s)[0];
+										if (d.getElementById(id)) { return; } js=d.createElement(s); js.id=id;
+										js.src="https://platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs);
+										return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f); } });
+									}(document, "script", "twitter-wjs"));
+				}
+
 				// On first init we load in external and internal styles
 				// on secondary called we just disable / enable
 				if (!inittedOnce) {
 					inittedOnce = true;
+
 
 					var activeEditor = tinyMCE.activeEditor;
 					if (activeEditor) {
@@ -1077,6 +1093,7 @@ jQuery(function () {
 					if (config.timestamp_template) {
 						if (window.eeActive) {
 							metainfo += ' time="' + server_time.format(config.timestamp_template) + '"';
+							metainfo += ' timestamp="' + d.toISOString() + '"';
 						} else {
 							metainfo += ' POSTTIME ';
 						}
@@ -1141,16 +1158,33 @@ jQuery(function () {
 				if (SELF.mode === 'new') {
 					SELF.originalContent = "";
 					if (tinyMCE.onRemoveEditor !== undefined) {
-						tinyMCE.onRemoveEditor.add(function (mgr, ed) {
-							if ((ed !== SELF) && (tinyMCE.editors.hasOwnProperty(SELF.handle))) {
-								try {
-									tinyMCE.execCommand('mceFocus', false, SELF.handle);
-								} catch (err) {
-									console.log("mceFocus error", err);
+						/** As of WordPress 3.9, TinyMCE is upgraded to version 4 and the
+						/*  old action methods are deprecated. This check ensures compatibility.
+						**/
+						if ( '3' === tinymce.majorVersion ){
+							tinyMCE.onRemoveEditor.add( function (mgr, ed) {
+								if ((ed !== SELF) && (tinyMCE.editors.hasOwnProperty(SELF.handle))) {
+									try {
+										tinyMCE.execCommand('mceFocus', false, SELF.handle);
+									} catch (err) {
+										console.log("mceFocus error", err);
+									}
 								}
-							}
-							return true;
-						});
+								return true;
+							});
+						} else {
+							tinyMCE.on( 'RemoveEditor', function (mgr, ed) {
+								if ((ed !== SELF) && (tinyMCE.editors.hasOwnProperty(SELF.handle))) {
+									try {
+										tinyMCE.execCommand('mceFocus', false, SELF.handle);
+										tinyMCE.focus();
+									} catch (err) {
+										console.log("mceFocus error", err);
+									}
+								}
+								return true;
+							});
+						}
 					}
 				} else if (SELF.mode === 'editing' || SELF.mode === 'deleting') {
 					// saving old content in case of reset
@@ -1221,13 +1255,13 @@ jQuery(function () {
 					'</div>',
 					'<div class="editorcontainerend"></div>',
 					'<div class="livepress-form-actions">',
-					'<div class="livepress-author-info"><input type="checkbox" checked="checked" /> ' + ('include timestamp and author information') + '</div>',
-					'<a href="#" class="livepress-delete" data-action="delete">' + ('Delete Permanently') + '</a>',
-					'<span class="quick-publish">' + ('Ctrl+Enter') + '</span>',
-					'<input class="livepress-cancel button button-secondary" type="button" value="' + ('Cancel') + '" data-action="cancel" />',
-					'<input class="livepress-update button button-primary" type="submit" value="' + ('Save') + '" data-action="update" />',
-					'<input class="livepress-submit published primary button-primary" type="submit" value="' + ('Push Update') + '" data-action="update" />',
-					'<input class="livepress-submit notpublished primary button-primary" type="submit" value="' + ('Add update') + '" data-action="update" />',
+					'<div class="livepress-author-info"><input type="checkbox" checked="checked" /> ' + lp_strings.include_timestamp + '</div>',
+					'<a href="#" class="livepress-delete" data-action="delete">' + lp_strings.delete_perm + '</a>',
+					'<span class="quick-publish">' + lp_strings.ctrl_enter + '</span>',
+					'<input class="livepress-cancel button button-secondary" type="button" value="' + lp_strings.cancel + '" data-action="cancel" />',
+					'<input class="livepress-update button button-primary" type="submit" value="' + lp_strings.save + '" data-action="update" />',
+					'<input class="livepress-submit published primary button-primary" type="submit" value="' + lp_strings.push_update + '" data-action="update" />',
+					'<input class="livepress-submit notpublished primary button-primary" type="submit" value="' + lp_strings.add_update + '" data-action="update" />',
 					'</div>',
 					'<div class="clear"></div>',
 					'</form>'
@@ -1239,9 +1273,14 @@ jQuery(function () {
 				enableTiny:  function (optClass) {
 					var te,
 						selection = this,
+						SELF=this,
+						/** As of WordPress 3.9, TinyMCE is upgraded to version 4 and the
+						/*  old action methods are deprecated. This check ensures compatibility.
+						**/
+						mceAddCommand = ( '3' === tinymce.majorVersion ) ? 'mceAddControl' : 'mceAddEditor',
 						pushBtn = jQuery('.livepress-newform' ).find('input.button-primary');
 					// initialize default editor at required selector
-					tinyMCE.execCommand('mceAddControl', false, this.handle);
+					tinyMCE.execCommand( mceAddCommand, false, this.handle );
 					te = tinyMCE.editors[this.handle];
 					if (!te) {
 						console.log("Unable to get editor for " + this.handle);
@@ -1258,24 +1297,47 @@ jQuery(function () {
 						te.dom.addClass(te.dom.getRoot(), 'livepress-has-avatar');
 					}
 
-					te.onKeyDown.add(function (ed, e) {
-						if (e.ctrlKey && e.keyCode === 13) {
-							e.preventDefault();
+					/** As of WordPress 3.9, TinyMCE is upgraded to version 4 and the
+					/*  old action methods are deprecated. This check ensures compatibility.
+					**/
+					if ( '3' === tinymce.majorVersion ){
+						te.onKeyDown.add( function (ed, e) {
+							if (e.ctrlKey && e.keyCode === 13) {
+								e.preventDefault();
 
-							// TinyMCE doesn't hit this event until *after* the line return was added. So remove it manually.
-							ed.undoManager.undo();
+								// TinyMCE doesn't hit this event until *after* the line return was added. So remove it manually.
+								ed.undoManager.undo();
 
-							selection.onSave();
-						}
-					});
+								selection.onSave();
+							}
+						} );
+						te.onKeyUp.add( function (ed, e) {
+							if ( '' !== ed.getContent().trim() ) {
+								pushBtn.removeAttr( 'disabled' );
+							} else {
+								pushBtn.attr( 'disabled', 'disabled' );
+							}
+						} );
+					} else {
+						te.on( 'KeyDown', function ( e ) {
+							if (e.ctrlKey && e.keyCode === 13) {
+								e.preventDefault();
 
-					te.onKeyUp.add( function (ed, e) {
-						if ( '' !== ed.getContent().trim() ) {
+								// TinyMCE doesn't hit this event until *after* the line return was added. So remove it manually.
+								this.undoManager.undo();
+
+								selection.onSave();
+							}
+						} );
+						te.on( 'KeyUp', function ( args ) {
+						if ( '' !== this.getContent().trim() ) {
 							pushBtn.removeAttr( 'disabled' );
 						} else {
 							pushBtn.attr( 'disabled', 'disabled' );
 						}
 					} );
+
+					}
 				},
 
 				/*
@@ -1429,6 +1491,7 @@ jQuery(function () {
 					$newPost.data("nonExpandedContent", this.originalContent);
 					$newPost.data("originalContent", "");
 					$newPost.attr('editStyle', ''); // on cancel, disable delete mode
+					window.twttr.widgets.load($newPost[0]);
 					$newPost.insertAfter(el);
 					el.remove();
 					this.addListeners($newPost);
@@ -1520,7 +1583,7 @@ jQuery(function () {
 					var check = true;
 					if (this.mode !== 'deleting' && newContent !== this.originalContent) {
 						console.log([newContent, this.originalContent]);
-						check = confirm('Are you sure you want to cancel your changes? This action cannot be undone.');
+						check = confirm( lp_strings.confirm_cancel );
 					}
 					if (check) {
 						tinyMCE.execCommand('mceRemoveControl', false, this.handle);
@@ -1534,7 +1597,7 @@ jQuery(function () {
 				 * Modifies livepress-tiny.
 				 */
 				onDelete:       function () {
-					var check = confirm('Are you sure you want to delete this update? This action cannot be undone.');
+					var check = confirm( lp_strings.confirm_delete );
 					if (check) {
 						tinyMCE.execCommand('mceRemoveControl', false, this.handle);
 						var $spinner = $j("<div class='lp-spinner'></div>");
@@ -1579,7 +1642,7 @@ jQuery(function () {
 				 */
 				$liveCanvas = $j([
 					'<div id="livepress-canvas" class="">',
-					'<h3><span id="livepress-updates_num">-</span> Updates</h3>',
+					'<h3><span id="livepress-updates_num">-</span> ' + lp_strings.updates + '</h3>',
 					"<div class='inside'></div>",
 					"</div>"
 				].join(''));
@@ -1700,7 +1763,7 @@ jQuery(function () {
 				 */
 				var livePressDisableCheck = function () {
 					if (isEditing()) {
-						if (!confirm('You have unsaved editors open. Discard them?')) {
+						if (!confirm( lp_strings.discard_unsaved )) {
 							return false;
 						}
 					}
@@ -1743,7 +1806,7 @@ jQuery(function () {
 					spinner.appendChild( spin_livecanvas );
 					var spin_p = document.createElement( 'p' );
 					spin_p.style.textAlign = 'center';
-					spin_p.innerText = 'Loading content...';
+					spin_p.innerText = lp_strings.loading_content + '...';
 					spinner.appendChild( spin_p );
 
 					var titlediv = document.getElementById( 'titlediv' );
@@ -1976,9 +2039,11 @@ jQuery(function () {
 							$block.data("originalId", reg.id);
 							if (sty === "new") {
 								// FIXME: add some kind of support for that
-								return startError("Double added updates. Not supported now.");
+								return startError( lp_strings.double_added );
 							}
 							$block.attr("editStyle", sty);
+							try { window.twttr.widgets.load($block[0]); }
+							catch(exc) { }
 							$inside_first.append($block);
 						}
 						$inside_first
@@ -2081,8 +2146,9 @@ jQuery(function () {
 			// creates live blogging activation tools
 			Livepress.Ready = function () {
 				OORTLE.Livepress.Dashboard = new Dashboard.Controller();
-
 				OORTLE.Livepress.LivepressHUD.init();
+				// Hide the screen option for LivePress live status
+				jQuery('.metabox-prefs label[for=livepress_status_meta_box-hide]').hide();
 			};
 
 			return {

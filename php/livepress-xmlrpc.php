@@ -5,16 +5,34 @@
  *
  */
 
-class livepress_xmlrpc {
+class LivePress_XMLRPC {
 
+	/**
+	 * Instance.
+	 *
+	 * @static
+	 * @access private
+	 *
+	 * @var LivePress_XMLRPC
+	 */
 	static private $lp_xmlrpc = null;
 
+	/**
+	 * Instance.
+	 *
+	 * @static
+	 */
 	static function initialize() {
 		if ( self::$lp_xmlrpc == null ) {
-			self::$lp_xmlrpc = new livepress_xmlrpc();
+			self::$lp_xmlrpc = new LivePress_XMLRPC();
 		}
 	}
 
+	/**
+	 * Constructor.
+	 *
+	 * @access private
+	 */
 	private function __construct() {
 		add_filter( 'xmlrpc_methods',             array( $this, 'add_livepress_functions_to_xmlrpc' ) );
 		add_filter( 'authenticate',               array( $this, 'livepress_authenticate' ), 5, 3 );
@@ -24,16 +42,27 @@ class livepress_xmlrpc {
 		add_filter( 'xmlrpc_wp_insert_post_data', array( $this, 'insert_post_data' ), 10, 2 );
 	}
 
+	/**
+	 * Scrape hooks.
+	 *
+	 * @static
+	 */
 	public static function scrape_hooks() {
 		add_filter( 'comment_flood_filter', '__return_false' );
 		add_filter( 'xmlrpc_allow_anonymous_comments', '__return_true' );
 	}
 
+	/**
+	 * Add LivePress XML-RPC methods.
+	 *
+	 * @param array $methods XML-RPC methods.
+	 * @return array Filtered array of XML-RPC methods.
+	 */
 	function add_livepress_functions_to_xmlrpc( $methods ) {
 		// unfortunatelly, it seems passed function names must relate to global ones
 		$methods['livepress.appendToPost']      = 'livepress_append_to_post';
 		$methods['livepress.setPostLiveStatus'] = 'livepress_set_post_live_status';
-		if ( livepress_config::get_instance()->scrape_hooks() ) {
+		if ( LivePress_Config::get_instance()->scrape_hooks() ) {
 			$methods['scrape.newComment'] = 'new_comment_from_scrape';
 		}
 
@@ -42,7 +71,7 @@ class livepress_xmlrpc {
 
 
 	var $livepress_authenticated = false;
-	var $livepress_auth_called = false;
+	var $livepress_auth_called   = false;
 
 	/**
 	 * When xml-rpc server active, short-circuit enable_xmlrpc option
@@ -84,7 +113,7 @@ class livepress_xmlrpc {
 		add_filter( 'pre_option_enable_xmlrpc', array( &$this, 'livepress_enable_xmlrpc' ), 0, 1 );
 
 		if ( ! $enable ) {
-			return new WP_Error( 405, sprintf( __( 'XML-RPC services are disabled on this site. An admin user can enable them at %s' ), admin_url( 'options-writing.php' ) ) );
+			return new WP_Error( 405, sprintf( esc_html__( 'XML-RPC services are disabled on this site. An admin user can enable them at %s' ), admin_url( 'options-writing.php' ) ) );
 		}
 
 		return $user;
@@ -176,7 +205,7 @@ class livepress_xmlrpc {
 
 		// Get the post we're updating so we can compare the new content with the old content.
 		$post_id = $unparsed_data['ID'];
-		$post = get_post( $post_id );
+		$post    = get_post( $post_id );
 
 		$original_posts = $this->get_existing_updates( $post );
 		$new_posts = $this->parse_updates( $unparsed_data['post_content'] );
@@ -245,11 +274,11 @@ class livepress_xmlrpc {
 		// Set up child posts
 		$children = get_children(
 			array(
-			     'post_type'   => 'post',
-			     'post_parent' => $parent->ID,
-			     'orderby'     => 'ID',
-			     'order'       => 'ASC',
-			     'limit'       => -1
+				'post_type'   => 'post',
+				'post_parent' => $parent->ID,
+				'orderby'     => 'ID',
+				'order'       => 'ASC',
+				'limit'       => -1
 			)
 		);
 
@@ -321,7 +350,7 @@ class livepress_xmlrpc {
  */
 function new_comment_from_scrape( $args ) {
 	global $wp_xmlrpc_server;
-	livepress_xmlrpc::scrape_hooks();
+	LivePress_XMLRPC::scrape_hooks();
 
 	return $wp_xmlrpc_server->wp_newComment( $args );
 }
@@ -353,18 +382,18 @@ function livepress_append_to_post( $args ) {
 	}
 
 	if ( isset( $content_struct['display_author'] ) ) {
-		livepress_updater::instance()->set_custom_author_name( $content_struct['display_author'] );
+		LivePress_Updater::instance()->set_custom_author_name( $content_struct['display_author'] );
 	}
 
 	if ( isset( $content_struct['created_at'] ) ) {
-		livepress_updater::instance()->set_custom_timestamp( $content_struct['created_at'] );
+		LivePress_Updater::instance()->set_custom_timestamp( $content_struct['created_at'] );
 	}
 
 	if ( isset( $content_struct['avatar_url'] ) ) {
-		livepress_updater::instance()->set_custom_avatar_url( $content_struct['avatar_url'] );
+		LivePress_Updater::instance()->set_custom_avatar_url( $content_struct['avatar_url'] );
 	}
 
-	$plugin_options = get_option( livepress_administration::$options_name );
+	$plugin_options = get_option( LivePress_Administration::$options_name );
 
 	// Adds metainfo shortcode
 	$content_struct['description'] = "[livepress_metainfo] "
@@ -410,10 +439,10 @@ function livepress_append_to_post( $args ) {
 function livepress_set_post_live_status( $args ) {
 	global $wp_xmlrpc_server, $wpdb;
 
-	$username       = esc_sql( $args[0] );
-	$password       = esc_sql( $args[1] );
-	$post_id        = (int)  $args[2];
-	$live_status    = (bool) $args[3];
+	$username    = esc_sql( $args[0] );
+	$password    = esc_sql( $args[1] );
+	$post_id     = (int)  $args[2];
+	$live_status = (bool) $args[3];
 
 	// Verify user is autorized
 	if ( ! $wp_xmlrpc_server->login( $username, $password ) ) {
@@ -421,9 +450,7 @@ function livepress_set_post_live_status( $args ) {
 	}
 
 	// Set the post live status
-	$status = array( 'automatic' => $live_status ? 1 : 0, 'live' => $live_status ? 1 : 0 );
-	update_post_meta( $post_id, '_livepress_live_status', $status );
+	LivePress_Updater::instance()->blogging_tools->set_post_live_status( $post_id, $live_status );
+
+
 }
-
-
-?>
