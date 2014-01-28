@@ -164,6 +164,80 @@ module.exports = function ( grunt ) {
 					}
 				}
 			}
+		},
+		pot: { // Note: requirex gettext
+			options: {
+				text_domain: "livepress",
+				omit_header: true,
+				dest:        "languages/",
+				keywords:    [ //functions to look for
+					'gettext',
+					'__',
+					'esc_attr__',
+					'esc_html__',
+					'esc_html_e',
+					'_e'
+				]
+			},
+			files: {
+				src:  [ 'php/*.php' ],
+				expand: true
+			}
+		},
+		clean: [ "plugin-for-release" ],
+		copy: {
+			main: {
+				src: [ 'js/src/editor_plugin.js' ],
+				dest: 'js/editor_plugin.js'
+			},
+			plugin: {
+				files: [
+					{
+						src: [ 'js/*.js' ],
+						dest: 'plugin-for-release/'
+					},
+					{
+						src: [ 'js/admin/*.js' ],
+						dest: 'plugin-for-release/'
+					},
+					{
+						src: [ 'img/**' ],
+						dest: 'plugin-for-release/'
+					},
+					{
+						src: [ 'css/**' ],
+						dest: 'plugin-for-release/'
+					},
+					{
+						src: [ 'tinymce/**' ],
+						dest: 'plugin-for-release/'
+					},
+					{
+						src: [ 'languages/**' ],
+						dest: 'plugin-for-release/'
+					},
+					{
+						src: [ '*.jpg' ],
+						dest: 'plugin-for-release/'
+					},
+					{
+						src: [ '*.php' ],
+						dest: 'plugin-for-release/'
+					},
+					{
+						src: [ 'readme.txt' ],
+						dest: 'plugin-for-release/'
+					},
+					{
+						src: [ 'deploy.sh' ],
+						dest: 'plugin-for-release/'
+					},
+					{
+						src: [ 'php/*' ],
+						dest: 'plugin-for-release/'
+					}
+				]
+			}
 		}
 	} );
 
@@ -171,8 +245,12 @@ module.exports = function ( grunt ) {
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-contrib-copy');
+	grunt.loadNpmTasks('grunt-pot');
+	grunt.loadNpmTasks('grunt-contrib-clean');
 
 	// Default task.
-	grunt.registerTask( 'default', ['jshint', 'concat', 'uglify'] );
+	grunt.registerTask( 'default',      ['jshint', 'concat', 'uglify', 'pot', 'copy:main'] );
+	grunt.registerTask( 'build-plugin', ['jshint', 'concat', 'uglify', 'pot', 'copy:main', 'clean', 'copy:plugin']  );
 
 };

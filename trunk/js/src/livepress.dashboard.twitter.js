@@ -1,5 +1,5 @@
 /*jslint vars:true */
-/*global Dashboard, Livepress, tinyMCE, OORTLE, twttr */
+/*global lp_strings, Dashboard, Livepress, tinyMCE, OORTLE, twttr */
 Dashboard.Twitter = Livepress.ensureExists(Dashboard.Twitter);
 
 Dashboard.Twitter.terms = [];
@@ -20,7 +20,9 @@ if (Dashboard.Twitter.twitter === undefined) {
 
 		var binders = (function () {
 			var bindRemoveButtons = function (elToBind, type) {
-				elToBind.bind('click', function () {
+
+				// Bind term close action, removing exisitng action 1st to avoid double firing
+				elToBind.off( 'click' ).on( 'click', function () {
 					var container = jQuery(this).parent('.lp-' + type),
 						text = container.find(".lp-" + type + "-text").text(),
 						id = container.attr('id');
@@ -45,7 +47,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 					liveCounter.disable();
 					twitter.appendGatheredTweets();
 
-					jQuery(tweet_player_id).attr('title', "Click to pause the tweets so you can decide when to display them").removeClass('paused');
+					jQuery(tweet_player_id).attr('title', lp_strings.click_pause_tweets ).removeClass('paused');
 					jQuery(tweetContainer).removeClass('paused');
 					jQuery('#pausedmsg').hide();
 				}
@@ -56,7 +58,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				if (tweetTrackerPaused === 1) {
 					liveCounter.enable();
 
-					jQuery(tweet_player_id).attr('title', "Click to copy tweets into the post editor.").addClass('paused');
+					jQuery(tweet_player_id).attr('title', lp_strings.click_copy_tweets ).addClass('paused');
 					jQuery(tweetContainer).addClass('paused');
 					jQuery('#pausedmsg').show();
 				}
@@ -64,10 +66,11 @@ if (Dashboard.Twitter.twitter === undefined) {
 
 			return {
 				bindCleaners: function () {
-					var $tweetCleaner = $paneHolder.find('a.lp-tweet-cleaner');
-					var $termCleaner = $paneHolder.find('.lp-term-cleaner a');
+					//var $tweetCleaner = $paneHolder.find('a.lp-tweet-cleaner');
+					//var $termCleaner = $paneHolder.find('a.lp-term-cleaner');
 
-					$tweetCleaner.live('click', function (e) {
+					// Clear all tweet terms
+					$paneHolder.on( 'click', 'a.lp-tweet-cleaner', function (e) {
 						e.preventDefault();
 						e.stopPropagation();
 						// Dashboard.Helpers.disableAndDisplaySpinner(jQuery(this));
@@ -75,7 +78,8 @@ if (Dashboard.Twitter.twitter === undefined) {
 						return false;
 					});
 
-					$termCleaner.live('click', function (e) {
+					// Clear all terms
+					$paneHolder.on( 'click','.lp-term-cleaner a', function (e) {
 						e.preventDefault();
 						e.stopPropagation();
 						// Dashboard.Helpers.disableAndDisplaySpinner(jQuery(this));
@@ -214,12 +218,12 @@ if (Dashboard.Twitter.twitter === undefined) {
 			contentDiv.find('a').attr("target", "_blank");
 
 			var rowActions = jQuery("<div class='row-actions'></div>");
-			var postLink = jQuery("<span class='post'><a href='#' title='Copy the tweet into the post editing area'>Send to editor</a><span>");
+			var postLink = jQuery("<span class='post'><a href='#' title='" + lp_strings.copy_tweets + "'>" + lp_strings.send_to_editor + "</a><span>");
 			rowActions.append(postLink);
 			postLink.bind('click', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				var t = tinyMCE.activeEditor;
+				var t = tinyMCE.editors[ 1 ]; // 1 should always be the 'Real Time' editor
 
 				var created_at = new Date(tweet.created_at);
 				var textToAppend = "[embed]http://twitter.com/"+tweet.author+"/status/"+tweet.id+"[/embed]\n";
@@ -283,7 +287,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				var termHtml = "";
 
 				for (var i = 0; i < terms.length; i += 1) {
-					termHtml += '<div class="lp-term" id="term-' + i + '"><a class="lp-term-clean-button" title="Remove this term"></a><span class="lp-term-text">' + terms[i] + '</span></div>';
+					termHtml += '<div class="lp-term" id="term-' + i + '"><a class="lp-term-clean-button" title="' + lp_strings.remove_term + '"></a><span class="lp-term-text">' + terms[i] + '</span></div>';
 				}
 
 				termHtml += '<div class="clear"></div>';
@@ -308,7 +312,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				for (var i = 0; i < tweets.length; i += 1) {
 					tweetHtml += '<li id="tweet-' + i + '" class="' + ((i % 2 === 1) ? 'odd' : 'even') + ' lp-tweet">';
 					tweetHtml += '<span class="lp-tweet-text">@' + tweets[i] + '</span>';
-					tweetHtml += '<a class="lp-tweet-clean-button" title="Remove this account">remove</a>';
+					tweetHtml += '<a class="lp-tweet-clean-button" title="' + lp_strings.remove_account + '">' + lp_strings.remove_lower + '</a>';
 					tweetHtml += '</li>';
 				}
 				jQuery('#lp-account-list').html(tweetHtml);
@@ -321,7 +325,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 
 				var $authors = jQuery( document.getElementById( 'livepress-authors_num' ) ),
 					$author_label = $authors.siblings( '.label' );
-				var label = ( 1 === tweets.length ) ? 'Remote Author' : 'Remote Authors';
+				var label = ( 1 === tweets.length ) ? lp_strings.remove_author : lp_strings.remove_authors;
 
 				$authors.html( tweets.length );
 				$author_label.text( label );
@@ -372,6 +376,9 @@ if (Dashboard.Twitter.twitter === undefined) {
 							options.afterPushFunction();
 						} else {
 							if (env.errors) {
+								if ( 'undefined' !== typeof( options.afterPushFailedFunction ) ){
+									options.afterPushFailedFunction( env.errors );
+								}
 								Dashboard.Helpers.handleErrors(env.errors);
 								if (options.inputToClean) {
 									Dashboard.Helpers.enableAndHideSpinner(options.inputToClean);
@@ -488,38 +495,14 @@ if (Dashboard.Twitter.twitter === undefined) {
 				if ( 0 === container.find( '.lp-spinner' ).length ) {
 					$spinner.appendTo( container );
 				}
-
-				// Static Twitter search was dependent on the deprecated v1 API. This code does not work!
-				/*if (!limit) {
-					limit = 20;
-				}
-
-				jQuery.getJSON("http://search.twitter.com/search.json?callback=?", {
-					q:   query,
-					rpp: limit
-				}, function (response) {
-					var tweets = response.results;
-					var container = target();
-					jQuery.each(tweets.reverse(), function (idx, tweet) {
-						pushTweet(container, {
-							id:         tweet.id_str,
-							user_id:    tweet.from_user_id,
-							author:     tweet.from_user,
-							created_at: tweet.created_at,
-							text:       tweet.text,
-							avatar_url: tweet.profile_image_url,
-							term:       query
-						});
-					});
-				});*/
 			},
 
 			/**
 			 * Sends ajax with twitter search terms to follow or remove
 			 *
-			 * @param {String} term   Twitter search term
+			 * @param {String} term        Twitter search term
 			 * @param {String} action_type Should be 'add', 'remove' or 'clear'
-			 * @param {function} success Function to be run on success callback
+			 * @param {function} success   Function to be run on success callback
 			 * @returns Always true
 			 */
 			postTweetSearch:          function (term, action_type, success) {
@@ -527,7 +510,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 					"admin-ajax.php",
 					{
 						livepress_action: true,
-						_ajax_nonce:      Livepress.Config.ajax_nonce,
+						_ajax_nonce:      Livepress.Config.ajax_twitter_search_nonce,
 						action:           'twitter_search_term',
 						term:             term,
 						action_type:      action_type,
@@ -556,13 +539,19 @@ if (Dashboard.Twitter.twitter === undefined) {
 			},
 
 			addGuestBlogger: function (username, dontPostToLivepress) {
-				var $newTweetInput = jQuery("#new-twitter-account");
+				var $newTweetInput = jQuery("#new-twitter-account"),
+					$errorField    = jQuery( '#termadderror' );
 				username = username.replace("@", '');
 				var options = {
 					dontPostToLivepress: dontPostToLivepress,
 					afterPushFunction:   function () {
 						twitter.refresh_tweets();
 						Dashboard.Helpers.enableAndHideSpinner($newTweetInput);
+					},
+					afterPushFailedFunction: function( err ){
+						$errorField.show();
+						$errorField.find('#errmsg').html( err.username.replace( '[', '' ).replace( ']', '' ) );
+						setTimeout( function(){ $errorField.fadeOut( 750 ); }, 2000 );
 					},
 					ajaxRequest:         this.postTwitterFollow,
 					inputToClean:        $newTweetInput
@@ -604,7 +593,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 					"admin-ajax.php",
 					{
 						livepress_action: true,
-						_ajax_nonce:      Livepress.Config.ajax_nonce,
+						_ajax_nonce:      Livepress.Config.ajax_twitter_follow_nonce,
 						action:           'twitter_follow',
 						username:         username,
 						action_type:      action_type,

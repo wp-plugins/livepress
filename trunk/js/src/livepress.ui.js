@@ -1,5 +1,5 @@
 /*jslint vars:true */
-/*global Livepress, console */
+/*global lp_client_strings, Livepress, console */
 Livepress.Ui = {};
 
 Livepress.Ui.View = function (disable_comments) {
@@ -83,7 +83,7 @@ Livepress.Ui.View = function (disable_comments) {
 	});
 
 	var control = function (initial, $checkbox, fOn, fOff) {
-		$checkbox.attr('checked', initial).change(function () {
+		$checkbox.prop('checked', initial).change(function () {
 			return $checkbox.is(':checked') ? fOn(1) : fOff(1);
 		});
 		return initial ? fOn() : fOff();
@@ -125,12 +125,12 @@ Livepress.Ui.View = function (disable_comments) {
 
 	this.handleImFeedback = function (response, username) {
 		var messages = {
-			'INVALID_JID':          "Error: [USERNAME] isn't a valid Google Talk account",
-			'NOT_IN_ROSTER':        "Error: [USERNAME] wasn't find in jabber client bot roster",
-			'NOT_AUTHORIZED':       "[USERNAME] has been authorized",
-			'AUTHORIZED':           "[USERNAME] has been authorized",
-			'INTERNAL_SERVER_ERROR':"LivePress! error. Try again in a few minutes",
-			'AUTHORIZATION_SENT':   'Authorization request sent to [USERNAME]'
+			'INVALID_JID':           lp_client_strings.no_google_acct,
+			'NOT_IN_ROSTER':         lp_client_strings.no_acct_in_jabber,
+			'NOT_AUTHORIZED':        lp_client_strings.username_not_auth,
+			'AUTHORIZED':            lp_client_strings.username_authorized,
+			'INTERNAL_SERVER_ERROR': lp_client_strings.livepress_err_retry,
+			'AUTHORIZATION_SENT':    lp_client_strings.auth_request_sent
 		};
 
 		var message = messages[response];
@@ -196,7 +196,7 @@ Livepress.Ui.View = function (disable_comments) {
 			time:      7000
 		});
 		update_gritter_settings_click();
-		jQuery("abbr.timeago").timeago();
+		jQuery("abbr.livepress-timestamp").timeago();
 	};
 
 	this.comment_alert = function (options, date) {
@@ -215,7 +215,7 @@ Livepress.Ui.View = function (disable_comments) {
 			jQuery().scrollTo('#respond, #commentform, #submit', 900);
 		});
 		update_gritter_settings_click();
-		jQuery("abbr.timeago").timeago();
+		jQuery("abbr.livepress-timestamp").timeago();
 	};
 
 };
@@ -230,8 +230,8 @@ Livepress.Ui.UpdateBoxView = function (homepage_mode) {
 		'<div class="update-box-content">',
 		'<div class="lp-update-count">',
 		'<strong class="lp-update-num">0</strong>',
-		'<strong class="lp-update-new-update"> new updates. </strong>',
-		'<a href="javascript:location.reload();" class="lp-refresher">Refresh</a> to see <span class="lp-update-it-them">them</span>.',
+		'<strong class="lp-update-new-update"> ' + lp_client_strings.new_updates + '. </strong>',
+		'<a href="javascript:location.reload();" class="lp-refresher">' + lp_client_strings.refresh + '</a> ' + lp_client_strings.to_see + ' <span class="lp-update-it-them">' + lp_client_strings.them + '</span>.',
 		'</div>',
 		'<div class="lp-balloon">',
 		'<img class="lp-close-button" title="Close" />',
@@ -303,7 +303,7 @@ Livepress.Ui.UpdateBoxView = function (homepage_mode) {
 			$update_box.slideDown(600);
 			$update_box.css('display', 'inline-block');
 		}
-		jQuery("abbr.timeago").timeago();
+		jQuery("abbr.livepress-timestamp").timeago();
 	}
 
 	this.reposition_balloon = function () {

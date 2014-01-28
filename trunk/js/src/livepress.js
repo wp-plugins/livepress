@@ -45,3 +45,15 @@ String.prototype.replaceAll = function (from, to) {
 	str = str.split(from).join(to);
 	return str;
 };
+
+// Ensure we have a twitter handler, even when the page starts with no embeds
+// because they may be added later. Corrects issue where twitter embeds failed on live posts when
+// original page load contained no embeds.
+if ( 'undefined' === typeof window.twttr ) {
+	window.twttr = (function (d,s,id) {
+						var t, js, fjs = d.getElementsByTagName(s)[0];
+						if (d.getElementById(id)) { return; } js=d.createElement(s); js.id=id;
+						js.src="https://platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs);
+						return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f); } });
+					}(document, "script", "twitter-wjs"));
+}

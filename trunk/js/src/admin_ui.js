@@ -1,4 +1,4 @@
-/*global Livepress, get_twitter_avatar */
+/*global lp_strings, Livepress, get_twitter_avatar */
 jQuery(function () {
 	var $api_key = jQuery("#api_key"),
 		api_key_button_id = "#api_key_submit",
@@ -25,7 +25,7 @@ jQuery(function () {
 	$api_key.each(function () {
 		if (this.value) {
 			jQuery(this).attr("disabled", true);
-			jQuery(api_key_button_id).attr("value", "Remove");
+			jQuery(api_key_button_id).attr("value", lp_strings.remove );
 			filled = true;
 		}
 	});
@@ -41,7 +41,7 @@ jQuery(function () {
 		if (filled) {
 			$api_key.attr("disabled", false);
 			$api_key.attr("value", "");
-			jQuery(api_key_button_id).attr("value", "Check");
+			jQuery(api_key_button_id).attr("value", lp_strings.check );
 			filled = false;
 			jQuery( 'input#submit' ).click();
 			return false;
@@ -64,7 +64,7 @@ jQuery(function () {
 
 					if (!msg.error_api_key) {
 						$api_key_status
-							.html("Authenticated")
+							.html( lp_strings.authenticated )
 							.attr("class", "valid_api_key");
 
 						jQuery('.no_key_hidden').show('slow');
@@ -74,7 +74,7 @@ jQuery(function () {
 						jQuery(api_key_button_id).attr("value", "Remove");
 					} else {
 						$api_key_status
-							.html("Key not valid")
+							.html( lp_strings.key_not_valid )
 							.attr("class", "invalid_api_key");
 						filled = true;
 						$api_key.attr("disabled", true);
@@ -97,14 +97,14 @@ jQuery(function () {
 					}
 				} else {
 					jQuery("#api_key_status")
-						.html("Weird return from the livepress server")
+						.html( lp_strings.unexpected )
 						.attr("class", "");
-					jQuery(api_key_button_id).attr("value", "Check");
+					jQuery(api_key_button_id).attr("value", lp_strings.check );
 				}
 			},
 			error:    function (XMLHttpRequest, textStatus, errorThrown) {
 				jQuery("#api_key_status")
-					.html("Connection problem... Try Again...")
+					.html( lp_strings.connection_problems )
 					.attr("class", "");
 			},
 			complete: function (XMLHttpRequest, textStatus) {

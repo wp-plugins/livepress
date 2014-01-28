@@ -34,7 +34,39 @@
 	border-color: #E6DB55;
 }
 
+#termadderror {
+	display: none;
+}
+
 #blogging-tools-link-wrap {
+-moz-border-bottom-colors: none;
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    background: none repeat scroll 0 0 #FFFFFF;
+    border-color: -moz-use-text-color #DDDDDD #DDDDDD;
+    border-image: none;
+    border-right: 1px solid #DDDDDD;
+    border-style: none solid solid;
+    border-width: medium 1px 1px;
+    box-shadow: 0 1px 1px -1px rgba(0, 0, 0, 0.1);
+
+	border-right: 1px solid #ccc;
+	border-left: 1px solid #ccc;
+	border-bottom: 1px solid #ccc;
+	background: #fff;
+
+
+	float: right;
+	height: 28px;
+	padding: 0 0 0 2px;
+	margin: 0 0 0 6px;
+	font-family: sans-serif;
+
+}
+
+.branch-3-6 #blogging-tools-link-wrap,
+.branch-3-7 #blogging-tools-link-wrap {
 	border-right: 1px solid #ccc;
 	border-left: 1px solid #ccc;
 	border-bottom: 1px solid #ccc;
@@ -262,6 +294,7 @@
 
     #lp-pub-status-bar .first-line span {
 	     font-size: 14px;
+	     line-height: 28px;
      }
 
 	#lp-pub-status-bar .second-line a {
@@ -302,6 +335,10 @@
 	#livepress_status_meta_box.postbox.live,
 	.live-status-enabled  {
 		background: #dbfae1;
+	}
+
+	#livepress_status_meta_box h3 {
+		background-color: #fff;
 	}
 
 	#livepress_status_meta_box.postbox.globally_disabled {

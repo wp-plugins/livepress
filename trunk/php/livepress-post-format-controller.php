@@ -22,8 +22,7 @@ class LivePress_PF_Updates {
 
 	/**
 	 * LivePress API communication instance.
-	 *
-	 * @var livepress_communication
+	 * @var LivePress_Communication
 	 */
 	var $lp_comm;
 
@@ -53,12 +52,14 @@ class LivePress_PF_Updates {
 	/**
 	 * Private constructor used to build the singleton instance.
 	 * Registers all hooks and filters.
+	 *
+	 * @access protected
 	 */
 	protected function __construct() {
-		$options = get_option( livepress_administration::$options_name);
+		$options = get_option( LivePress_Administration::$options_name);
 
 		$this->api_key = $options['api_key'];
-		$this->lp_comm = new livepress_communication( $this->api_key );
+		$this->lp_comm = new LivePress_Communication( $this->api_key );
 
 		$this->order = $options['feed_order'];
 
@@ -68,10 +69,10 @@ class LivePress_PF_Updates {
 		add_action( 'wp_ajax_change_post_update', array( $this, 'change_update' ) );
 		add_action( 'wp_ajax_delete_post_update', array( $this, 'delete_update' ) );
 		add_action( 'before_delete_post',         array( $this, 'delete_children' ) );
+		add_action( 'pre_get_posts',              array( $this, 'filter_children_from_query' ) );
 
 		// Wire filters
 		add_filter( 'parse_query',                array( $this, 'hierarchical_posts_filter' ) );
-		add_filter( 'pre_get_posts',              array( $this, 'filter_children_from_query' ) );
 
 		// WordPress 3.7 introduces a new filter for the Post count
 		if ( get_bloginfo('version') < 3.7 ) {
@@ -82,13 +83,13 @@ class LivePress_PF_Updates {
 		add_filter( 'the_content',                array( $this, 'process_oembeds' ), -10 );
 		add_filter( 'the_content',                array( $this, 'append_more_tag' ) );
 		add_filter( 'the_content',                array( $this, 'add_children_to_post' ) );
-		add_filter( 'the_content',                array( $this, 'filter_xhtml' ), 999 );
-		add_filter( 'get_comment_text',           array( $this, 'filter_xhtml' ), 999 );
 		add_filter( 'the_content',                array( $this, 'remove_the_content_filters' ), -10 );
 	}
 
 	/**
 	 * Static method used to retrieve the current class instance.
+	 *
+	 * @static
 	 *
 	 * @return LivePress_PF_Updates
 	 */
@@ -101,10 +102,13 @@ class LivePress_PF_Updates {
 	}
 
 	/**
-	 * Posts cannot typically have parent-child relationships. Our updates, however, are all "owned" by a traditional
-	 * post so we know how to lump things together on the front-end and in the post editor.
+	 * Posts cannot typically have parent-child relationships.
 	 *
-	 * @param WP_Query $query Current query
+	 * Our updates, however, are all "owned" by a traditional
+	 * post so we know how to lump things together on the front-end
+	 * and in the post editor.
+	 *
+	 * @param WP_Query $query Current query.
 	 *
 	 * @return WP_Query
 	 */
@@ -118,40 +122,54 @@ class LivePress_PF_Updates {
 		return $query;
 	}
 
- /**
-   * Modify returned post counts by status to avoid counting the live sub-posts.
-   *
-   * @since 1.0.6
-   *
-   * @param object $counts An object containing the current post_type's post counts by status.
-   * @param string $type   The post type.
-   * @param string $perm   The permission to determine if the posts are 'readable' by the current user.
-   */
+	/**
+	 * Modify returned post counts by status to avoid counting the live sub-posts.
+	 *
+	 * @since 1.0.6
+	 *
+	 * @param object $counts An object containing the current post_type's post counts by status.
+	 * @param string $type   The post type.
+	 * @param string $perm   The permission to determine if the posts are 'readable' by the current user.
+	 */
 	public function setup_post_counts_37( $counts, $post_type, $perm ) {
 
 		global $wpdb;
 
 		$user = wp_get_current_user();
+		$cache_key = 'posts-' . $post_type;
 
-		$query = "SELECT post_status, COUNT( * ) AS num_posts FROM {$wpdb->posts} WHERE post_type = %s AND post_parent = '0'";
+		$query = "SELECT post_status, COUNT( * ) AS num_posts FROM {$wpdb->posts} WHERE post_status!='auto-draft' AND post_type='%s' AND post_parent = '0'";
 			if ( is_user_logged_in() ) {
 				$post_type_object = get_post_type_object( $post_type );
 				if ( ! current_user_can( $post_type_object->cap->read_private_posts ) ) {
+					$cache_key .= '_' . $perm . '_' . $user->ID;
 					$query .= " AND (post_status != 'private' OR ( post_author = '$user->ID' AND post_status = 'private' ))";
 				}
 			}
-		$query .= ' GROUP BY post_status';
-		$new_count = $wpdb->get_results( $wpdb->prepare( $query, $post_type ), ARRAY_A );
-		$post_status = wp_list_pluck( $new_count, 'num_posts' );
+		$query      .= ' GROUP BY post_status';
+		$counts = wp_cache_get( $cache_key, 'counts' );
+		if ( false === $counts ) {
+			$query       = $wpdb->prepare( $query, $post_type );
+			$new_count   = $wpdb->get_results( $query, ARRAY_A );
+			$post_status = wp_list_pluck( $new_count, 'num_posts' );
 
-		if ( isset($post_status[1]) )
-			$counts->publish = $post_status[1];
-
+			$include_in_count = array( 'publish', 'draft', 'trash', 'private' );
+			foreach( $new_count as $count ) {
+				if( in_array( $count[ 'post_status' ], $include_in_count ) ) {
+					$counts->$count[ 'post_status' ] = $count[ 'num_posts' ];
+				} else {
+					$counts->$count[ 'post_status' ] = 0;
+				}
+			}
+			wp_cache_set( $cache_key, $counts, 'counts' );
+		}
 		return $counts;
 	}
 
 	/**
 	 * Hacky way to fix post counts on the post edit screen, required before WordPress 3.7.
+	 *
+	 * Note: Will not be called if WordPress 3.7+ available
 	 *
 	 * By default, the post counts will list all posts, even the hidden child posts that we want to hide.  This
 	 * can cause confusion if the list is only showing 5 posts by shows there are a total of 20 posts in the database.
@@ -181,11 +199,11 @@ class LivePress_PF_Updates {
 			$post_type_object = get_post_type_object( $post_type );
 			if ( ! current_user_can( $post_type_object->cap->read_private_posts ) ) {
 				$cache_key .= '_' . 'readable' . '_' . $user->ID;
-				$query .= " AND (post_status != 'private' OR ( post_author = '$user->ID' AND post_status = 'private' ))";
+				$query     .= " AND (post_status != 'private' OR ( post_author = '$user->ID' AND post_status = 'private' ))";
 			}
 		}
 		$query .= ' GROUP BY post_status';
-		$count = $wpdb->get_results( $wpdb->prepare( $query, $post_type ), ARRAY_A );
+		$count  = $wpdb->get_results( $wpdb->prepare( $query, $post_type ), ARRAY_A );
 
 		$stats = array();
 		foreach ( get_post_stati() as $state )
@@ -215,24 +233,24 @@ class LivePress_PF_Updates {
 			return $content;
 		}
 
-        if ( isset( $post->no_update_tag ) || is_single() || is_admin() ||
-             (defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' )) ) {
+		if ( isset( $post->no_update_tag ) || is_single() || is_admin() ||
+			(defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' )) ) {
 			return $content;
 		}
 
 		// First, make sure the content is non-empty
 		$content = $this->hide_empty_update( $content );
 
-		$children = $this->count_children( $post->ID );
+		$is_live = LivePress_Updater::instance()->blogging_tools->get_post_live_status( $post->ID );
 
-		if ( $children > 0 ) {
-			$more_link_text = __( '(see updates...)', 'livepress' );
+		if ( $is_live ) {
+			$more_link_text = esc_html__( '(see updates...)', 'livepress' );
 
 			$pad = $this->pad_content( $post );
 
 			$content .= apply_filters( 'livepress_pad_content', $pad, $post );
 			$content .= apply_filters( 'the_content_more_link', ' <a href="' . get_permalink() . "#more-{$post->ID}\" class=\"more-link\">$more_link_text</a>", $more_link_text );
-			$content = force_balance_tags( $content );
+			$content  = force_balance_tags( $content );
 		}
 
 		return $content;
@@ -283,7 +301,7 @@ class LivePress_PF_Updates {
 		}
 
 		$content = join( '', $response );
-		$content = livepress_updater::instance()->add_global_post_content_tag( $content, $this->post_modified_gmt );
+		$content = LivePress_Updater::instance()->add_global_post_content_tag( $content, $this->post_modified_gmt );
 
 		// Re-add the filter and carry on
 		add_filter( 'the_content', array( $this, 'add_children_to_post' ) );
@@ -311,15 +329,15 @@ class LivePress_PF_Updates {
 			// We have no content to display. Grab the post's first update and return it instead.
 			$children = get_children(
 				array(
-				     'post_type'   => 'post',
-				     'post_parent' => $post->ID,
-				     'numberposts' => 1
+					'post_type'   => 'post',
+					'post_parent' => $post->ID,
+					'numberposts' => 1
 				)
 			);
 
 			if ( count( $children ) > 0 ) {
 				reset( $children );
-				$child = $children[key( $children )];
+				$child    = $children[key( $children )];
 				$piece_id = get_post_meta( $child->ID, '_livepress_update_id', true );
 
 				$extras = apply_filters( 'the_content', $child->post_content );
@@ -344,8 +362,6 @@ class LivePress_PF_Updates {
 		if ( empty( $parent ) ) {
 			$query->set( 'post_parent', 0 );
 		}
-
-		return $query;
 	}
 
 	/**
@@ -379,43 +395,14 @@ class LivePress_PF_Updates {
 	}
 
 	/**
-	 * Parse passed content and convert it to strict XHTML.
-	 *
-	 * @param string $content
-	 *
-	 * @return string
-	 */
-	public function filter_xhtml( $content ) {
-
-		// Check to verify that the current post is marked as live, skip HTMLPurify if not live
-		$lp_active = get_post_meta( get_the_ID(), '_livepress_live_status', true );
-		if( isset( $lp_active['live'] ) ) {
-			$lp_active = (int) $lp_active['live'];
-		} else {
-			$lp_active = 0;
-		}
-
-		if ( 1 === $lp_active && true !== HTMLPurifier_DefinitionCache_WPDatabase::$caching ) {
-			$content = lp_wp_utils::purifyHTML( $content );
-		}
-
-		return $content;
-	}
-
-	/**
 	 * Remove specific the_content filters that are known to interfere with live posts
-	 * TODO: Make function more robust to remove any non standard filters during child post loop, then restore
+	 * @todo Make function more robust to remove any non standard filters during child post loop, then restore
 	 */
 	public function remove_the_content_filters( $content ) {
 		// Check to verify that the current post is marked as live, skip HTMLPurify if not live
-		$lp_active = get_post_meta( get_the_ID(), '_livepress_live_status', true );
-		if( isset( $lp_active['live'] ) ) {
-			$lp_active = (int) $lp_active['live'];
-		} else {
-			$lp_active = 0;
-		}
+		$is_live = LivePress_Updater::instance()->blogging_tools->get_post_live_status( get_the_ID() );
 
-		if ( 1 ===$lp_active ) {
+		if ( $is_live ) {
 			remove_filter ('the_content', 'fbcommentbox', 100);
 		}
 		return $content;
@@ -439,13 +426,13 @@ class LivePress_PF_Updates {
 		global $post;
 
 		// Set up the $post object
-		$post = get_post( $_POST['post_id'] );
+		$post = get_post( (int)$_POST['post_id'] );
 		$post->no_update_tag = true;
 
-		$edit_uuid = lp_wp_utils::get_from_post( $post->ID, "post_update" /*"post_edit"*/, true );
+		$edit_uuid = LivePress_WP_Utils::get_from_post( $post->ID, "post_update", true );
 
 		if ( isset( $_POST['content'] ) ) {
-			$user_content = stripslashes( $_POST['content'] );
+			$user_content = wp_kses_post( stripslashes( $_POST['content'] ) );
 		} else {
 			$user_content = '';
 		}
@@ -483,17 +470,20 @@ class LivePress_PF_Updates {
 		check_ajax_referer( 'livepress-append_post_update-' . intval( $_POST['post_id'] ) );
 
 		$post = get_post( intval( $_POST['post_id'] ) );
-		$user_content = stripslashes( $_POST['content'] );
+		$user_content = wp_kses_post( stripslashes( $_POST['content'] ) );
 
 		if ( ! empty( $user_content ) ) {
-			$plugin_options = get_option( livepress_administration::$options_name );
+			$plugin_options = get_option( LivePress_Administration::$options_name );
 
-			$update = $this::add_update( $post->ID, $_POST['content'] );
+
+			// $update = $this::add_update( $post->ID, $_POST['content'] );
+			// PHP 5.2 compat static call
+			$update = call_user_func_array( array( $this, 'add_update'), array( $post->ID, &$_POST['content'] ) );
 
 			if ( is_wp_error( $update ) ) {
 				$response = false;
 			} else {
-				$update = get_post( $update );
+				$update   = get_post( $update );
 				$piece_id = get_post_meta( $update->ID, '_livepress_update_id', true );
 				$response = array(
 					'id'      => $piece_id,
@@ -527,8 +517,8 @@ class LivePress_PF_Updates {
 			die;
 		}
 
-		$update_id = intval( substr( $_POST['update_id'], strlen( 'livepress-update-' ) ) );
-		$user_content = stripslashes( $_POST['content'] );
+		$update_id    = intval( substr( $_POST['update_id'], strlen( 'livepress-update-' ) ) );
+		$user_content = wp_kses_post( stripslashes( $_POST['content'] ) );
 
 		$update = $this->get_update( $post->ID, $update_id );
 		if( null == $update ) {
@@ -550,7 +540,7 @@ class LivePress_PF_Updates {
 		$this->send_change_to_livepress( $post, $old_data, $new_data );
 
 		$piece_id = get_post_meta( $update->ID, '_livepress_update_id', true );
-		$region = array(
+		$region   = array(
 			'id'      => $piece_id,
 			'content' => $update->post_content,
 			'proceed' => apply_filters( 'the_content', $update->post_content ),
@@ -629,12 +619,12 @@ class LivePress_PF_Updates {
 
 		$update = wp_insert_post(
 			array(
-			     'post_author' => $current_user->ID,
-			     'post_content' => $content,
-			     'post_parent' => $parent->ID,
-			     'post_title' => $parent->post_title,
-			     'post_type' => 'post',
-			     'post_status' => 'publish'
+				'post_author' => $current_user->ID,
+				'post_content' => $content,
+				'post_parent' => $parent->ID,
+				'post_title' => $parent->post_title,
+				'post_type' => 'post',
+				'post_status' => 'publish'
 			),
 			true
 		);
@@ -735,7 +725,6 @@ class LivePress_PF_Updates {
 		// Remove the action so it doesn't fire again
 		remove_action( 'before_delete_post', array( $this, 'delete_children' ) );
 
-		/** @var WP_Post $child */
 		foreach( $children as $child ) {
 			// Never delete top level posts!
 			if ( 0 === (int) $child->post_parent ) {
@@ -801,7 +790,7 @@ class LivePress_PF_Updates {
 		}
 
 		$update['updated_at'] = get_gmt_from_date( current_time( 'mysql' ) ) . 'Z';
-		$update['is_new'] = $update['old_data'] == $update['data'] ? true : $this->is_new( $parent->ID );
+		$update['is_new']     = $update['old_data'] == $update['data'] ? true : $this->is_new( $parent->ID );
 
 		$user = wp_get_current_user();
 		if ( $user->ID ) {
@@ -826,18 +815,15 @@ class LivePress_PF_Updates {
 		$update['edit'] = json_encode( $region_content );
 
 		try {
-			$update['post_id'] = $parent->ID;
+			$update['post_id']    = $parent->ID;
 			$update['post_title'] = $parent->post_title;
-			$update['post_link'] = get_permalink( $parent->ID );
+			$update['post_link']  = get_permalink( $parent->ID );
 
 			$job_uuid = $this->lp_comm->send_to_livepress_post_update( $update );
-		} catch( livepress_communication_exception $e ) {
+		} catch( LivePress_Communication_Exception $e ) {
 			$e->log( 'post update' );
 		}
 
-		// Set the post as having been updated
-		$status = array( 'automatic' => 1, 'live' => 1 );
-		update_post_meta( $parent->ID, '_livepress_live_status', $status );
 	}
 
 	/**
@@ -867,8 +853,8 @@ class LivePress_PF_Updates {
 		// Set up child posts
 		$children = get_children(
 			array(
-			     'post_type'   => 'post',
-			     'post_parent' => $parent->ID
+				'post_type'   => 'post',
+				'post_parent' => $parent->ID
 			)
 		);
 		$child_pieces = array();
@@ -907,6 +893,8 @@ class LivePress_PF_Updates {
 	/**
 	 * Check if a post update is empty (blank or only an HTML comment).
 	 *
+	 * @access protected
+	 *
 	 * @param string $post_content
 	 *
 	 * @return boolean
@@ -918,6 +906,8 @@ class LivePress_PF_Updates {
 
 	/**
 	 * Check if an update is new or if it has been previously saved
+	 *
+	 * @access protected
 	 *
 	 * @param int $post_id
 	 *
@@ -936,7 +926,7 @@ class LivePress_PF_Updates {
 			return true;
 		} elseif ( count( $updates ) >= 2 ) {
 			$first = array_shift($updates);
-			$last = array_pop($updates);
+			$last  = array_pop($updates);
 			return $last->post_modified_gmt == $first->post_modified_gmt;
 		} else {
 			return true;
@@ -944,30 +934,9 @@ class LivePress_PF_Updates {
 	}
 
 	/**
-	 * Count the number of child posts for a specfic post.
-	 *
-	 * @param int $parent ID of the parent post
-	 *
-	 * @return int
-	 */
-	protected function count_children( $parent ) {
-		global $wpdb;
-
-		$query = $wpdb->prepare( "SELECT COUNT(ID) FROM $wpdb->posts WHERE post_parent = %d AND post_type = 'post'", $parent );
-
-		$count = wp_cache_get( "child_posts_$parent", 'counts' );
-		if ( false !== $count )
-			return $count;
-
-		$count = intval( $wpdb->get_var( $query ) );
-
-		wp_cache_set( "child_posts_$parent", $count, 'counts' );
-
-		return $count;
-	}
-
-	/**
 	 * Get an update to a post from the database.
+	 *
+	 * @access protected
 	 *
 	 * @param int $parent_id            Parent post from which to retrieve an update.
 	 * @param int $livepress_update_id  ID of the update to retrieve.
@@ -977,14 +946,14 @@ class LivePress_PF_Updates {
 	protected function get_update( $parent_id, $livepress_update_id ) {
 		$query = new WP_Query(
 			array(
-			     'post_type' => 'post',
-			     'post_parent' => $parent_id,
-			     'meta_query' => array(
-				     array(
-					     'key'   => '_livepress_update_id',
-					     'value' => $livepress_update_id
-				     )
-			     )
+				'post_type' => 'post',
+				'post_parent' => $parent_id,
+				'meta_query' => array(
+					array(
+						'key'   => '_livepress_update_id',
+						'value' => $livepress_update_id
+					)
+				)
 			)
 		);
 
@@ -994,7 +963,7 @@ class LivePress_PF_Updates {
 
 		return $query->post;
 	}
+
 }
 
 LivePress_PF_Updates::get_instance();
-?>

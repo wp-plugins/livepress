@@ -4,24 +4,34 @@
  * validates and saves those fields.
  */
 
-class livepress_admin_settings {
+class LivePress_Admin_Settings {
 
+	/**
+	 * @access public
+	 * @var array $settings Settings array.
+	 */
 	public $settings = array();
 
+	/**
+	 * Constructor.
+	 */
 	function __construct() {
-		add_action( 'admin_init', array($this, 'admin_init') );
-		add_action( 'admin_enqueue_scripts', array($this, 'admin_enqueue_scripts') );
-		add_action( 'admin_menu', array($this, 'admin_menu') );
+		add_action( 'admin_init',            array( $this, 'admin_init' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+		add_action( 'admin_menu',            array( $this, 'admin_menu' ) );
 
 		$this->settings = $this->get_settings();
 	}
 
+	/**
+	 * Set up settings.
+	 */
 	function admin_init() {
 		$this->setup_settings();
 	}
 
 	/**
-	 * Gets the current settings
+	 * Get the current settings.
 	 */
 	function get_settings() {
 		$settings = get_option( 'livepress' );
@@ -47,9 +57,10 @@ class livepress_admin_settings {
 	}
 
 	/**
-	 * Enqueue some styles on the profile page to display our LP form a little nicer
+	 * Enqueue some styles on the profile page to display our LP form
+	 * a little nicer.
 	 *
-	 * @param $hook string page hook
+	 * @param string $hook Page hook.
 	 *
 	 * @author tddewey
 	 * @return string $hook, unaltered regardless.
@@ -58,142 +69,172 @@ class livepress_admin_settings {
 		if ( $hook != 'settings_page_livepress-settings' )
 			return $hook;
 
-		wp_enqueue_script( 'livepress_admin_ui_js', LP_PLUGIN_URL_BASE . 'js/admin_ui.full.js', array( 'jquery' ) );
+		wp_enqueue_script( 'livepress_admin_ui_js', LP_PLUGIN_URL . 'js/admin_ui.full.js', array( 'jquery' ) );
 
-		wp_enqueue_style( 'livepress_admin', LP_PLUGIN_URL_BASE . 'css/wp-admin.css' );
+		wp_enqueue_style( 'livepress_admin', LP_PLUGIN_URL . 'css/wp-admin.css' );
 		return $hook;
 	}
 
 	/**
-	 * Add a menu to the settings page
+	 * Add a menu to the settings page.
+	 *
 	 * @author tddewey
 	 * @return void
 	 */
 	function admin_menu() {
-		add_options_page( 'LivePress Settings', 'LivePress', 'manage_options', 'livepress-settings', array($this, 'render_settings_page') );
+		add_options_page( esc_html__( 'LivePress Settings', 'livepress' ), esc_html__( 'LivePress', 'livepress' ), 'manage_options', 'livepress-settings', array( $this, 'render_settings_page' ) );
 	}
 
 	/**
-	 * Sets up all the settings, fields, and sections
+	 * Set up all the settings, fields, and sections.
+	 *
 	 * @author tddewey
 	 * @return void
 	 */
 	function setup_settings() {
-		register_setting( 'livepress', 'livepress', array($this, 'sanitize') );
+		register_setting( 'livepress', 'livepress', array( $this, 'sanitize' ) );
 
 		// Add sections
-		add_settings_section( 'lp-connection', 'Connection to LivePress', '__return_null', 'livepress-settings' );
-		add_settings_section( 'lp-appearance', 'Appearance', '__return_null', 'livepress-settings' );
-		add_settings_section( 'lp-remote', 'Remote Publishing', '__return_null', 'livepress-settings' );
+		add_settings_section( 'lp-connection', esc_html__( 'Connection to LivePress', 'livepress' ), '__return_null', 'livepress-settings' );
+		add_settings_section( 'lp-appearance',  esc_html__( 'Appearance', 'livepress' ), '__return_null', 'livepress-settings' );
+		add_settings_section( 'lp-remote',  esc_html__( 'Remote Publishing', 'livepress' ), '__return_null', 'livepress-settings' );
 
 		// Add setting fields
-		add_settings_field( 'api_key', 'Authorization Key', array($this, 'api_key_form'), 'livepress-settings', 'lp-connection' );
-		add_settings_field( 'feed_order', 'When using the real-time editor, place new updates on', array($this, 'feed_order_form'), 'livepress-settings', 'lp-appearance' );
-		add_settings_field( 'notifications', 'Readers receive these notifications when you update or publish a post', array($this, 'notifications_form'), 'livepress-settings', 'lp-appearance' );
-		//add_settings_field( 'byline_style', 'Byline and Timestamp Format', array($this, 'byline_style_form'), 'livepress-settings', 'lp-appearance' );
-		add_settings_field( 'allow_remote_twitter', 'Allow authors to publish via Twitter', array($this, 'allow_remote_twitter_form'), 'livepress-settings', 'lp-remote' );
-		add_settings_field( 'allow_sms', 'Allow authors to publish via SMS', array($this, 'allow_sms_form'), 'livepress-settings', 'lp-remote' );
-		add_settings_field( 'post_to_twitter', 'Publish Updates to Twitter', array( $this, 'push_to_twitter_form' ), 'livepress-settings', 'lp-remote' );
-		// add_settings_field( 'enabled_to', 'Enabled_to?', array( $this, 'enabled_to_form' ), 'livepress-settings', 'lp-appearance' ); // Whitelist, but don't expose a UI
+		add_settings_field( 'api_key',  esc_html__( 'Authorization Key', 'livepress' ), array( $this, 'api_key_form' ), 'livepress-settings', 'lp-connection' );
+		add_settings_field( 'feed_order',  esc_html__( 'When using the real-time editor, place new updates on', 'livepress' ), array( $this, 'feed_order_form' ), 'livepress-settings', 'lp-appearance' );
+		add_settings_field( 'notifications',  esc_html__( 'Readers receive these notifications when you update or publish a post', 'livepress' ), array( $this, 'notifications_form' ), 'livepress-settings', 'lp-appearance' );
+		add_settings_field( 'allow_remote_twitter',  esc_html__( 'Allow authors to publish via Twitter', 'livepress' ), array( $this, 'allow_remote_twitter_form' ), 'livepress-settings', 'lp-remote' );
+		add_settings_field( 'allow_sms',  esc_html__( 'Allow authors to publish via SMS', 'livepress' ), array( $this, 'allow_sms_form' ), 'livepress-settings', 'lp-remote' );
+		add_settings_field( 'post_to_twitter',  esc_html__( 'Publish Updates to Twitter', 'livepress' ), array( $this, 'push_to_twitter_form' ), 'livepress-settings', 'lp-remote' );
 	}
 
+	/**
+	 * API key form output.
+	 */
 	function api_key_form() {
 		$settings = $this->settings;
 		echo '<input type="text" name="livepress[api_key]" id="api_key" value="' . esc_attr( $settings->api_key ) . '">';
-		echo '<input type="submit" class="button-secondary" id="api_key_submit" value="' . __( 'Check', 'livepress' ) . '" />';
+		echo '<input type="submit" class="button-secondary" id="api_key_submit" value="' . esc_html__( 'Check', 'livepress' ) . '" />';
 
 		$options = get_option( 'livepress', array() );
 		$authenticated = $options['api_key'] && !$options['error_api_key'];
 
 		if ( $options['api_key'] && $options['error_api_key'] ) {
 			$api_key_status_class = 'invalid_api_key';
-			$api_key_status_text = 'Key not valid';
+			$api_key_status_text  = esc_html__( 'Key not valid', 'livepress' );
 		} elseif ( $authenticated ) {
 			$api_key_status_class = 'valid_api_key';
-			$api_key_status_text = 'Authenticated!';
+			$api_key_status_text  = esc_html__( 'Authenticated!', 'livepress' );
 		} else {
 			$api_key_status_class = '';
-			$api_key_status_text = 'Found in your welcome email!';
+			$api_key_status_text  = esc_html__( 'Found in your welcome email!', 'livepress' );
 		}
 
 		echo '<span id="api_key_status" class="' . esc_attr( $api_key_status_class ) . '" >';
-		echo $api_key_status_text;
+		echo esc_html( $api_key_status_text );
 		echo '</span>';
 	}
 
+	/**
+	 * Feed order form output.
+	 */
 	function feed_order_form() {
 		$settings = $this->settings;
 		?>
 	<p>
 		<label>
-			<input type="radio" name="livepress[feed_order]" id="feed_order" value="top" <?php echo checked( 'top', $settings->feed_order, false ); ?> />
-			<?php _e( 'Top (reverse chronological order, newest first)', 'livepress' ); ?>
+			<input type="radio" name="livepress[feed_order]" id="feed_order" value="top" <?php echo esc_attr( checked( 'top', $settings->feed_order, false ) ); ?> />
+			<?php esc_html_e( 'Top (reverse chronological order, newest first)', 'livepress' ); ?>
 		</label>
 	</p>
     <p>
         <label>
-            <input type="radio" name="livepress[feed_order]" id="feed_order" value="bottom" <?php echo checked( 'bottom', $settings->feed_order, false ); ?> />
-			<?php _e( 'Bottom (chronological order, oldest first)', 'livepress' ); ?>
+            <input type="radio" name="livepress[feed_order]" id="feed_order" value="bottom" <?php echo esc_attr( checked( 'bottom', $settings->feed_order, false ) ); ?> />
+			<?php esc_html_e( 'Bottom (chronological order, oldest first)', 'livepress' ); ?>
         </label>
     </p>
 		<?php
 	}
 
+	/**
+	 * Notifications form.
+	 */
 	function notifications_form() {
 		$settings = $this->settings;
 		echo '<p><label><input type="checkbox" name="livepress[notifications][]" id="lp-notifications" value="tool-tip"
-		' . checked( true , in_array( 'tool-tip', $settings->notifications ), false ) . '> Tool-tip style popups
-	</label></p>';
+		' . checked( true , in_array( 'tool-tip', $settings->notifications ), false ) . '> ' . esc_html__( 'Tool-tip style popups', 'livepress' ) . '</label></p>';
 		echo '<p><label><input type="checkbox" name="livepress[notifications][]" id="lp-notifications" value="audio" ' .
-		checked( true, in_array( 'audio', $settings->notifications ), false ) . '> A soft chime (audio)</label></p>';
+		checked( true, in_array( 'audio', $settings->notifications ), false ) . '> ' . esc_html__( 'A soft chime (audio)', 'livepress' ) . '</label></p>';
 		echo '<p><label><input type="checkbox" name="livepress[notifications][]" id="lp-notifications" value="scroll" '
-		. checked( true, in_array( 'scroll', $settings->notifications ), false ) . '> Autoscroll to update </label></p>';
+		. checked( true, in_array( 'scroll', $settings->notifications ), false ) . '> ' . esc_html__( 'Autoscroll to update', 'livepress' ) . ' </label></p>';
 	}
 
+	/**
+	 * Byline style form.
+	 */
 	function byline_style_form() {
-		echo 'This setting may be removed in favor of a filter hook.';
+		echo esc_html__( 'This setting may be removed in favor of a filter hook.', 'livepress' );
 	}
 
+	/**
+	 * Allow remote Twitter form output.
+	 */
 	function allow_remote_twitter_form() {
 		$settings = $this->settings;
 		echo '<p><label><input type="checkbox" name="livepress[allow_remote_twitter]" id="lp-remote" value="allow"' .
-		checked( 'allow', $settings->allow_remote_twitter, false ) . '"> Allow</label></p>';
+		checked( 'allow', $settings->allow_remote_twitter, false ) . '"> ' . esc_html__( 'Allow', 'livepress' ) . '</label></p>';
 	}
 
+	/**
+	 * Allow SMS form output.
+	 */
 	function allow_sms_form() {
 		$settings = $this->settings;
 		echo '<p><label><input type="checkbox" name="livepress[allow_sms]" id="lp-sms" value="allow"' .
-		checked( 'allow', $settings->allow_sms, false ) . '"> Allow</label></p>';
+		checked( 'allow', $settings->allow_sms, false ) . '"> ' . esc_html__( 'Allow', 'livepress' ) . '</label></p>';
 	}
 
+	/**
+	 * Push to Twitter form output.
+	 */
 	function push_to_twitter_form() {
-		$options = get_option( 'livepress' );
-		$authorized = '' !== trim( $options['oauth_authorized_user'] );
+		$options    = get_option( 'livepress' );
+		$oauth      = isset( $options['oauth_authorized_user'] ) ? trim( $options['oauth_authorized_user'] ) : '';
+		$authorized = empty( $oauth ) ? 'false' : 'true';
 
-		echo '<script type="text/javascript">var livepress_twitter_authorized=' . ($authorized ? 'true' : 'false') . ';</script>';
+		echo '<script type="text/javascript">var livepress_twitter_authorized=' . esc_js( $authorized ) . ';</script>';
 
-		echo '<input type="submit" class="button-secondary" id="lp-post-to-twitter-change" value="' . __( 'Authorize', 'livepress' ) . '" />';
+		echo '<input type="submit" class="button-secondary" id="lp-post-to-twitter-change" value="' . esc_html__( 'Authorize', 'livepress' ) . '" />';
 		echo '<div class="post_to_twitter_messages">';
 		echo '<span id="post_to_twitter_message">';
-		if ( $authorized ) {
-			echo __( 'Sending out alerts on Twitter account:', 'livepress' ) . ' <strong>' . $options['oauth_authorized_user'] . '</strong>.';
+		if ( 'true' == $authorized ) {
+			echo esc_html__( 'Sending out alerts on Twitter account:', 'livepress' ) . ' <strong>' . esc_html( $options['oauth_authorized_user'] ) . '</strong>.';
 		}
 		echo '</span>';
-		echo '<br /><a href="#" id="lp-post-to-twitter-change_link" style="display: none">' . __( 'Click here to change accounts.', 'livepress' ).  '</a>';
+		echo '<br /><a href="#" id="lp-post-to-twitter-change_link" style="display: none">' . esc_html__( 'Click here to change accounts.', 'livepress' ).  '</a>';
 	}
 
+	/**
+	 * Enabled-to form output.
+	 */
 	function enabled_to_form() {
 		$settings = $this->settings;
 		echo '<p><input type="text" name="livepress[enabled_to]" value="' . esc_attr( $settings->enabled_to ) . '"></p>';
 	}
 
+	/**
+	 * Sanitize form data.
+	 *
+	 * @param array $input Raw form input.
+	 * @return array Sanitized form input.
+	 */
 	function sanitize( $input ) {
 
 		if ( isset( $input['api_key'] ) ) {
 			$api_key = sanitize_text_field( $input['api_key'] );
 
 			if ( ! empty( $input['api_key'] ) ) {
-					$livepress_com = new livepress_communication($api_key);
+					$livepress_com = new LivePress_Communication($api_key);
 
 					$validation = $livepress_com->validate_on_livepress( site_url() );
 					$sanitized_input['api_key'] = $api_key;
@@ -206,7 +247,7 @@ class livepress_admin_settings {
 						$sanitized_input['post_from_twitter_username'] = $blog->twitter_username;
 						$sanitized_input['api_key'] = $api_key;
 					} else {
-						add_settings_error('api_key', 'invalid', "Key is not valid");
+						add_settings_error('api_key', 'invalid', esc_html__( "Key is not valid", 'livepress' ) );
 					}
 			} else {
 					$sanitized_input['api_key'] = $api_key;
@@ -250,17 +291,19 @@ class livepress_admin_settings {
 		return $merged_input;
 	}
 
+	/**
+	 * Settings page display.
+	 */
 	function render_settings_page( ) {
 		?>
 		<div class="wrap">
 			<form action="options.php" method="post">
-				<?php echo screen_icon( 'livepress-settings' ); ?><h2>LivePress Settings</h2>
+				<?php echo wp_kses_post( get_screen_icon( 'livepress-settings' ) ); ?><h2><?php esc_html_e( 'LivePress Settings', 'livepress' ); ?></h2>
 		<?php
-			$this->options = get_option( livepress_administration::$options_name );
+			$this->options = get_option( LivePress_Administration::$options_name );
 			// If the API key is blank and the show=enetr-api-key toggle is not passed, prompt the user to register
 			if ( ( ! ( isset( $_GET['show'] ) && 'enter-api-key' ==  $_GET['show'] ) ) && empty( $this->options['api_key'] ) && ! isset( $_POST[ 'submit' ] ) ) {
-				echo
-					'<div class="updated" style="padding: 0; margin: 0; border: none; background: none;">
+				echo '<div class="updated" style="padding: 0; margin: 0; border: none; background: none;">
 							<div class="livepress_admin_warning">
 								<div class="aa_button_container" onclick="window.open(\'http://www.livepress.com/wordpress\', \'_blank\' );">
 									<div class="aa_button_border">
@@ -287,7 +330,6 @@ class livepress_admin_settings {
 			}
 	}
 
-
 }
 
-$livepress_admin_settings = new livepress_admin_settings();
+$livepress_admin_settings = new LivePress_Admin_Settings();

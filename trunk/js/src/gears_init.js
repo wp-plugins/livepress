@@ -35,12 +35,13 @@
 	} else {
 		// IE
 		try {
-			F = new ActiveXObject('Gears.Factory');
-			// privateSetGlobalObject is only required and supported on WinCE.
-			if (F.getBuildInfo().indexOf('ie_mobile') != -1) {
-				F.privateSetGlobalObject(this);
+			if ( 'undefined' !== typeof window.ActiveXObject ){
+				F = new ActiveXObject('Gears.Factory');
+				// privateSetGlobalObject is only required and supported on WinCE.
+				if (F.getBuildInfo().indexOf('ie_mobile') != -1) {
+					F.privateSetGlobalObject(this);
+				}
 			}
-
 		} catch (e) {
 			// Safari
 			if ((typeof navigator.mimeTypes != 'undefined') && navigator.mimeTypes["application/x-googlegears"]) {

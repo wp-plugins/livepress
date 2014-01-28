@@ -1,8 +1,8 @@
 === LivePress ===
 Requires at least: 3.5
-Tested up to: 3.7
+Tested up to: 3.8
 Tags: LivePress, live, live blogging, liveblogging, realtime, collaboration, Twitter
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 
 LivePress is a hosted live blogging solution that integrates seamlessly with your WordPress blog.
 
@@ -95,6 +95,29 @@ The default tab IDs used in LivePress are:
 2. New update sent -- it appears for all readers of this post at the same time.
 
 == Changelog ==
+
+= 1.0.7 =
+* Add translations for all strings, including in Javascript
+* Escape all outputs for security
+* Remove all stored terms/guest bloggers when taking post not live
+* Correct category post counts
+* Remove depricated/unused code
+* Address PHP compatibility/warnings
+* Address jQuery migrate warnings
+* Hide 'full screen' button in mce editor when in live mode
+* Improve twitter oEmbed rendering speed when large number of tweets are embedded in live post
+* Remove config file/use of fopen
+* Design cleanup to match new design in WordPress 3.8+
+* Improved error messages when adding remote author fails
+* Improved plugin deactivation and uninstall routines
+* Individual nonces for each action, remove check_ajax_referer pluggable function override
+* Only apply the LivePress Status column to posts
+* Remove .swf files from SoundManager code
+* Added inline documentation throughout plugin
+* Address compatibility issues for TinyMCE 4 (WordPress 3.9+)
+* Use timeago.js to keep update times updated
+* Fix Twitter oEmbeds to address introduction of https only Twitter API requirement
+* Regenerate translation file and add to build process
 
 = 1.0.6 =
 * Add post-activation workflow, API signup link
