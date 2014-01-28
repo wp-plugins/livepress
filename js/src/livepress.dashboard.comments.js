@@ -1,5 +1,5 @@
 /*jslint vars:true */
-/*global Dashboard, console, Collaboration, OORTLE, Livepress, tinyMCE */
+/*global lp_strings, Dashboard, console, Collaboration, OORTLE, Livepress, tinyMCE */
 if (Dashboard.Comments === undefined) {
 	Dashboard.Comments = (function () {
 		var comments_on_hold = [];
@@ -106,6 +106,8 @@ if (Dashboard.Comments === undefined) {
 					fetch_all: true
 				};
 				OORTLE.instance.subscribe(approved_comment_post_topic(), approved_comment_callback, opt);
+				liveCounter.reset();
+				liveCounter.disable();
 			},
 
 			clear_container_and_count: function (env) {
@@ -217,7 +219,7 @@ if (Dashboard.Comments.Builder === undefined) {
 			var href = location.href;
 			var linkForSpamAndTrash = href.substring(0, href.lastIndexOf('/')) + "/edit-comments.php";
 			var defaultAjaxData = {
-				_ajax_nonce:      Livepress.Config.ajax_nonce,
+				_ajax_nonce:      data._ajax_nonce,
 				id:               commentId,
 				livepress_action: 1
 			};
@@ -226,22 +228,22 @@ if (Dashboard.Comments.Builder === undefined) {
 				return jQuery("<a></a>").attr("href", href).text(text).attr('title', title);
 			};
 
-			var postAndCommentIds = "&p=" + Livepress.Config.post_id + "&c=" + commentId + "&_wpnonce=" + Livepress.Config.ajax_nonce;
+			var postAndCommentIds = "&p=" + Livepress.Config.post_id + "&c=" + commentId + "&_wpnonce=" + data._ajax_nonce;
 			var linkAction = function (action) {
 				return "comment.php?action=" + action + postAndCommentIds;
 			};
 
 			var rowActions = jQuery("<div class='row-actions'></div>");
 
-			var postLink = linkTag("Copy the commenter name and full text into the post text box", "#", "Send to editor");
+			var postLink = linkTag( lp_strings.post_link, "#", lp_strings.send_to_editor );
 			rowActions.append(commentLink('post', postLink, true));
-			var approveLink = linkTag("Approve this comment", linkAction('approvecomment'), "Approve");
+			var approveLink = linkTag( lp_strings.approve_comment, linkAction('approvecomment'), lp_strings.approve );
 			rowActions.append(commentLink('approve', approveLink));
-			var unapproveLink = linkTag("Unapprove this comment", linkAction("unapprovecomment"), "Unapprove");
+			var unapproveLink = linkTag( lp_strings.unapprove_comment, linkAction("unapprovecomment"), lp_strings.unapprove );
 			rowActions.append(commentLink('unapprove', unapproveLink));
-			var spamLink = linkTag("Mark this comment as spam", linkAction("spamcomment"), "Spam");
+			var spamLink = linkTag( lp_strings.mark_as_spam, linkAction("spamcomment"), lp_strings.spam );
 			rowActions.append(commentLink('spam', spamLink));
-			var trashLink = linkTag("Move this comment to the trash", linkAction("trashcomment"), "Trash");
+			var trashLink = linkTag( lp_strings.move_comment_trash, linkAction("trashcomment"), lp_strings.trash );
 			rowActions.append(commentLink('trash', trashLink));
 
 			var removeComment = function () {

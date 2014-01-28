@@ -20,5 +20,6 @@ Livepress.Ready = function () {
 		get_comment_container:Livepress.Comment.get_comment_container,
 		on_comment_update:    Livepress.Comment.on_comment_update
 	};
+	jQuery( "abbr.livepress-timestamp" ).timeago();
 	return new Livepress.Ui.Controller(Livepress.Config, hooks);
 };

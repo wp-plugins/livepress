@@ -9,16 +9,18 @@
  * This file centralizes configuration options read from the config file or the host framework.
  */
 
-require_once 'livepress-config_file.php';
-
-class livepress_config {
+class LivePress_Config {
+	/**
+	 * @access private
+	 * @var array $configurable_options Configurable options.
+	 */
 	private $configurable_options = array (
 		'STATIC_HOST'               => 'http://static.livepress.com',
 		'LIVEPRESS_SERVICE_HOST'    => 'http://api.livepress.com',
 		'OORTLE_VERSION'            => '1.5',
 		'LIVEPRESS_CLUSTER'         => 'livepress.com',
-		'LIVEPRESS_VERSION'         => '1.0',
-		'TIMESTAMP_HTML_TEMPLATE'   => '<span class="livepress-timestamp">###TIME###</span>',
+		'LIVEPRESS_VERSION'         => '1.0.7',
+		'TIMESTAMP_HTML_TEMPLATE'   => '<abbr title="###TIMESTAMP###" class="livepress-timestamp">###TIME###</abbr>',
 		'TIMESTAMP_TEMPLATE'        => 'G:i',
 		'AUTHOR_TEMPLATE'           => '<span class="livepress-update-author">###AUTHOR###</span>',
 		'DEBUG'                     => FALSE,
@@ -28,8 +30,21 @@ class livepress_config {
 		'SCRAPE_HOOKS'              => FALSE,
 		'PLUGIN_NAME'               => 'livepress-wp',
 	);
+
+	/**
+	 * @static
+	 * @access private
+	 * @var null $singleton_instance
+	 */
 	private static $singleton_instance = null;
 
+	/**
+	 * Get instance.
+	 *
+	 * @static
+	 *
+	 * @return LivePress_Config|null
+	 */
 	public static function get_instance() {
 		if(!isset(self::$singleton_instance)) {
 			self::$singleton_instance = new self;
@@ -41,20 +56,22 @@ class livepress_config {
 	 * Contructor that assigns the wordpress hooks, initialize the
 	 * configurable options and gets the wordpress options set.
 	 */
-	private function __construct() {
-		$this->initialize_configurable_options();
-	}
+	private function __construct() {}
 
-	private function initialize_configurable_options() {
-		$config_file = new livepress_config_file(dirname(__FILE__) .'/../config');
-		$options = $config_file->get_options();
-		$this->configurable_options = array_merge($this->configurable_options, $options);
-	}
-
+	/**
+	 * Static host.
+	 *
+	 * @return mixed
+	 */
 	public function static_host() {
 		return $this->configurable_options['STATIC_HOST'];
 	}
 
+	/**
+	 * LivePress version.
+	 *
+	 * @return array
+	 */
 	public function lp_ver() {
 		return array(
 			$this->configurable_options['OORTLE_VERSION'],
@@ -63,26 +80,58 @@ class livepress_config {
 		);
 	}
 
+	/**
+	 * LivePress service host.
+	 *
+	 * @return mixed
+	 */
 	public function livepress_service_host() {
 		return $this->configurable_options['LIVEPRESS_SERVICE_HOST'];
 	}
 
+	/**
+	 * LivePress debug.
+	 *
+	 * @return mixed
+	 */
 	public function debug() {
 		return $this->configurable_options['DEBUG'];
 	}
 
+	/**
+	 * LivePress script debug.
+	 *
+	 * @return bool
+	 */
 	public function script_debug() {
 		return $this->configurable_options['SCRIPT_DEBUG'] || (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG === true);
 	}
 
+	/**
+	 * LivePress plugin symlink.
+	 *
+	 * @return mixed
+	 */
 	public function plugin_symlink() {
 		return $this->configurable_options['PLUGIN_SYMLINK'];
 	}
 
+	/**
+	 * Scrape hooks.
+	 *
+	 * @return mixed
+	 */
 	public function scrape_hooks() {
 		return $this->configurable_options['SCRAPE_HOOKS'];
 	}
 
+	/**
+	 * LivePress option getter.
+	 *
+	 * @param string $option_name Option name.
+	 * @return mixed
+	 * @throws Exception
+	 */
 	public function get_option($option_name) {
 		$option_name = strtoupper($option_name);
 
@@ -94,7 +143,8 @@ class livepress_config {
 	}
 
 	/**
-	 * Get the option from the host framework (currently only WP)
+	 * Get the option from the host framework (currently only WP).
+	 *
 	 * @param string $option_name
 	 * @return mixed anything that can be saved
 	 */
@@ -102,4 +152,3 @@ class livepress_config {
 		return get_option($option_name);
 	}
 }
-?>

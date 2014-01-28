@@ -325,22 +325,17 @@ Livepress.DOMManipulator.prototype = {
 						if (childIndex > -1 && parent !== null) {
 							el = document.createElement('span');
 							var html = change[2];
-							var found = html.match( /(<p>)?<script.*?src="\/\/platform.twitter.com\/widgets.js".*?<\/script>(<\/p>)?/i );
-							html = html.replace( /(<p>)?<script.*?src="\/\/platform.twitter.com\/widgets.js".*?<\/script>(<\/p>)?/i, '' );
+							var found = html.match( /<blockquote[^>]*twitter-tweet/i );
 							el.innerHTML = html;
 
 							var content = el.childNodes[0];
 							childRef = parent.childNodes.length <= childIndex ? null : parent.childNodes[childIndex];
 
 							this.log("the case, childRef = ", childRef, ', content = ', content);
-							parent.insertBefore(content, childRef);
-
-							if ( null !== found ) {
-								var script = document.createElement( 'script' );
-								script.src = '//platform.twitter.com/widgets.js';
-
-								parent.appendChild( script );
+							if ( null !== found && 'twttr' in window ) {
+								window.twttr.widgets.load(content);
 							}
+							parent.insertBefore(content, childRef);
 						}
 					} catch (ein1) {
 						this.log('Exception on ins_node: ', ein1);

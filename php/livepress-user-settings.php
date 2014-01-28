@@ -4,31 +4,48 @@
  * Generally found under Users->Your Profile
  */
 
-class livepress_user_settings {
+class LivePress_User_Settings {
 
+	/**
+	 * @var array $messages Array of updated and error messages.
+	 */
 	public $messages = array(
 		'updated' => array(),
 		'error' => array(),
 	);
 
+	/**
+	 * Constructor.
+	 */
 	function __construct() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		add_action( 'show_user_profile', array( $this, 'user_fields' ) );
 		add_action( 'edit_user_profile', array( $this, 'user_fields' ) );
 		add_action( 'personal_options_update', array( $this, 'save_fields' ) );
 		add_action( 'edit_user_profile_update', array( $this, 'save_fields' ) );
-		add_action( 'user_profile_update_errors', array( $this, 'save_fields_err'), 0, 3 );
+		add_action( 'user_profile_update_errors', array( $this, 'save_fields_err' ), 0, 3 );
 	}
 
+	/**
+	 * Add an error.
+	 *
+	 * @access private
+	 *
+	 * @param string $msg Error message.
+	 */
 	private function add_error( $msg ) {
 		$this->messages['error'][] = $msg;
 	}
 
-	private function add_warning( $msg ) {
-		$this->messages['updated'][] = $msg;
-	}
-
-	function save_fields_err(&$errors, $update, &$user) {
+	/**
+	 * Save field errors.
+	 *
+	 * @param array $errors Array of errors, passed by reference.
+	 * @param string $update
+	 * @param $user
+	 * @return mixed
+	 */
+	function save_fields_err( &$errors, $update, &$user ) {
 		foreach($this->messages['error'] as $err) {
 			$errors->add('lp_twitter', $err);
 			$errors->add('lp_phone_number', $err);
@@ -37,9 +54,9 @@ class livepress_user_settings {
 	}
 
 	/**
-	 * Enqueue some styles on the profile page to display our LP form a little nicer
+	 * Enqueue some styles on the profile page to display our LP form a little nicer.
 	 *
-	 * @param $hook string page hook
+	 * @param $hook string Hook suffix of current screen.
 	 *
 	 * @author tddewey
 	 * @return string $hook, unaltered regardless.
@@ -48,12 +65,13 @@ class livepress_user_settings {
 		if ( $hook != 'profile.php' )
 			return $hook;
 
-		wp_enqueue_style( 'livepress_admin', LP_PLUGIN_URL_BASE . 'css/wp-admin.css' );
+		wp_enqueue_style( 'livepress_admin', LP_PLUGIN_URL . 'css/wp-admin.css' );
 		return $hook;
 	}
 
 	/**
-	 * Extends a user's profile with some user-specific options
+	 * Extend a user's profile with some user-specific options.
+	 *
 	 * @author tddewey
 	 *
 	 * @param $user object WP User object for the user being edited
@@ -78,21 +96,21 @@ class livepress_user_settings {
 			if ( ( isset( $lp_options['allow_remote_twitter'] ) && $lp_options['allow_remote_twitter'] == 'allow' ) ):
 		?>
 			<tr>
-				<th><label for="lp_twitter">Publish from Twitter</label></th>
+				<th><label for="lp_twitter"><?php esc_html_e( 'Publish from Twitter', 'livepress' ) ?></label></th>
 				<td class="input-prepend">
 					<span class="add-on">@</span><input type="text" name="lp_twitter" id="lp_twitter" value="<?php echo esc_attr( $lp_twitter ); ?>" class="regular-text" />
 					<table class="description">
 						<tr>
 							<td><code>#lpon</code></td>
-							<td>Tweet this with a blog title to start publishing from Twitter</td>
+							<td><?php esc_html_e( 'Tweet this with a blog title to start publishing from Twitter', 'livepress' ) ?></td>
 						</tr>
 						<tr>
 							<td></td>
-							<td>All tweets in between are live published to one post</td>
+							<td><?php esc_html_e( 'All tweets in between are live published to one post', 'livepress' ) ?></td>
 						</tr>
 						<tr>
 							<td><code>#lpoff</code></td>
-							<td>Tweet this on your last update to stop</td>
+							<td><?php esc_html_e( 'Tweet this on your last update to stop', 'livepress' ) ?></td>
 						</tr>
 					</table>
 				</td>
@@ -102,23 +120,23 @@ class livepress_user_settings {
 			if ( ( isset( $lp_options['allow_sms'] ) && $lp_options['allow_sms'] == 'allow' ) ):
 		?>
 		<tr>
-			<th><label for="lp_phone_number">Your Mobile Phone Number, to publish from SMS</label></th>
+			<th><label for="lp_phone_number"><?php esc_html_e( 'Your Mobile Phone Number, to publish from SMS', 'livepress' ) ?></label></th>
 			<td class="input-prepend">
 				<input type="text" name="lp_phone_number" id="lp_phone_number" value="<?php echo esc_attr( $lp_phone_number ); ?>" class="regular-text" />
 				<table class="description">
 					<tr>
-						<td colspan="2">Text commands from your phone to LivePress at: <a href="sms:14157020916">1-415-702-0916</a></td>
+						<td colspan="2"><?php esc_html_e( 'Text commands from your phone to LivePress at: ', 'livepress' ) ?><a href="sms:14157020916">1-415-702-0916</a></td>
 					</tr>
 					<tr>
 						<td><code>#new post title</code></td>
-						<td>Create a new live blog post with title "post title"</td>
+						<td><?php esc_html_e( 'Create a new live blog post with title "post title"', 'livepress' ) ?></td>
 					</tr>
 					<tr>
 						<td><code>#list</code></td>
-						<td>List recent live blog posts</td>
+						<td><?php esc_html_e( 'List recent live blog posts', 'livepress' ) ?></td>
 					</tr>
 					<tr>
-						<td colspan="2">...and much more, for a complete list text <code>#help</code> to <a href="sms:14157020916">1-415-702-0916</a></td>
+						<td colspan="2"><?php echo wp_kses_post( __( '...and much more, for a complete list text <code>#help</code> to', 'livepress' ) ); ?> <a href="sms:14157020916">1-415-702-0916</a></td>
 					</tr>
 				</table>
 			</td>
@@ -132,10 +150,11 @@ class livepress_user_settings {
 	}
 
 	/**
-	 * Save the user settings
+	 * Save the user settings.
+	 *
 	 * @author tddewey
 	 *
-	 * @param $user_id integer user ID being updated
+	 * @param $user_id integer user ID being updated.
 	 *
 	 * @return integer returns the $user_id regardless of success or failure.
 	 */
@@ -148,23 +167,23 @@ class livepress_user_settings {
 			// TOOO: lp_phone_number
 
 		$old_lp_twitter = get_user_meta( $user_id, 'lp_twitter', true ); // returns empty string if not set, perfect
-		$lp_twitter = isset( $_POST['lp_twitter'] ) ? sanitize_text_field( $_POST['lp_twitter'] ) : '';
+		$lp_twitter     = isset( $_POST['lp_twitter'] ) ? sanitize_text_field( $_POST['lp_twitter'] ) : '';
 		if($old_lp_twitter != $lp_twitter) {
 			$user = get_userdata( $user_id );
 
-			$options = get_option(livepress_administration::$options_name);
-			$livepress_com = new livepress_communication($options['api_key']);
+			$options = get_option(LivePress_Administration::$options_name);
+			$livepress_com = new LivePress_Communication($options['api_key']);
 
 			$error_message = '';
 			try {
 				$return_code = $livepress_com->manage_remote_post_from_twitter( $lp_twitter, $user->user_login );
-			} catch ( livepress_communication_exception $e ) {
-				$return_code = $e->get_code();
+			} catch ( LivePress_Communication_Exception $e ) {
+				$return_code   = $e->get_code();
 				$error_message = $e->getMessage();
 			}
 
 			if ( $return_code == 403 ) { /* User not found at livepress, or password invalid */
-				$la = new livepress_administration();
+				$la = new LivePress_Administration();
 				$error_message = $livepress_com->get_last_error_message();
 				if ( ! $la->enable_remote_post( $user_id ) ) {
 					$this->add_error( "Error from the LivePress service: ", $error_message );
@@ -172,8 +191,8 @@ class livepress_user_settings {
 					$error_message = '';
 					try {
 						$return_code = $livepress_com->manage_remote_post_from_twitter( $lp_twitter, $user->user_login );
-					} catch ( livepress_communication_exception $e ) {
-						$return_code = $e->get_code();
+					} catch ( LivePress_Communication_Exception $e ) {
+						$return_code   = $e->get_code();
 						$error_message = $e->getMessage();
 					}
 				}
@@ -195,23 +214,23 @@ class livepress_user_settings {
 		}
 
 		$old_lp_phone_number = get_user_meta( $user_id, 'lp_phone_number', true ); // returns empty string if not set, perfect
-		$lp_phone_number = isset( $_POST['lp_phone_number'] ) ? sanitize_text_field( $_POST['lp_phone_number'] ) : '';
+		$lp_phone_number     = isset( $_POST['lp_phone_number'] ) ? sanitize_text_field( $_POST['lp_phone_number'] ) : '';
 		if($old_lp_phone_number != $lp_phone_number) {
 			$user = get_userdata( $user_id );
 
-			$options = get_option(livepress_administration::$options_name);
-			$livepress_com = new livepress_communication($options['api_key']);
+			$options = get_option(LivePress_Administration::$options_name);
+			$livepress_com = new LivePress_Communication($options['api_key']);
 
 			$error_message = '';
 			try {
 				$return_code = $livepress_com->set_phone_number( $lp_phone_number, $user->user_login );
-			} catch ( livepress_communication_exception $e ) {
-				$return_code = $e->get_code();
+			} catch ( LivePress_Communication_Exception $e ) {
+				$return_code   = $e->get_code();
 				$error_message = $e->getMessage();
 			}
 
 			if ( $return_code == 403 ) { /* User not found at livepress, or password invalid */
-				$la = new livepress_administration();
+				$la = new LivePress_Administration();
 				$error_message = $livepress_com->get_last_error_message();
 				if ( ! $la->enable_remote_post( $user_id ) ) {
 					$this->add_error( "Error from the LivePress service: ", $error_message );
@@ -219,8 +238,8 @@ class livepress_user_settings {
 					$error_message = '';
 					try {
 						$return_code = $livepress_com->set_phone_number( $lp_phone_number, $user->user_login );
-					} catch ( livepress_communication_exception $e ) {
-						$return_code = $e->get_code();
+					} catch ( LivePress_Communication_Exception $e ) {
+						$return_code   = $e->get_code();
 						$error_message = $e->getMessage();
 					}
 				}
@@ -246,4 +265,4 @@ class livepress_user_settings {
 
 }
 
-$livepress_user_settings = new livepress_user_settings();
+$livepress_user_settings = new LivePress_User_Settings();

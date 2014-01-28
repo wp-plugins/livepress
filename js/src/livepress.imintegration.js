@@ -1,4 +1,4 @@
-/*global Livepress, console */
+/*global lp_strings, Livepress, console */
 /**
  * Object containing methods pertaining to instance message integration.
  *
@@ -70,39 +70,39 @@ ImIntegration.__check_status = function (protocol, tries) {
 		if ((json_response.status === 'not_found' ||
 			json_response.status === 'offline' ||
 			json_response.status === 'failed') && tries > 0) {
-			//checked_str = ((ImIntegration.CHECK_TIMES + 1) - tries) + "/" + ImIntegration.CHECK_TIMES;
+			//checked_str = ((LivePress_IM_Integration.CHECK_TIMES + 1) - tries) + "/" + LivePress_IM_Integration.CHECK_TIMES;
 			setTimeout(function () {
 				ImIntegration.__check_status(params.im_service, tries - 1);
 			}, ImIntegration.CHECK_TIMEOUT_SECONDS * 1000);
 		} else if (json_response.status === 'not_found') {
 			show_button = true;
-			$check_message.html("Account not found").css({'color':'red'});
+			$check_message.html( lp_strings.account_not_found ).css({'color':'red'});
 		} else if (json_response.status === 'connecting') {
 			setTimeout(function () {
 				ImIntegration.__check_status(params.im_service, 5);
 			}, ImIntegration.CHECK_TIMEOUT_SECONDS * 1000);
-			$check_message.html("Connecting").css({'color':'lightgreen'});
+			$check_message.html( lp_strings.connecting ).css({'color':'lightgreen'});
 		} else if (json_response.status === 'offline') {
-			$check_message.html("offline");
+			$check_message.html( lp_strings.offline );
 		} else if (json_response.status === 'online') {
-			$check_message.html("connected").css({'color':'green'});
+			$check_message.html( lp_strings.connected ).css({'color':'green'});
 		} else if (json_response.status === 'failed') {
 			show_button = true;
 			reason = json_response.reason;
 
 			if (reason === 'authentication_error') {
-				error_msg = "username/password invalid";
+				error_msg = lp_strings.user_pass_invalid;
 			} else if (reason === "wrong_jid") {
-				error_msg = "Wrong account name supplied";
+				error_msg = lp_strings.wrong_account_name;
 			} else {
 				console.log("Im check failure reason: ", reason);
-				error_msg = "Internal Server Error";
+				error_msg = lp_strings.internal_error;
 			}
 
 			$check_message.html(error_msg).css({'color':'red'});
 		} else {
 			show_button = true;
-			$check_message.html("Unknown error").css({'color':'red'});
+			$check_message.html( lp_strings.unknown_error ).css({'color':'red'});
 		}
 
 		if (show_button) {
@@ -147,7 +147,7 @@ ImIntegration.send_test_message = function (source, protocol) {
 	$input.attr('readOnly', true);
 
 	$button = jQuery("#" + source + "_test_button");
-	$button.attr('value', "Sending...");
+	$button.attr('value', lp_strings.sending + "...");
 	$button.attr("disabled", true);
 
 	$feedback_msg = jQuery("#" + protocol + "_message");
@@ -168,15 +168,15 @@ ImIntegration.send_test_message = function (source, protocol) {
 		data:     params,
 
 		error: function (request) {
-			feedback_msg = "Problem connecting to the blog server.";
+			feedback_msg = lp_strings.problem_connecting;
 		},
 
 		success: function (data) {
 			console.log("return from test message: %d", data);
 			if (data === 200) {
-				feedback_msg = "Test message sent";
+				feedback_msg = lp_strings.test_msg_sent;
 			} else {
-				feedback_msg = "Failure sending test message";
+				feedback_msg = lp_strings.test_msg_failure;
 			}
 		},
 
@@ -187,7 +187,7 @@ ImIntegration.send_test_message = function (source, protocol) {
 			self.test_message_sending = false;
 			$input.attr('readOnly', false);
 
-			$button.attr('value', "Send test message again");
+			$button.attr('value', lp_strings.send_again );
 			$button.attr("disabled", false);
 		}
 	});

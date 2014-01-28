@@ -1,6 +1,6 @@
-/*! livepress -v1.0.5
+/*! livepress -v1.0.7
  * http://livepress.com/
- * Copyright (c) 2013 LivePress, Inc.
+ * Copyright (c) 2014 LivePress, Inc.
  */
 (function () {
 	var path = Livepress.Config.lp_plugin_url + 'tinymce/',

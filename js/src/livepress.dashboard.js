@@ -1,4 +1,4 @@
-/*global Livepress, switchEditors, console, Collaboration */
+/*global lp_strings, Livepress, switchEditors, console, Collaboration */
 /*jslint vars:true */
 var Dashboard = Dashboard || {};
 
@@ -63,9 +63,9 @@ Dashboard.Controller = Dashboard.Controller || function () {
 			switchWarning.hide();
 			publish.data( 'publishText', publish.val() );
 			if ( publish.val() === "Update" ) {
-				publish.val( 'Save and Refresh' );
+				publish.val( lp_strings.save_and_refresh );
 			} else {
-				publish.val( 'Publish and Refresh' );
+				publish.val( lp_strings.publish_and_refresh );
 			}
 			publish.removeClass( "button-primary" ).addClass( "button-secondary" );
 			jQuery( window ).trigger( 'start.livepress' );
