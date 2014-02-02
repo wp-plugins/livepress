@@ -1,7 +1,4 @@
-/*! livepress -v1.0.8
- * http://livepress.com/
- * Copyright (c) 2014 LivePress, Inc.
- */
+/*global Livepress, switchEditors, tinymce */
 (function () {
 	var path = Livepress.Config.lp_plugin_url + 'tinymce/',
 		config = Livepress.Config.PostMetainfo,

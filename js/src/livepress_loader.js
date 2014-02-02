@@ -1,7 +1,4 @@
-/*! livepress -v1.0.8
- * http://livepress.com/
- * Copyright (c) 2014 LivePress, Inc.
- */
+/*jslint plusplus:true, vars:true */
 /*global console, Livepress, jQuery, document, navigator */
 
 (function () {
