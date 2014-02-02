@@ -1,9 +1,5 @@
-/*! livepress -v1.0.8
- * http://livepress.com/
- * Copyright (c) 2014 LivePress, Inc.
- */
-/*global console, Livepress, jQuery, document, navigator */
-
+/*jslint vars:true, regexp:true */
+/*global Livepress*/
 (function () {
 	var loader = function () {
 		var scripts = [],
@@ -24,27 +20,27 @@
 			styles = styles.concat(Livepress.CSSQueue);
 		}
 
-		//DEBUG Lines are included only in debugging version. They are completely removed from release code
-		if (Livepress.Config.debug !== undefined && Livepress.Config.debug) { //DEBUG
-			var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
-			scripts = scripts.concat([ //DEBUG
-				'static://oortle.full.js?rnd=' + Math.random(), //DEBUG
-				'static://oortle_dynamic.js?run=' + run + '&rnd=' + Math.random() //DEBUG
-			]); //DEBUG
-		} else //DEBUG
-		{
-			scripts = scripts.concat([
-				'static://oortle/' + Livepress.Config.oover[0] + '/oortle.min.js',
-				'static://' + Livepress.Config.oover[1] + '/cluster_settings.js?v=' + Livepress.Config.oover[2]
-			]);
+		if ( Livepress.Config.current_screen !== undefined && Livepress.Config.current_screen[0] === 'post' && Livepress.Config.current_screen[1] === 'post' ) {
+			//DEBUG Lines are included only in debugging version. They are completely removed from release code
+			if (Livepress.Config.debug !== undefined && Livepress.Config.debug) { //DEBUG
+				var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
+				scripts = scripts.concat([ //DEBUG
+					'static://oortle.full.js?rnd=' + Math.random(), //DEBUG
+					'static://oortle_dynamic.js?run=' + run + '&rnd=' + Math.random() //DEBUG
+				]); //DEBUG
+			} else //DEBUG
+			{
+				scripts = scripts.concat([
+					'static://oortle/' + Livepress.Config.oover[0] + '/oortle.min.js',
+					'static://' + Livepress.Config.oover[1] + '/cluster_settings.js?v=' + Livepress.Config.oover[2]
+				]);
+			}
 		}
 		var getPath = function (url) {
 			var m = url.match(/^([a-z]+):\/\/(.*)$/);
 
 			if (m.length) {
-				if (m[1] === 'http' || m[1] === 'https') {
-					url = url; // Do nothing for global URL
-				} else if ((m[1] + "_url") in Livepress.Config) { // Translate if url mapping defined for it
+				if (Livepress.Config[m[1] + '_url'] !== undefined) { // Translate if url mapping defined for it
 					var prefix = Livepress.Config[m[1] + "_url"];
 					if (prefix.substr(-1) !== "/") {
 						prefix += "/";
