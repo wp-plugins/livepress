@@ -1,4 +1,4 @@
-/*! livepress -v1.0.7
+/*! livepress -v1.0.8
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -3698,8 +3698,17 @@ if (Dashboard.Twitter.twitter === undefined) {
 			postLink.bind('click', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				var t = tinyMCE.editors[ 1 ]; // 1 should always be the 'Real Time' editor
 
+				// Find the Livepress Real-Time tabgit checkout tinymce_targeting
+				var t, i, el,
+					editors = tinyMCE.editors;
+				for ( i = 0; i <= tinyMCE.editors.length; i++ ) {
+					el = editors[ i ];
+					if ( -1 !== el['id'].indexOf( 'livepress' ) ) {
+						t = el;
+						break;
+					}
+				}
 				var created_at = new Date(tweet.created_at);
 				var textToAppend = "[embed]http://twitter.com/"+tweet.author+"/status/"+tweet.id+"[/embed]\n";
 
