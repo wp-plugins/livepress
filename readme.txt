@@ -3,8 +3,8 @@ Contributors: pbearne, bforchhammer
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=MZTZ5S8MGF75C&lc=CA&item_name=Wordpress%20Development%20%2f%20Paul%20Bearne&item_number=AuthorAvatarsList%20Plugin&currency_code=CAD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
 Tags: Avatar, Author, BuddyPress, Comment, Editor, Image, Multisite, Photo, Picture, Profile, Shortcode, Random, Sidebar, Thumbnail, User, Widget, Wpmu, BBPress, co-authors
 Requires at least: 3.0
-Tested up to: 3.9-alpha
-Stable tag: 1.8.3
+Tested up to: 3.9
+Stable tag: 1.8.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,6 +67,14 @@ If you have added CSS to your theme you may have to update it for this upgrade (
 5. List of users with name and biography
 
 == Changelog ==
+
+= 1.8.4 =
+* Added Ukrainian Translation (by Michael Yunat:  Get Voip - http://getvoip.com)
+* Fixes around the cache id
+* Replaced Deprecated : is_site_admin() with  is_super_admin()
+* Fixed path to tinyMCE js files reomved hardcoded path
+* fix static call when starting class
+
 = 1.8.3 =
 * added a tile to the span arond the image.
 * disabled / delete the transit cache for logged in users to help clear them.
@@ -280,3 +288,5 @@ You can override the styles in that file by copying a style block to your theme'
 `html .widget_author_avatars .author-list .user {
   padding: 0;
 }`
+
+demo edit
