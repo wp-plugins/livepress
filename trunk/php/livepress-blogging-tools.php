@@ -35,6 +35,33 @@ final class LivePress_Blogging_Tools {
 		add_filter( 'mce_buttons',                                    array( $this, 'lp_filter_mce_buttons' ) );
 	}
 
+
+	/**
+	 * Check if a post has the Live Post Header feature enabled.
+	 *
+	 * @param  int $post_id The post id.
+	 * @return boolean      True if the header is enabled, false if not.
+	 *
+	 * @since  1.0.9
+	 */
+	public function is_post_header_enabled( $post_id ){
+		return ( '1' === ( $this->get_option( 'post_header_enabled', $post_id, '0' ) ) );
+	}
+
+	/**
+	 * Set if a post has the Live Post Header feature enabled.
+	 *
+	 * @param int     $post_id The post id.
+	 * @param boolean $enable  Enable (true) or disable (false) the feature.
+	 *
+	 * @since  1.0.9
+	 */
+	public function set_post_header_enabled( $post_id, $enable = true ){
+
+		$this->save_option( 'post_header_enabled', $enable, $post_id );
+	}
+
+
 	/**
 	 * Check the live status of a post.
 	 *
@@ -44,7 +71,9 @@ final class LivePress_Blogging_Tools {
 	 * @since  1.0.7
 	 */
 	public function get_post_live_status( $post_id ){
+		// Get the list of all live posts
 		$live_posts = get_option( 'livepress_live_posts', array() );
+		// Search for the post id among the live posts
 		return in_array( $post_id, $live_posts );
 	}
 
@@ -145,7 +174,18 @@ final class LivePress_Blogging_Tools {
 			$toggle = 'not-live';
 		}
 
-		array_push( $classes, $toggle );
+		if( ! in_array( $toggle, $classes ) ) {
+			array_push( $classes, $toggle );
+		}
+
+		$pin_header = $this->is_post_header_enabled( $post->ID );
+		if ( $pin_header ){
+			$toggle = 'pinned-header';
+			if( ! in_array( $toggle, $classes ) ) {
+				array_push( $classes, $toggle );
+			}
+		}
+
 		return $classes;
 	}
 
@@ -153,6 +193,10 @@ final class LivePress_Blogging_Tools {
 	 * Display the LivePress meta box above the Post Publish meta box.
 	 */
 	public function livepress_status_meta_box() {
+		global $post;
+
+		$pin_header = $this->is_post_header_enabled( $post->ID );
+
 		echo '<div id="lp-pub-status-bar" class="major-publishing-actions">';
 		echo '<div class="info">';
 		echo '<span class="first-line">';
@@ -161,10 +205,17 @@ final class LivePress_Blogging_Tools {
 		echo "<span class=\"disabled\">" . esc_html__( 'LivePress is Disabled', 'livepress' ) . '</span>';
 		echo sprintf( ' <a class="toggle-live button turnoff">%s</a>', esc_html__( 'Turn off live', 'livepress' ) );
 		echo sprintf( ' <a class="toggle-live button turnon">%s</a>', esc_html__( 'Turn on live', 'livepress' ) );
+
 		echo '</span>';
+
 		echo '</div>';
 		echo '</div>';
-		}
+		echo '<div class="pinned-first-option">';
+		echo '<label class="pinnit"><input id="pinfirst" type="checkbox" ' . ( $pin_header ? 'checked="checked" ' : '' ) . ' name="pinfirst" value="1">';
+		//echo ;
+		echo esc_html__('Pinned Live Post Header', 'livepress' );
+		echo '</label></div>';
+	}
 
 	/**
 	 * Add the LivePress meta box above the Post Publish meta box.
@@ -174,7 +225,7 @@ final class LivePress_Blogging_Tools {
 		$screens = array( 'post' );
 		add_meta_box(
 			'livepress_status_meta_box',
-			esc_html__( 'LivePress Status', 'livepress' ),
+			esc_html__( 'LivePress', 'livepress' ),
 			array( $this, 'livepress_status_meta_box' ),
 			'post',
 			'side',
@@ -272,16 +323,23 @@ final class LivePress_Blogging_Tools {
 	/**
 	 * Get either a global option or one tied to a specific post.
 	 *
-	 * @param string $option_name Name of the option to retrieve.
-	 * @param int    $post        Post ID (optional).
+	 * @param  string $option_name    Name of the option to retrieve.
+	 * @param  int    $post           Post ID (optional).
+	 * @param  mixed  $default_return Default value to return if option is not set, empty string by default
+	 *
 	 * @return mixed|null Stored option.
 	 */
-	public function get_option( $option_name, $post = null ) {
-		if ( $post != null ) {
-			return get_post_meta( $post, '_livepress_' . $option_name, true );
-		}
+	public function get_option( $option_name, $post = null, $default_return = '' ) {
 
-		return get_option( 'livepress_' . $option_name );
+		if ( $post != null ) {
+			$to_return = get_post_meta( $post, '_livepress_' . $option_name, true );
+			if ( '' == $to_return ){
+				$to_return = $default_return;
+			}
+		} else{
+			$to_return = get_option( 'livepress_' . $option_name );
+		}
+		return $to_return;
 	}
 
 	/**

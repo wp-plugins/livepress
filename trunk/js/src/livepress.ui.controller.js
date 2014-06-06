@@ -222,32 +222,11 @@ Livepress.Ui.Controller = function (config, hooks) {
 		}
 	}
 
-	var timer = null;
-	function update_timer () {
-		clearTimeout(timer);
-		var $counter = $livepress.find('.lp-updated-counter'),
-			current = $counter.data('min');
-
-		current += 1;
-
-		if ( current === 0 ) {
-			$counter.html( lp_client_strings.updated_just_now );
-		} else if ( current === 1 ) {
-			$counter.html( lp_client_strings.uptated_amin_ago );
-		} else if ( current <= 60 ) {
-			$counter.html( lp_client_strings.updated + ' ' + current + ' ' + lp_client_strings.minutes_ago );
-		} else {
-			$counter.html( lp_client_strings.no_recent_updates );
-			return;
-		}
-
-		$counter.data('min', current);
-
-		timer = setTimeout(update_timer, 60 * 1000);
-	}
-	timer = setTimeout(update_timer, 60 * 1000);
-
 	function post_update (data) {
+		var date       = new Date(),
+			dateString = date.toISOString(),
+			abbr       = '<abbr class="livepress-timestamp" title="' + dateString +'"></abbr>';
+
 		console.log("post_update with data = ", data);
 		if ('event' in data && data.event === 'post_title') {
 			return post_title_update(data.data);
@@ -270,10 +249,11 @@ Livepress.Ui.Controller = function (config, hooks) {
 		trigger_action_on_view();
 		sounds.postUpdated.play();
 
-		$livepress.find('.lp-updated-counter').data('min', -1);
+		$livepress.find('.lp-updated-counter').html( abbr );
+		$livepress.find('.lp-updated-counter').find('.livepress-timestamp').attr('title', dateString );
 		$livepress.find('.lp-bar .lp-status').removeClass('lp-off').addClass('lp-on');
-		update_timer();
 		jQuery("abbr.livepress-timestamp").timeago();
+		jQuery( document ).trigger( 'post_update' ); /*Trigger a post-update event so display can adjust*/
 	}
 
 	function new_post_update_box (post, topic, msg_id) {

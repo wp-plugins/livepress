@@ -77,6 +77,7 @@ class LivePress_Updater {
 
 			add_action( 'pre_post_update',  array( &$this, 'save_old_post' ),  999 );
 			add_filter( 'edit_post', array( &$this, 'maybe_merge_post' ), 10 );
+			add_filter( 'save_post', array( &$this, 'save_lp_post_options' ), 10 );
 
 			// Ensuring that the post is divided into micro-post livepress chunks
 			$live_update = $this->init_live_update();
@@ -95,6 +96,17 @@ class LivePress_Updater {
 				'wordpress default' => '#FFFFFF',
 			);
 
+	}
+
+	/**
+	 * Save the LivePress post options
+	**/
+	public function save_lp_post_options( $post_ID = 0 ) {
+		$post_id = absint( $post_ID );
+		if ( $this->blogging_tools->get_post_live_status( $post_id ) ) {
+			$enable_live_header = ( ( isset( $_POST['pinfirst'] ) && '1' === $_POST['pinfirst'] ) ? '1' : '0' );
+			$this->blogging_tools->set_post_header_enabled( $post_id, $enable_live_header );
+		}
 	}
 
 	/**
@@ -408,6 +420,7 @@ class LivePress_Updater {
 				'test_msg_sent'        => esc_html__( 'Test message sent', 'livepress' ),
 				'test_msg_failure'     => esc_html__( 'Failure sending test message', 'livepress' ),
 				'send_again'           => esc_html__( 'Send test message again', 'livepress' ),
+				'live_post_header'     => esc_html__( 'Pinned Live Post Header', 'livepress' ),
 			);
 
 			wp_localize_script( 'lp-admin', 'lp_strings', $lp_strings );
@@ -733,17 +746,17 @@ class LivePress_Updater {
 				$since    = $modified->diff( new DateTime() );
 
 				// If an update is more than an hour old, we don't care how old it is ... it's out-of-date.
-				$last_update  = $since->days*24*60 + $since->h * 60;
-				$last_update += $since->i;
+				// Calculate number of seconds that have elapsed
+				$last_update  = $since->days*24*60*60; // Days in seconds
+				$last_update += $since->h * 60 * 60;   // Hours in seconds
+				$last_update += $since->i * 60;        // Minutes in seconds
+				$last_update += $since->s;             // Seconds
 
 			} else {
 
 				$modified = new DateTime( $post_modified_gmt, new DateTimeZone( 'UTC' ) );;
 				$now      = new DateTime();
 				$since    = abs( $modified->format('U') - $now->format('U') ) ;
-				$days     = floor( $since / DAY_IN_SECONDS );
-				$hours    = floor( $since / HOUR_IN_SECONDS );
-				$since    = floor( ( $since - $days - $hours ) / 60 );
 
 				// If an update is more than an hour old, we don't care how old it is ... it's out-of-date.
 				$last_update = $since;

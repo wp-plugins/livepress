@@ -7,42 +7,44 @@
  * LivePress template.
  *
  * @param bool $auto               Optional. Auto. Default false.
- * @param int  $minutes_since_last Optional. Minutes since last update. Default 0.
+ * @param int  $seconds_since_last Optional. Seconds since last update. Default 0.
  * @return mixed|string
  */
-function livepress_template( $auto = false, $minutes_since_last = 0 ) {
+function livepress_template( $auto = false, $seconds_since_last = 0 ) {
 	global $post;
 
-	$is_live = LivePress_Updater::instance()->blogging_tools->get_post_live_status( $post->ID );
+	$is_live    = LivePress_Updater::instance()->blogging_tools->get_post_live_status( $post->ID );
+	$pin_header = LivePress_Updater::instance()->blogging_tools->is_post_header_enabled( $post->ID );
 
-	$lp_status = $is_live ? 'lp-on' : 'lp-off';
-
+	$lp_status  = $is_live    ? 'lp-on' : 'lp-off';
+	$pin_class  = $pin_header ? 'livepress-pinned-header' : '';
 	// Don't show the LivePress bar on front end if the post isn't live or LivePress disabled
 	if ( ! $is_live || ! LivePress_Updater::instance()->has_livepress_enabled() )
 		return;
 
-	$since_last = esc_html__( sprintf( "updated %s minutes ago", $minutes_since_last ), 'livepress' );
-	if ( $minutes_since_last == 0 ) {
-		$since_last = esc_html__( "updated just now", 'livepress' );
-	} else if ( $minutes_since_last == 1 ) {
-		$since_last = esc_html__( "updated 1 minute ago", 'livepress' );
-	} else if ( $minutes_since_last >= 60 ) {
-		$since_last = esc_html__( "no recent updates", 'livepress' );
-	}
+	$live            = esc_html__( 'LIVE', 'livepress' );
+	$about           = wp_kses_post( __( 'Receive live updates to<br />this and other posts on<br />this site.', 'livepress' ) );
+	$notifications   = esc_html__( 'Notifications', 'livepress' );
+	$updates         = esc_html__( 'Live Updates', 'livepress' );
+	$powered_by      = wp_kses_post ( __( 'powered by <a href="http://livepress.com">LivePress</a>', 'livepress' ) );
+	$date            = new DateTime();
+	$interval_string = 'P0Y0M0DT0H' . floor( $seconds_since_last / 60 ) .'M' . $seconds_since_last % 60 . 'S';
 
-	$live          = esc_html__( 'LIVE', 'livepress' );
-	$about         = wp_kses_post( __( 'Receive live updates to<br />this and other posts on<br />this site.', 'livepress' ) );
-	$notifications = esc_html__( 'Notifications', 'livepress' );
-	$updates       = esc_html__( 'Live Updates', 'livepress' );
-	$powered_by    = wp_kses_post ( __( 'powered by <a href="http://livepress.com">LivePress</a>', 'livepress' ) );
+	// Generate an ISO-8601 formatted timestamp for timeago.js
+	$date->sub( new DateInterval( $interval_string ) );
+	$date8601 = $date->format('c');
 
 	static $called = 0;
 	if ( $called++ ) return;
 	$htmlTemplate = <<<HTML
 		<div id="livepress">
 			<div class="lp-bar">
-				<div class="lp-status $lp_status"><span class="status-title">$live</span></div>
-				<div class="lp-updated"><span class="lp-updated-counter" data-min="$minutes_since_last">$since_last</span></div>
+				<div class="lp-status $lp_status $pin_class "><span class="status-title">$live</span></div>
+				<div class="lp-updated">
+					<span class="lp-updated-counter" data-min="$seconds_since_last">
+						<abbr class="livepress-timestamp" title="$date8601"></abbr>
+					</span>
+					</div>
 				<div class="lp-settings-button"></div>
 				<div id="lp-settings">
 					<div class="lp-settings-short">

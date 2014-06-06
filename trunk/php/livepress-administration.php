@@ -270,7 +270,7 @@ class LivePress_Administration {
 	 *
 	 * @since 1.0.7
 	 */
-	function deactivate_livepress(){
+	public static function deactivate_livepress(){
 		$lp_updater = LivePress_PF_Updates::get_instance();
 		$blogging_tools = new LivePress_Blogging_Tools();
 		$live_posts = $blogging_tools->get_all_live_posts();

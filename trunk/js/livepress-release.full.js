@@ -1,4 +1,4 @@
-/*! livepress -v1.0.8
+/*! livepress -v1.0.9
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -7719,32 +7719,11 @@ Livepress.Ui.Controller = function (config, hooks) {
 		}
 	}
 
-	var timer = null;
-	function update_timer () {
-		clearTimeout(timer);
-		var $counter = $livepress.find('.lp-updated-counter'),
-			current = $counter.data('min');
-
-		current += 1;
-
-		if ( current === 0 ) {
-			$counter.html( lp_client_strings.updated_just_now );
-		} else if ( current === 1 ) {
-			$counter.html( lp_client_strings.uptated_amin_ago );
-		} else if ( current <= 60 ) {
-			$counter.html( lp_client_strings.updated + ' ' + current + ' ' + lp_client_strings.minutes_ago );
-		} else {
-			$counter.html( lp_client_strings.no_recent_updates );
-			return;
-		}
-
-		$counter.data('min', current);
-
-		timer = setTimeout(update_timer, 60 * 1000);
-	}
-	timer = setTimeout(update_timer, 60 * 1000);
-
 	function post_update (data) {
+		var date       = new Date(),
+			dateString = date.toISOString(),
+			abbr       = '<abbr class="livepress-timestamp" title="' + dateString +'"></abbr>';
+
 		console.log("post_update with data = ", data);
 		if ('event' in data && data.event === 'post_title') {
 			return post_title_update(data.data);
@@ -7767,10 +7746,11 @@ Livepress.Ui.Controller = function (config, hooks) {
 		trigger_action_on_view();
 		sounds.postUpdated.play();
 
-		$livepress.find('.lp-updated-counter').data('min', -1);
+		$livepress.find('.lp-updated-counter').html( abbr );
+		$livepress.find('.lp-updated-counter').find('.livepress-timestamp').attr('title', dateString );
 		$livepress.find('.lp-bar .lp-status').removeClass('lp-off').addClass('lp-on');
-		update_timer();
 		jQuery("abbr.livepress-timestamp").timeago();
+		jQuery( document ).trigger( 'post_update' ); /*Trigger a post-update event so display can adjust*/
 	}
 
 	function new_post_update_box (post, topic, msg_id) {
@@ -8120,14 +8100,38 @@ if (jQuery !== undefined) {
 
 Livepress.Ready = function () {
 
-	var hooks = {
-		post_comment_update:  Livepress.Comment.attach,
-		before_live_comment:  Livepress.Comment.before_live_comment,
-		should_attach_comment:Livepress.Comment.should_attach_comment,
-		get_comment_container:Livepress.Comment.get_comment_container,
-		on_comment_update:    Livepress.Comment.on_comment_update
-	};
+	var $lpcontent, $firstUpdate, $livepressBar, $heightOfUpdate,
+		hooks = {
+			post_comment_update:  Livepress.Comment.attach,
+			before_live_comment:  Livepress.Comment.before_live_comment,
+			should_attach_comment:Livepress.Comment.should_attach_comment,
+			get_comment_container:Livepress.Comment.get_comment_container,
+			on_comment_update:    Livepress.Comment.on_comment_update
+		};
 	jQuery( "abbr.livepress-timestamp" ).timeago();
+
+	if ( jQuery( '.lp-status' ).hasClass( 'livepress-pinned-header' ) ) {
+		// Adjust the positioning of the first post to pin it to the top
+		var adjustTopPostPositioning = function() {
+			$lpcontent    = jQuery( '.livepress_content' );
+			$firstUpdate  = $lpcontent.find( '.livepress-update:first' );
+			$livepressBar = jQuery( '#livepress' );
+			$heightOfUpdate = ( $firstUpdate.outerHeight() + 20 );
+			$firstUpdate.css( {
+				'margin-top': '-' + ( $heightOfUpdate + 30 ) + 'px',
+				'position': 'absolute',
+				'width' : ( $livepressBar.outerWidth() ) + 'px'
+			} );
+			$livepressBar.css( { 'margin-top': $heightOfUpdate + 'px' } );
+		};
+
+		adjustTopPostPositioning();
+
+		// Adjust the top position whenever the post is updated so it fits properly
+		jQuery( document ).on( 'post_update', function(){
+			adjustTopPostPositioning();
+		});
+	}
 	return new Livepress.Ui.Controller(Livepress.Config, hooks);
 };
 jQuery.effects || (function($, undefined) {
