@@ -83,7 +83,6 @@ class LivePress_PF_Updates {
 		add_filter( 'the_content',                array( $this, 'process_oembeds' ), -10 );
 		add_filter( 'the_content',                array( $this, 'append_more_tag' ) );
 		add_filter( 'the_content',                array( $this, 'add_children_to_post' ) );
-		add_filter( 'the_content',                array( $this, 'remove_the_content_filters' ), -10 );
 	}
 
 	/**
@@ -272,6 +271,57 @@ class LivePress_PF_Updates {
 	}
 
 	/**
+	 * Adjust the_content filter removing all but a handful of whitelisted filters,
+	 * preventing plugins from adding content to the live update stream
+	 *
+	 * @since 1.0.9
+	 */
+	private function clear_most_the_content_filters() {
+		global $wp_filter;
+
+		// Cache the results of this costly function
+		$lp_filtered_the_content_filters_transient_key = 'lp_filtered_the_content_filters_a';
+		if ( false === $filtered_the_content_filters = get_transient( $lp_filtered_the_content_filters_transient_key ) ){
+			// White list of the filters we want to preserve
+			$whiltelisted_content_filters = array(
+				'process_oembeds',
+				'run_shortcode',
+				'autoembed',
+				'wptexturize',
+				'convert_smilies',
+				'convert_chars',
+				'wpautop',
+				'shortcode_unautop',
+				'capital_P_dangit',
+				'do_shortcode',
+				);
+
+			// Iterate thru all existing the_content filters
+			foreach ( $wp_filter['the_content'] as $filterkey => $filtervalue) {
+				// Filters are in arrays by priority, so iterate thru each of those
+				foreach ( $filtervalue as $contentfilterkey => $contentfiltervalue) {
+					$found_in_whitelist = false;
+					// Now loop thru the whitelisted filters to see if this filter should be unset
+					foreach ( $whiltelisted_content_filters as $white ) {
+						if ( false !== strpos( $contentfilterkey, $white ) ) {
+							$found_in_whitelist = true;
+							break;
+						}
+					}
+					// If the filter is not in our whitelist, remove it
+					if ( ! $found_in_whitelist ){
+						unset( $wp_filter['the_content'][ $filterkey ] );
+					}
+				}
+			}
+			set_transient( $lp_filtered_the_content_filters_transient_key, $wp_filter['the_content'], 5 * MINUTES_IN_SECONDS );
+		} else {
+			$wp_filter['the_content'] = $filtered_the_content_filters;
+		}
+
+	}
+
+	/**
 	 * Filter posts on the front end so that individual updates appear as separate elements.
 	 *
 	 * Filter automatically removes itself when called the first time.
@@ -281,15 +331,20 @@ class LivePress_PF_Updates {
 	 * @return string
 	 */
 	public function add_children_to_post( $content ) {
-		// Don't filter on the back end
+		global $post, $wp_filter;
+		// Only filter on single post pages
 		if ( ! is_singular( 'post' ) ) {
 			return $content;
 		}
+		if ( ! LivePress_Updater::instance()->blogging_tools->get_post_live_status( get_the_ID() ) ) {
+			return $content;
+		}
 
-		// Remove the filter to prevent an infinite cascade.
-		remove_filter( 'the_content', array( $this, 'add_children_to_post' ) );
-
-		global $post;
+		// Remove all the_content filters so child posts are not filtered
+		// removing share, vote and other per-post items from the live update stream.
+		// Store the filters first for later restoration so filters still fire outside the update stream
+		$stored_wp_filter_the_content = $wp_filter[ 'the_content' ];
+		$this->clear_most_the_content_filters();
 
 		$this->assemble_pieces( $post );
 
@@ -300,11 +355,16 @@ class LivePress_PF_Updates {
 			$response[] = $piece['suffix'];
 		}
 
+		// Clear the original content if we have live updates
+		if ( 0 === count( $response ) ){
+			$content = '';
+		}
 		$content = join( '', $response );
 		$content = LivePress_Updater::instance()->add_global_post_content_tag( $content, $this->post_modified_gmt );
 
-		// Re-add the filter and carry on
-		add_filter( 'the_content', array( $this, 'add_children_to_post' ) );
+		// Restore the_content filters and carry on
+		//add_filter( 'the_content', array( $this, 'add_children_to_post' ) );
+		$wp_filter[ 'the_content' ] = $stored_wp_filter_the_content;
 
 		return $content;
 	}
@@ -394,20 +454,6 @@ class LivePress_PF_Updates {
 		add_action( 'wp_insert_post', array( $this, 'prepend_lp_comment' ), 10, 2 );
 	}
 
-	/**
-	 * Remove specific the_content filters that are known to interfere with live posts
-	 * @todo Make function more robust to remove any non standard filters during child post loop, then restore
-	 */
-	public function remove_the_content_filters( $content ) {
-		// Check to verify that the current post is marked as live, skip HTMLPurify if not live
-		$is_live = LivePress_Updater::instance()->blogging_tools->get_post_live_status( get_the_ID() );
-
-		if ( $is_live ) {
-			remove_filter ('the_content', 'fbcommentbox', 100);
-		}
-		return $content;
-	}
-
 	/*****************************************************************/
 	/*                         AJAX Functions                        */
 	/*****************************************************************/
@@ -438,6 +484,17 @@ class LivePress_PF_Updates {
 		}
 
 		$this->assemble_pieces( $post );
+
+
+		// If the post content is not empty, and there are no clid posts, the post has
+		// just been made live.  Insert the content as a live update
+		if ( 0 == count( $this->pieces ) ) {
+			if ( '' !== $user_content ) {
+				// Add a live update with the current content
+				$this->add_update( $post, $user_content );
+				$this->assemble_pieces( $post );
+			}
+		}
 
 		$original = $this->pieces;
 
@@ -677,9 +734,10 @@ class LivePress_PF_Updates {
 		$response = array();
 		// Wrap each child for display
 		foreach( $this->pieces as $piece ) {
-			$response[] = $piece['prefix'];
-			$response[] = $piece['proceed'];
-			$response[] = $piece['suffix'];
+			$prefix = sprintf( '<div id="livepress-old-update-%s" class="livepress-old-update">', $piece[ 'id' ] );
+			$response[] = $prefix;
+			$response[] = $piece[ 'proceed' ];
+			$response[] = '</div>';
 		}
 
 		// Append the children to the parent post content
@@ -820,6 +878,8 @@ class LivePress_PF_Updates {
 			$update['post_link']  = get_permalink( $parent->ID );
 
 			$job_uuid = $this->lp_comm->send_to_livepress_post_update( $update );
+			// Save the current update job id
+			LivePress_WP_Utils::save_on_post( $parent->ID, 'status_uuid', $job_uuid );
 		} catch( LivePress_Communication_Exception $e ) {
 			$e->log( 'post update' );
 		}
@@ -832,6 +892,8 @@ class LivePress_PF_Updates {
 	 * @param object $parent Parent post for which we're assembling pieces
 	 */
 	protected function assemble_pieces( $parent ) {
+		global $wp_filter;
+
 		if ( ! is_object( $parent ) ) {
 			$parent = get_post( $parent );
 		}
@@ -840,16 +902,6 @@ class LivePress_PF_Updates {
 
 		$pieces = array();
 
-		$parent_lp_id = get_post_meta( $parent->ID, '_livepress_update_id', true );
-		if ( ! $this->is_empty( $parent->post_content ) ) {
-			$pieces[] = array(
-				'id'      => $parent_lp_id,
-				'content' => $parent->post_content,
-				'proceed' => apply_filters( 'the_content', $parent->post_content ),
-				'prefix'  => sprintf( '<div id="livepress-update-%s" class="livepress-update">', $parent_lp_id ),
-				'suffix'  => '</div>'
-			);
-		}
 		// Set up child posts
 		$children = get_children(
 			array(
@@ -858,11 +910,9 @@ class LivePress_PF_Updates {
 			)
 		);
 		$child_pieces = array();
-
 		if ( count( $children ) > 0 ) {
 			foreach( $children as $child ) {
 				$post = $child;
-
 				$this->post_modified_gmt = max($this->post_modified_gmt, $child->post_modified_gmt);
 				$piece_id = get_post_meta( $child->ID, '_livepress_update_id', true );
 				$piece = array(
@@ -879,9 +929,18 @@ class LivePress_PF_Updates {
 		// Display posts oldest-newest by default
 		$child_pieces = array_reverse( $child_pieces );
 		$pieces = array_merge( $pieces, $child_pieces );
-		if ( 'top' == $this->order ) {
-			// Display posts newest-oldest
-			$pieces = array_reverse( $pieces );
+		if ( 0 !== count( $pieces ) ) {
+			if ( 'top' == $this->order ) {
+				// If the header is pinned and the order reversed, ensure the first post remains first
+				$pin_header = LivePress_Updater::instance()->blogging_tools->is_post_header_enabled( $parent->ID );
+				if ( $pin_header ){
+					$first  = array_shift( $pieces );
+					$pieces = array_reverse( $pieces );
+					array_unshift( $pieces, $first );
+				} else {
+					$pieces = array_reverse( $pieces );
+				}
+			}
 		}
 		$this->pieces = $pieces;
 	}

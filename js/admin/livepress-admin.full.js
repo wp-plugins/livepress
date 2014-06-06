@@ -1,4 +1,4 @@
-/*! livepress -v1.0.8
+/*! livepress -v1.0.9
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -481,7 +481,7 @@ Livepress.Admin = Livepress.Admin || {};
  * @requires Livepress.Config
  */
 Livepress.Admin.PostStatus = function () {
-	var CHECK_WAIT_TIME = 5, // Seconds
+	var CHECK_WAIT_TIME = 4, // Seconds
 		MESSAGE_DISPLAY_TIME = 10, // Seconds
 		SELF = this,
 		spin = false;
@@ -568,7 +568,7 @@ Livepress.Admin.PostStatus = function () {
 		} else if (status === "lp_failed") {
 			error("Can't get update status from LivePress.");
 			remove_spin();
-		} else if (status === "empty") {
+		} else if (status === "empty" || "0" === status) {
 			remove_spin();
 		} else if (status === "-1") {
 			error("Wrong AJAX nonce.");
@@ -1462,6 +1462,7 @@ jQuery(function () {
 
 					jQuery('.peeklink span, .peekmessage').removeClass('hidden');
 					jQuery('.peek').addClass('live');
+					jQuery( window ).trigger( 'livepress.post_update' );
 					return SELF.ajaxAction('append_post_update', content, callback, args);
 				};
 
@@ -1776,10 +1777,6 @@ jQuery(function () {
 						te.on( 'KeyDown', function ( e ) {
 							if (e.ctrlKey && e.keyCode === 13) {
 								e.preventDefault();
-
-								// TinyMCE doesn't hit this event until *after* the line return was added. So remove it manually.
-								this.undoManager.undo();
-
 								selection.onSave();
 							}
 						} );
@@ -2562,7 +2559,44 @@ jQuery(function () {
 						// first micro post
 						var $currentPosts = $liveCanvas.find('div.livepress-update:first');
 
-						//$inside_first.find('div.livepress-update[editStyle="edit"],div.livepress-update[editStyle="del"]').click();
+						/**
+						 * Add the Live Post Header feature
+						 */
+						if ( jQuery( '#livepress_status_meta_box' ).hasClass( 'pinned-header' ) ) {
+
+							// Add the 'Live Post Header' box
+							$currentPosts
+								.wrap( '<div class="pinned-first-livepress-update"></div>' )
+								.before( '<div class="pinned-first-livepress-update-header">' +
+									'<div class="dashicons dashicons-arrow-down"></div>' +
+									lp_strings.live_post_header +
+									'</div>');
+							// Move the box to above the Update Count
+							$liveCanvas.find( '.pinned-first-livepress-update' )
+								.prependTo( $liveCanvas )
+								.find( '.livepress-update:first' )
+								.find( '.livepress-delete')
+								.hide();
+
+							$liveCanvas.find( '.pinned-first-livepress-update div.livepress-update' ).hide();
+
+							/**
+							 * Add handlers for expanding/contracting the pinned post header
+							 */
+							// Expand/Show the Live Post Header when triangle is clicked
+							$liveCanvas.on( 'click', '.pinned-first-livepress-update-header', function( el ) {
+								var $firstUpdate = $liveCanvas.find( '.pinned-first-livepress-update div.livepress-update' ),
+									$icon        = $liveCanvas.find( '.dashicons' );
+
+								if ( $firstUpdate.is(":visible") ) {
+									$firstUpdate.slideUp( 'fast' );
+									$icon.removeClass( 'dashicons-arrow-up' ).addClass( 'dashicons-arrow-down' );
+								} else {
+									$firstUpdate.slideDown( 'fast' );
+									$icon.removeClass( 'dashicons-arrow-down' ).addClass( 'dashicons-arrow-up' );
+								}
+							});
+						}
 
 						var $pub = jQuery('#publish');
 						$pub.on( 'click', function () {
