@@ -144,11 +144,15 @@ add_action( 'update_option_blogname', 'livepress_update_blog_name' );
  * @return mixed
  */
 function add_content_css( $init ) {
-	$css_for_tinymce     = LP_PLUGIN_URL . 'tinymce/css/inside.css';
-	$css                 = LP_PLUGIN_URL . 'css/livepress.css';
-	$init['content_css'] = $css . ',' . $css_for_tinymce;
+	if ( ! LivePress_Updater::instance()->blogging_tools->get_post_live_status( get_the_ID() ) ) {
+		return $init;
+	}
+	$css_for_tinymce      = LP_PLUGIN_URL . 'tinymce/css/inside.css';
+	$css                  = LP_PLUGIN_URL . 'css/livepress.css';
+	$init['content_css'] .= ',' . $css . ',' . $css_for_tinymce;
 	return $init;
 }
+	add_filter( "tiny_mce_before_init", "add_content_css" );
 
 /**
  * Render LivePress Real-time Tools.
@@ -166,7 +170,6 @@ function livepress_render_dashboard() {
 		'high'
 	);
 }
-add_filter( "tiny_mce_before_init", "add_content_css" );
 
 function livepress_init() {
 	load_plugin_textdomain( 'livepress', false, plugin_basename( LP_PLUGIN_PATH ) . '/languages/' );

@@ -374,6 +374,48 @@
 		font-size: 14px;
 	}
 
+	.pinned-first-livepress-update {
+		padding: 0;
+		margin-bottom: 0px;
+		border: 1px solid #CCCCCC;
+	}
+
+	#livepress-canvas .pinned-first-livepress-update div.livepress-update {
+		margin: 0;
+		padding: 10px 10px 10px;
+	}
+
+	.pinned-first-livepress-update-header {
+		cursor: pointer;
+	}
+
+	.pinned-first-livepress-update-header:hover {
+		background-color: #d9d9d9;
+	}
+	.pinned-first-livepress-update-header {
+		background-color: #E9E9E9;
+		border-color: #CCCCCC #CCCCCC #E9E9E9;
+		color: #333333;
+		padding-top: 4px;
+		padding-bottom: 0;
+		padding-left: 4px;
+		font-size: 14px;
+		font-weight: bold;
+		height: 24px;
+	}
+
+	.pinned-first-livepress-update .livepress-delete {
+		display: none;
+	}
+
+	.pinned-first-option {
+		margin-top: 8px;
+	}
+
+	#livepress_status_meta_box.not-live .pinned-first-option {
+		display: none;
+	}
+
 /**
  * HiDPI Graphics
  */

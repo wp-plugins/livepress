@@ -210,7 +210,7 @@ class LivePress_Comment {
 					'new_template'                 => $comment_template_non_logged['new'],
 					'comment_parent'               => $comment->comment_parent,
 					'comment_html'                 => $added_comment_template_non_logged,
-					'ajax_nonce'                   => $this->options['ajax_comment_nonce'],
+					'_ajax_nonce'                  => $this->options['ajax_comment_nonce'],
 					'previous_uuid'                => $old_uuid,
 					'uuid'                         => $new_uuid,
 					'old_template_logged'          => $comment_template['old'],

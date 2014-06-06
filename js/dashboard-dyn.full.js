@@ -1,4 +1,4 @@
-/*! livepress -v1.0.8
+/*! livepress -v1.0.9
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -1599,7 +1599,8 @@ Collaboration.Edit = Livepress.ensureExists(Collaboration.Edit);
 jQuery.extend(Collaboration.Edit, {
 	update_live_posts_number: function () {
 		var length = jQuery("#livepress-canvas")
-			.find(".livepress-update")
+			.find(".livepress-update") // Find the update divs
+			.not( ".pinned-first-livepress-update>.livepress-update" ) // Exclude the pinned update, if any
 			.filter( function( index ) { return ( 0 === jQuery( this ).find(".livepress-update").length ); } )
 			.length;
 		OORTLE.Livepress.LivepressHUD.updateLivePosts(length);
