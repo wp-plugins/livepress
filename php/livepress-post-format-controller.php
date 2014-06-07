@@ -417,10 +417,15 @@ class LivePress_PF_Updates {
 	 *
 	 * @return WP_Query
 	 */
-	public function filter_children_from_query( $query ) {
-		$parent = $query->get( 'post_parent' );
-		if ( empty( $parent ) ) {
-			$query->set( 'post_parent', 0 );
+	public function filter_children_from_query( WP_Query $query ) {
+		$post_type = $query->get('post_type');
+
+		// only applies to indexes and post format
+		if ( ( $query->is_home() || $query->is_archive() ) &&  ( empty( $post_type ) || $post_type == 'post' ) ) {
+			$parent = $query->get( 'post_parent' );
+			if ( empty( $parent ) ) {
+				$query->set( 'post_parent', 0 );
+			}
 		}
 	}
 
