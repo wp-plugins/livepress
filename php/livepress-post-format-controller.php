@@ -49,6 +49,16 @@ class LivePress_PF_Updates {
 	 */
 	var $pieces;
 
+    /**
+     * Collected post meta information, populated by assemble_pieces()
+     *
+     * post_modified_gmt = timestamp of most recent post modify
+     * near_uuid = uuid of post update, that was around 2 minutes ago (or last, if last older)
+     */
+    var $post_modified_gmt;
+    var $near_uuid;
+    var $cache = false;
+
 	/**
 	 * Private constructor used to build the singleton instance.
 	 * Registers all hooks and filters.
@@ -314,7 +324,7 @@ class LivePress_PF_Updates {
 					}
 				}
 			}
-			set_transient( $lp_filtered_the_content_filters_transient_key, $wp_filter['the_content'], 5 * MINUTES_IN_SECONDS );
+			set_transient( $lp_filtered_the_content_filters_transient_key, $wp_filter['the_content'], 5 * MINUTE_IN_SECONDS );
 		} else {
 			$wp_filter['the_content'] = $filtered_the_content_filters;
 		}
@@ -398,8 +408,6 @@ class LivePress_PF_Updates {
 			if ( count( $children ) > 0 ) {
 				reset( $children );
 				$child    = $children[key( $children )];
-				$piece_id = get_post_meta( $child->ID, '_livepress_update_id', true );
-
 				$extras = apply_filters( 'the_content', $child->post_content );
 			}
 		}
@@ -477,10 +485,9 @@ class LivePress_PF_Updates {
 		global $post;
 
 		// Set up the $post object
-		$post = get_post( (int)$_POST['post_id'] );
+        $post_id = (int)$_POST['post_id'];
+		$post = get_post( $post_id );
 		$post->no_update_tag = true;
-
-		$edit_uuid = LivePress_WP_Utils::get_from_post( $post->ID, "post_update", true );
 
 		if ( isset( $_POST['content'] ) ) {
 			$user_content = wp_kses_post( stripslashes( $_POST['content'] ) );
@@ -513,7 +520,7 @@ class LivePress_PF_Updates {
 		$ans = array(
 			'orig'        => $original,
 			'user'        => $user,
-			'edit_uuid'   => $edit_uuid,
+            'edit_uuid'   => $this->near_uuid,
 			'editStartup' => Collaboration::return_live_edition_data()
 		);
 
@@ -534,30 +541,9 @@ class LivePress_PF_Updates {
 		$post = get_post( intval( $_POST['post_id'] ) );
 		$user_content = wp_kses_post( stripslashes( $_POST['content'] ) );
 
-		if ( ! empty( $user_content ) ) {
-			$plugin_options = get_option( LivePress_Administration::$options_name );
-
-
-			// $update = $this::add_update( $post->ID, $_POST['content'] );
-			// PHP 5.2 compat static call
-			$update = call_user_func_array( array( $this, 'add_update'), array( $post->ID, &$_POST['content'] ) );
-
-			if ( is_wp_error( $update ) ) {
-				$response = false;
-			} else {
-				$update   = get_post( $update );
-				$piece_id = get_post_meta( $update->ID, '_livepress_update_id', true );
-				$response = array(
-					'id'      => $piece_id,
-					'content' => $update->post_content,
-					'proceed' => apply_filters( 'the_content', $this->process_oembeds( $update->post_content ) ),
-					'prefix'  => sprintf( '<div id="livepress-update-%s" class="livepress-update">', $piece_id ),
-					'suffix'  => '</div>'
-				);
-			}
-		} else {
-			$response = false;
-		}
+        // $response = $this::add_update($post, $user_content);
+        // PHP 5.2 compat static call
+        $response = call_user_func_array( array( $this, 'add_update'), array( $post, $user_content ) );
 
 		header( "Content-type: application/javascript" );
 		echo json_encode( $response );
@@ -579,36 +565,25 @@ class LivePress_PF_Updates {
 			die;
 		}
 
-		$update_id    = intval( substr( $_POST['update_id'], strlen( 'livepress-update-' ) ) );
-		$user_content = wp_kses_post( stripslashes( $_POST['content'] ) );
-
+		$update_id = intval( $_POST['update_id'] );
 		$update = $this->get_update( $post->ID, $update_id );
 		if( null == $update ) {
-			die;
-		}
-
-		$this->assemble_pieces( $post );
-		$old_data = $this->pieces;
-
-		// Swap the content out, but keep track of it so we can send a diff to LivePress
-		$old_content = $update->post_content;
-		$update->post_content = $user_content;
-
-		wp_update_post( $update );
-
-		$this->assemble_pieces( $post );
-		$new_data = $this->pieces;
-
-		$this->send_change_to_livepress( $post, $old_data, $new_data );
-
-		$piece_id = get_post_meta( $update->ID, '_livepress_update_id', true );
-		$region   = array(
-			'id'      => $piece_id,
-			'content' => $update->post_content,
-			'proceed' => apply_filters( 'the_content', $update->post_content ),
-			'prefix'  => sprintf( '<div id="livepress-update-%s" class="livepress-update">', $piece_id ),
-			'suffix'  => '</div>'
-		);
+            // Todo: notify about error: post get deleted by another editor
+            $region = false;
+		} else {
+            $user_content = wp_kses_post( stripslashes( $_POST['content'] ) );
+            if ( empty($user_content) ) {
+                $region = false;
+            } else {
+                // Save updated post content to DB
+                list($_, $piece_id, $piece_gen) = explode("__", $update->post_title, 3);
+                $piece_gen++;
+                $update->post_title = 'livepress_update__'.$piece_id.'__'.$piece_gen;
+                $update->post_content = $user_content;
+                wp_update_post( $update );
+                $region = $this::send_to_livepress_incremental_post_update('replace', $post, $update);
+            }
+        }
 
 		header("Content-type: application/javascript");
 		echo json_encode( $region );
@@ -630,25 +605,20 @@ class LivePress_PF_Updates {
 			die();
 		}
 
-		$update_id = intval( substr( $_POST['update_id'], strlen( 'livepress-update-' ) ) );
-
+		$update_id = intval( $_POST['update_id'] );
 		$update = $this->get_update( $post->ID, $update_id );
 		if( null == $update ) {
-			die;
-		}
-
-		$this->assemble_pieces( $post );
-		$old_data = $this->pieces;
-
-		wp_delete_post( $update->ID, true );
-
-		$this->assemble_pieces( $post );
-		$new_data = $this->pieces;
-
-		$this->send_change_to_livepress( $post, $old_data, $new_data );
+			$region = false;
+		} else {
+            list($_, $piece_id, $piece_gen) = explode("__", $update->post_title, 3);
+            $piece_gen++; // Deleted is new generation
+            $update->post_title = 'livepress_update__'.$piece_id.'__'.$piece_gen;
+            wp_delete_post( $update->ID, true );
+            $region = $this::send_to_livepress_incremental_post_update('delete', $post, $update);
+        }
 
 		header("Content-type: application/javascript");
-		echo "true";
+		echo json_encode( $region );
 		die;
 	}
 
@@ -676,35 +646,41 @@ class LivePress_PF_Updates {
 		$save_post = $post;
 		$post = $parent;
 
-		$this->assemble_pieces( $parent );
-		$old_data = $this->pieces;
+		if ( empty( $content ) ) {
+			$response = false;
+		} else {
+            $plugin_options = get_option( livepress_administration::$options_name );
+            if ( $plugin_options['feed_order'] == 'top' ) {
+                $append = 'prepend';
+            } else {
+                $append = 'append';
+            }
 
-		$update = wp_insert_post(
-			array(
-				'post_author' => $current_user->ID,
-				'post_content' => $content,
-				'post_parent' => $parent->ID,
-				'post_title' => $parent->post_title,
-				'post_type' => 'post',
-				'post_status' => 'publish'
-			),
-			true
-		);
+            $piece_id = mt_rand( 10000000, 26242537 );
+            $piece_gen = 0;
+            $update = wp_insert_post(
+                array(
+                     'post_author' => $current_user->ID,
+                     'post_content' => $content,
+                     'post_parent' => $post->ID,
+                     'post_title' => 'livepress_update__'.$piece_id.'__'.$piece_gen,
+                     'post_name' => 'livepress_update__'.$piece_id,
+                     'post_type' => 'post',
+                     'post_status' => 'publish'
+                ),
+                true
+            );
 
-		if ( ! is_a( $update, 'WP_Error' ) ) {
-			set_post_format( $update, 'aside' );
-
-			$region_id = mt_rand( 10000000, 26242537 );
-			update_post_meta( $update, '_livepress_update_id', $region_id );
-
-			$this->assemble_pieces( $parent );
-			$new_data = $this->pieces;
-
-			$this->send_change_to_livepress( $parent, $old_data, $new_data );
+			if ( is_wp_error( $update ) ) {
+				$response = false;
+            } else {
+			    set_post_format( $update, 'aside' );
+                $response = $this::send_to_livepress_incremental_post_update($append, $post, $update);
+            }
 		}
 
 		$post = $save_post;
-		return $update;
+		return $response;
 	}
 
 	/**
@@ -824,89 +800,129 @@ class LivePress_PF_Updates {
 	/**
 	 * Send an update (add/change/delete) to LivePress' API
 	 *
-	 * @param object  $parent Parent post.
-	 * @param array[] $old    Old region data
-	 * @param array[] $new    New region data
+	 * @param string  $op     Operation (append/prepend/replace/delete)
+	 * @param WP_Post $post   Parent post object
+	 * @param WP_Post $update Update piece object
+     *
+     * @return array[] $region Object to send to editor
 	 */
-	protected function send_change_to_livepress( $parent, $old, $new ) {
-		$update = array();
-
-		$old_res = array();
-		foreach( $old as $piece ) {
-			$old_res[] = $piece['prefix'];
-			$old_res[] = $piece['proceed'];
-			$old_res[] = $piece['suffix'];
+	protected function send_to_livepress_incremental_post_update( $op, $post, $update ) {
+		if ( ! is_object( $post ) ) {
+			$post = get_post( $post );
 		}
-		$update['old_data'] = join( "", $old_res );
-
-		$new_res = array();
-		foreach( $new as $piece ) {
-			$new_res[] = $piece['prefix'];
-			$new_res[] = $piece['proceed'];
-			$new_res[] = $piece['suffix'];
-		}
-		$update['data'] = join( "", $new_res );
-
-		// If nothing's changed, bail
-		if ( $update['old_data'] == $update['data'] ) {
-			return;
+		if ( ! is_object( $update ) ) {
+			$update = get_post( $update );
 		}
 
-		$update['updated_at'] = get_gmt_from_date( current_time( 'mysql' ) ) . 'Z';
-		$update['is_new']     = $update['old_data'] == $update['data'] ? true : $this->is_new( $parent->ID );
-
+		// FIXME: may be better use $update->post_author there ?
 		$user = wp_get_current_user();
 		if ( $user->ID ) {
 			if ( empty( $user->display_name ) ) {
-				$update['author'] = addslashes( $user->user_login );
+				$update_author = addslashes( $user->user_login );
 			}
-			$update['author'] = addslashes( $user->display_name );
+			$update_author = addslashes( $user->display_name );
 		} else {
-			$update['author'] = '';
+			$update_author = '';
 		}
 
-		// Update unique identifiers for the post and update
-		$old_uuid = get_post_meta( $parent->ID, '_livepress_post_update', true );
-		$new_uuid = $this->lp_comm->new_uuid();
-		update_post_meta( $parent->ID, '_livepress_post_update', $new_uuid );
-		$update['previous_uuid'] = $old_uuid;
-		$update['uuid'] = $new_uuid;
+        list($_, $piece_id, $piece_gen) = explode("__", $update->post_title, 3);
 
-		// Region stuff
-		$this->assemble_pieces( $parent );
-		$region_content = $this->pieces;
-		$update['edit'] = json_encode( $region_content );
+		$region = array(
+			'id'      => $piece_id,
+            'lpg'     => $piece_gen,
+            'op'      => $op,
+			'content' => $update->post_content,
+			'proceed' => apply_filters( 'the_content', $update->post_content ),
+			'prefix'  => sprintf( '<div id="livepress-update-%s" data-lpg="%d" class="livepress-update">', $piece_id, $piece_gen ),
+			'suffix'  => '</div>'
+		);
+
+        $message = array(
+            'op' => $op,
+            'post_id' => $post->ID,
+            'post_title' => $post->post_title,
+			'post_link' => get_permalink( $post->ID ),
+            'post_author' => $update_author,
+            'update_id' => "livepress-update-".$piece_id,
+            // todo: get updated from post update?
+            'updated_at' => get_gmt_from_date( current_time( 'mysql' ) ) . 'Z',
+            'uuid' => $piece_id.':'.$piece_gen,
+            'edit' => json_encode($region),
+        );
+
+        if($op == 'replace') {
+            $message['new_data'] = $region['prefix'].$region['proceed'].$region['suffix'];
+        }
+        elseif($op == 'delete') {
+            $region['content'] = ''; // remove content from update for delete
+            $region['proceed'] = '';
+        }
+        else {
+            $message['data'] = $region['prefix'].$region['proceed'].$region['suffix'];
+        }
 
 		try {
-			$update['post_id']    = $parent->ID;
-			$update['post_title'] = $parent->post_title;
-			$update['post_link']  = get_permalink( $parent->ID );
-
-			$job_uuid = $this->lp_comm->send_to_livepress_post_update( $update );
-			// Save the current update job id
+			$job_uuid = $this->lp_comm->send_to_livepress_incremental_post_update( $op, $message );
 			LivePress_WP_Utils::save_on_post( $parent->ID, 'status_uuid', $job_uuid );
-		} catch( LivePress_Communication_Exception $e ) {
-			$e->log( 'post update' );
+		} catch( livepress_communication_exception $e ) {
+			$e->log( 'incremental post update' );
 		}
 
+		// Set the post as having been updated
+		$status = array( 'automatic' => 1, 'live' => 1 );
+		update_post_meta( $post->ID, '_livepress_live_status', $status );
+
+        return $region;
 	}
+
+	/**
+	 * Cache pieces, so info get populated, but next call will not reevaluate
+	 *
+	 * @param object $parent Parent post for which we're assembling pieces
+	 */
+	function cache_pieces( $parent ) {
+		remove_filter( 'the_content', array( $this, 'add_children_to_post' ) );
+        $this->assemble_pieces( $parent, true );
+		add_filter( 'the_content', array( $this, 'add_children_to_post' ) );
+    }
 
 	/**
 	 * Populate the pieces array based on a given parent post.
 	 *
 	 * @param object $parent Parent post for which we're assembling pieces
 	 */
-	protected function assemble_pieces( $parent ) {
-		global $wp_filter;
-
+	protected function assemble_pieces( $parent, $cache = false ) {
 		if ( ! is_object( $parent ) ) {
 			$parent = get_post( $parent );
 		}
+        if ( $cache ) {
+            $this->cache = $parent->ID;
+        }
+        elseif ( $this->cache == $parent->ID ) {
+            return;
+        }
 
 		$this->post_modified_gmt = $parent->post_modified_gmt;
+        $this->near_uuid = "";
+        $min_uuid_ts = 2*60; // not earlier, than 2 minutes
+        $near_uuid_ts = 0;
+        $now = new DateTime();
 
 		$pieces = array();
 
+		if ( ! $this->is_empty( $parent->post_content ) ) {
+            // parent are always threated as zero, its safe since only one parent per post, 
+            // and all piece ids are > 0
+            $piece_id = 0;
+			$pieces[] = array(
+				'id'      => $piece_id,
+                'lpg'     => 0,
+				'content' => $parent->post_content,
+				'proceed' => apply_filters( 'the_content', $parent->post_content ),
+				'prefix'  => sprintf( '<div id="livepress-update-%s" class="livepress-update">', $piece_id ),
+				'suffix'  => '</div>'
+			);
+		}
 		// Set up child posts
 		$children = get_children(
 			array(
@@ -918,13 +934,22 @@ class LivePress_PF_Updates {
 		if ( count( $children ) > 0 ) {
 			foreach( $children as $child ) {
 				$post = $child;
+                list($_, $piece_id, $piece_gen) = explode("__", $child->post_title, 3);
 				$this->post_modified_gmt = max($this->post_modified_gmt, $child->post_modified_gmt);
-				$piece_id = get_post_meta( $child->ID, '_livepress_update_id', true );
+
+                $modified = new DateTime( $child->post_modified_gmt, new DateTimeZone( 'UTC' ) );;
+                $since    = $now->format('U') - $modified->format('U');
+                if($since > $min_uuid_ts && ($since < $near_uuid_ts || $near_uuid_ts == 0)) {
+                    $near_uuid_ts = $since;
+                    $this->near_uuid = $piece_id.":".$piece_gen;
+                }
+
 				$piece = array(
 					'id'      => $piece_id,
+                    'lpg'     => $piece_gen,
 					'content' => $child->post_content,
 					'proceed' => apply_filters( 'the_content', $child->post_content ),
-					'prefix'  => sprintf( '<div id="livepress-update-%s" class="livepress-update">', $piece_id ),
+					'prefix'  => sprintf( '<div id="livepress-update-%s" data-lpg="%d" class="livepress-update">', $piece_id, $piece_gen ),
 					'suffix'  => '</div>'
 				);
 
@@ -1012,12 +1037,10 @@ class LivePress_PF_Updates {
 			array(
 				'post_type' => 'post',
 				'post_parent' => $parent_id,
-				'meta_query' => array(
-					array(
-						'key'   => '_livepress_update_id',
-						'value' => $livepress_update_id
-					)
-				)
+				# post_name is indexed field, plus storend in same table as post contents,
+				# so its retrive/update are atomic operation.
+				# since slug doesn't required for updates, we can freely use that field for us.
+				'name' => 'livepress_update__'.$livepress_update_id,
 			)
 		);
 

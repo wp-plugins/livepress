@@ -216,19 +216,19 @@ if (Dashboard.Comments.Builder === undefined) {
 				return span;
 			};
 
-			var href = location.href;
+			var href = location.href,
+				nonces = jQuery('#blogging-tool-nonces');
 			var linkForSpamAndTrash = href.substring(0, href.lastIndexOf('/')) + "/edit-comments.php";
 			var defaultAjaxData = {
-				_ajax_nonce:      data._ajax_nonce,
-				id:               commentId,
-				livepress_action: 1
+				_ajax_nonce:      Livepress.Config.ajax_comment_nonce,
+				id:               commentId
 			};
 
 			var linkTag = function (title, href, text) {
 				return jQuery("<a></a>").attr("href", href).text(text).attr('title', title);
 			};
 
-			var postAndCommentIds = "&p=" + Livepress.Config.post_id + "&c=" + commentId + "&_wpnonce=" + data._ajax_nonce;
+			var postAndCommentIds = "&p=" + Livepress.Config.post_id + "&c=" + commentId + "&_wpnonce=" + nonces.data( 'live-comments' );
 			var linkAction = function (action) {
 				return "comment.php?action=" + action + postAndCommentIds;
 			};
@@ -262,7 +262,7 @@ if (Dashboard.Comments.Builder === undefined) {
 
 					jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
 						'new':    'approved',
-						action:   'dim-comment',
+						action:   'lp-dim-comment',
 						dimClass: 'unapproved'
 					}),
 						function () {
@@ -278,7 +278,7 @@ if (Dashboard.Comments.Builder === undefined) {
 					e.stopPropagation();
 					jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
 						'new':    'unapproved',
-						action:   'dim-comment',
+						action:   'lp-dim-comment',
 						dimClass: 'unapproved'
 					}),
 						function () {

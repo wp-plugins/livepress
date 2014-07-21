@@ -265,8 +265,21 @@ class LivePress_Updater {
 	 * @param string $hook Hook suffix for the current screen.
 	 */
 	function add_css_and_js_on_header( $hook = null ) {
+		if ( is_home() ) {
+			return;
+		}
+
 		if ( $hook != null && $hook != 'post-new.php' && $hook != 'post.php' && $hook != 'settings_page_livepress-settings' )
 			return;
+
+		global $post;
+		if ( isset( $post ) && ! is_admin() ) {
+			$blogging_tools = new LivePress_Blogging_Tools();
+			$is_live = $blogging_tools->get_post_live_status( $post->ID );
+			if ( ! $is_live ) {
+				return;
+			}
+		}
 
 		wp_register_style( 'livepress_main_sheets', LP_PLUGIN_URL . 'css/livepress.css' );
 		wp_enqueue_style( 'livepress_main_sheets' );
@@ -442,14 +455,16 @@ class LivePress_Updater {
 	 * This allows two silmoutaneous editors and overrides the post
 	 * locking introduced in WordPress 3.6.0.
 	 *
-	 * @return false if post is live and meta key is _edit_lock.
+	 * @return false if post is live and meta key is _edit_lock, otherwise null (lets meta save).
 	 */
 	function livepress_filter_post_locks() {
 		$args = func_get_args();
 
 		if( is_admin() && isset( $args[1] ) && isset( $args[2] ) && $args[2] == '_edit_lock' ) {
 			$is_live = $this->blogging_tools->get_post_live_status( $args[1] );
-			return ( ! $is_live );
+			return ( $is_live ? false : null );
+		} else {
+			return null;
 		}
 	}
 
@@ -573,14 +588,15 @@ class LivePress_Updater {
 		$ljsc->new_value( 'page_type', $page_type);
 
 		// Comments
-		$args = array( 'post_id' => ( isset( $post->ID ) ? $post->ID : null ) );
-		$post_comments = get_comments($args);
-		$old_comments = isset( $GLOBALS['wp_query']->comments ) ? $GLOBALS['wp_query']->comments : null;
-		$GLOBALS['wp_query']->comments = $post_comments;
-		$comments_per_page = get_comment_pages_count($post_comments, get_option("comments_per_page") );
-		$GLOBALS['wp_query']->comments = $old_comments;
-		$this->lp_comment->js_config($ljsc, $post, intval(get_query_var( 'cpage' ) ), $comments_per_page);
-
+		if( isset( $post->ID ) ) {
+			$args = array( 'post_id' => ( isset( $post->ID ) ? $post->ID : null ) );
+			$post_comments = get_comments($args);
+			$old_comments = isset( $GLOBALS['wp_query']->comments ) ? $GLOBALS['wp_query']->comments : null;
+			$GLOBALS['wp_query']->comments = $post_comments;
+			$comments_per_page = get_comment_pages_count($post_comments, get_option("comments_per_page") );
+			$GLOBALS['wp_query']->comments = $old_comments;
+			$this->lp_comment->js_config($ljsc, $post, intval(get_query_var( 'cpage' ) ), $comments_per_page);
+		}
 		$ljsc->new_value( 'new_post_msg_id', get_option(PLUGIN_NAME."_new_post") );
 
 		$ljsc->new_value( 'sounds_default', in_array("audio", $this->options['notifications']), Configuration_Item::$BOOLEAN);
@@ -602,11 +618,12 @@ class LivePress_Updater {
 					$ljsc->new_value( 'feed_title', LivePress_Feed::feed_title() );
 				}
 
-				$ljsc->new_value( 'post_id', $post->ID);
-
-				$post_update_msg_id = LivePress_WP_Utils::get_from_post($post->ID, "post_update", true);
-				$ljsc->new_value( 'post_update_msg_id', $post_update_msg_id);
-				/* post_edit_msg_id not sent there, since post_edit_msg_id are returned from start_ee AJAX call */
+                $ljsc->new_value( 'post_id', $post->ID);
+                $pf = LivePress_PF_Updates::get_instance();
+                if(!$pf->near_uuid) {
+                    $pf->cache_pieces( $post );
+                }
+                $ljsc->new_value( 'post_update_msg_id', $pf->near_uuid);
 			}
 
 			$author = "";

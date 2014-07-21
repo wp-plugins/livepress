@@ -33,8 +33,29 @@ final class LivePress_Blogging_Tools {
 		add_action( 'admin_enqueue_scripts',                          array( $this, 'feature_pointer' ) );
 		add_filter( 'postbox_classes_post_livepress_status_meta_box', array( $this, 'add_livepress_status_metabox_classes' ) );
 		add_filter( 'mce_buttons',                                    array( $this, 'lp_filter_mce_buttons' ) );
+		add_filter( 'admin_body_class',                               array( $this, 'lp_admin_body_class' ) );
 	}
 
+/**
+ * Add the livepress-live class to the edit post page when a post is live.
+ * @param  Array $classes Array of classes.
+ * @return Array          Updated array of classes.
+ *
+ * @since 1.1.1
+ */
+function lp_admin_body_class( $classes ) {
+	global $post;
+	$screen = get_current_screen();
+	if ( is_admin() &&                               /* in admin? */
+		 'post' === $screen->id &&                   /* on edit post page? */
+		 $this->get_post_live_status( $post->ID ) && /* is this post live */
+		 ! strstr( $classes, ' livepress-live')) {   /* only add once at most */
+
+		// Add the livepress-live class
+		$classes .= ' livepress-live';
+	}
+	return $classes;
+}
 
 	/**
 	 * Check if a post has the Live Post Header feature enabled.
@@ -472,9 +493,9 @@ final class LivePress_Blogging_Tools {
 		) );
 
 		$sidebar  = '<p><strong>' . esc_html__( 'This post at a glance:', 'livepress' ) . '</strong></p>';
-		$sidebar .= '<p class="live-highlight"><span id="livepress-comments_num">0</span> <span class="label">'. esc_html__( 'Comments', 'livepress' ) . '</span></p>';
-		$sidebar .= '<p class="live-highlight"><span id="livepress-authors_num">0</span> <span class="label">' . esc_html__( 'Remote Authors', 'livepress' ) . '</span></p>';
-		$sidebar .= '<p class="live-highlight"><span id="livepress-online_num">0</span> <span class="label">' . esc_html__( 'People Online', 'livepress' ) . '</span></p>';
+		$sidebar .= '<p><span class="dashicons dashicons-admin-comments"></span> <span id="livepress-comments_num">0</span> <span class="label">'. esc_html__( 'Comments', 'livepress' ) . '</span></p>';
+		$sidebar .= '<p><span class="dashicons dashicons-admin-users"></span> <span id="livepress-authors_num">0</span> <span class="label">' . esc_html__( 'Remote Authors', 'livepress' ) . '</span></p>';
+		$sidebar .= '<p><span class="dashicons dashicons-welcome-view-site"></span> <span id="livepress-online_num">0</span> <span class="label">' . esc_html__( 'People Online', 'livepress' ) . '</span></p>';
 
 		apply_filters( 'livepress_sidebar_top', $sidebar );
 

@@ -33,6 +33,10 @@ class LivePress_Admin_Bar_Status_Menu {
 	 * Enqueue a stylesheets and scripts to handle the LivePress toolbar.
 	 */
 	function enqueue() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
 		if ($this->livepress_config->script_debug()) {
 			wp_enqueue_script( 'livepress-toolbar', LP_PLUGIN_URL . 'js/livepress-admin-bar.full.js', array( 'jquery' ) );
 		} else {

@@ -62,6 +62,8 @@ class LivePress_Comment {
 
 		add_action( 'wp_ajax_post_comment',        array( &$this, 'post_comment' ) );
 		add_action( 'wp_ajax_nopriv_post_comment', array( &$this, 'post_comment' ) );
+		add_action( 'wp_ajax_lp_dim_comment',      array( &$this, 'dim_comment' ) );
+		add_action( 'wp_ajax_lp-dim-comment',      array( &$this, 'dim_comment' ) );
 
 		if ( $is_ajax_lp_comment_request ) {
 			add_action( 'comment_duplicate_trigger', array( &$this, 'received_a_duplicate_comment' ) );
@@ -69,6 +71,21 @@ class LivePress_Comment {
 		} else {
 			add_filter( 'comments_template', array( &$this, 'enclose_comments_in_div' ) );
 		}
+	}
+
+	/**
+	 * Workaround over unique nonce per comment for admin interface
+	 **/
+	public function dim_comment() {
+		$id = isset( $_POST['id'] ) ? (int) $_POST['id'] : 0;
+		if ( $comment = get_comment( $id ) ) {
+			check_ajax_referer( "post_comment" ); // TODO: Use $comment->post_ID for nonce
+			$nonce = wp_create_nonce( "approve-comment_".$id );
+			$_POST['_ajax_nonce'] = $nonce;
+			$_REQUEST['_ajax_nonce'] = $nonce;
+		}
+		// Forward to uplink
+		return wp_ajax_dim_comment();
 	}
 
 	/**
@@ -169,7 +186,6 @@ class LivePress_Comment {
 					'status'       => $comment_status,
 					'author_email' => $comment->comment_author_email,
 				) );
-
 				$this->lp_com->send_to_livepress_new_created_comment( $params );
 			} catch ( LivePress_Communication_Exception $e ) {
 				$e->log( "new comment" );

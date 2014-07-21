@@ -1,6 +1,8 @@
 <?php
 $allowed_tags = array(
-	'div' => array(),
+	'div' => array(
+		'id' => array(),
+		),
 	);
 echo wp_kses( LivePress_Comment::$comments_template_tag['start'], $allowed_tags );
 // Use the included comments form if available, otherwise use built in comment form

@@ -89,10 +89,6 @@ Livepress.Ui.View = function (disable_comments) {
 		return initial ? fOn() : fOff();
 	};
 
-	this.sound_control = function (init, fOn, fOff) {
-		control(init, $soundCheckbox, fOn, fOff);
-	};
-
 	this.live_control = function (init, fOn, fOff) {
 		control(init, $updatesCheckbox, fOn, fOff);
 	};
