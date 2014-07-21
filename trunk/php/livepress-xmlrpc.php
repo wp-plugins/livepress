@@ -381,6 +381,11 @@ function livepress_append_to_post( $args ) {
 		return $wp_xmlrpc_server->error;
 	}
 
+    LivePress_PF_Updates::get_instance()->add_update($post_id, "[livepress_metainfo] ".$content_struct['description']);
+
+    return true;
+
+    /*
 	if ( isset( $content_struct['display_author'] ) ) {
 		LivePress_Updater::instance()->set_custom_author_name( $content_struct['display_author'] );
 	}
@@ -422,7 +427,8 @@ function livepress_append_to_post( $args ) {
 	// pass modified args to original xmlrpc method
 	$args[3] = $content_struct;
 
-	return $wp_xmlrpc_server->mw_editPost( $args );
+    return $wp_xmlrpc_server->mw_editPost( $args );
+    */
 }
 
 /**

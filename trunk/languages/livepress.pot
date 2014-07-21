@@ -1,13 +1,13 @@
-#: php/livepress-admin-bar-status-menu.php:67
-#: php/livepress-admin-settings.php:85 php/livepress-blogging-tools.php:228
+#: php/livepress-admin-bar-status-menu.php:71
+#: php/livepress-admin-settings.php:85 php/livepress-blogging-tools.php:249
 msgid "LivePress"
 msgstr ""
 
-#: php/livepress-admin-bar-status-menu.php:72
+#: php/livepress-admin-bar-status-menu.php:76
 msgid "LivePress connected."
 msgstr ""
 
-#: php/livepress-admin-bar-status-menu.php:73
+#: php/livepress-admin-bar-status-menu.php:77
 msgid "LivePress connection error."
 msgstr ""
 
@@ -51,11 +51,11 @@ msgstr ""
 msgid "Publish Updates to Twitter"
 msgstr ""
 
-#: php/livepress-admin-settings.php:117 php/livepress-updater.php:332
+#: php/livepress-admin-settings.php:117 php/livepress-updater.php:345
 msgid "Check"
 msgstr ""
 
-#: php/livepress-admin-settings.php:124 php/livepress-updater.php:334
+#: php/livepress-admin-settings.php:124 php/livepress-updater.php:347
 msgid "Key not valid"
 msgstr ""
 
@@ -99,7 +99,7 @@ msgstr ""
 msgid "Authorize"
 msgstr ""
 
-#: php/livepress-admin-settings.php:211 php/livepress-updater.php:381
+#: php/livepress-admin-settings.php:211 php/livepress-updater.php:394
 msgid "Sending out alerts on Twitter account:"
 msgstr ""
 
@@ -153,139 +153,139 @@ msgstr ""
 msgid "link and then on \"Allow\""
 msgstr ""
 
-#: php/livepress-blogging-tools.php:203 php/livepress-blogging-tools.php:204
+#: php/livepress-blogging-tools.php:224 php/livepress-blogging-tools.php:225
 msgid "This Post is"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:203 php/livepress-template.php:25
+#: php/livepress-blogging-tools.php:224 php/livepress-template.php:25
 msgid "LIVE"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:204
+#: php/livepress-blogging-tools.php:225
 msgid "NOT LIVE"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:205
+#: php/livepress-blogging-tools.php:226
 msgid "LivePress is Disabled"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:206
+#: php/livepress-blogging-tools.php:227
 msgid "Turn off live"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:207
+#: php/livepress-blogging-tools.php:228
 msgid "Turn on live"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:216 php/livepress-updater.php:423
+#: php/livepress-blogging-tools.php:237 php/livepress-updater.php:436
 msgid "Pinned Live Post Header"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:452 php/livepress-blogging-tools.php:475
-#: php/livepress-updater.php:359
+#: php/livepress-blogging-tools.php:473 php/livepress-blogging-tools.php:496
+#: php/livepress-updater.php:372
 msgid "Comments"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:458
+#: php/livepress-blogging-tools.php:479
 msgid "Twitter Search"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:464
+#: php/livepress-blogging-tools.php:485
 msgid "Manage Remote Authors"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:470
+#: php/livepress-blogging-tools.php:491
 msgid "Author Notes"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:474
+#: php/livepress-blogging-tools.php:495
 msgid "This post at a glance:"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:476 php/livepress-updater.php:412
+#: php/livepress-blogging-tools.php:497 php/livepress-updater.php:425
 msgid "Remote Authors"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:477 php/livepress-updater.php:357
+#: php/livepress-blogging-tools.php:498 php/livepress-updater.php:370
 msgid "People Online"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:496
+#: php/livepress-blogging-tools.php:517
 msgid ""
 "These notes are for reference and will not be published. They will be saved "
 "with the post for future reference for sharing with co-authors."
 msgstr ""
 
-#: php/livepress-blogging-tools.php:499 php/livepress-updater.php:364
+#: php/livepress-blogging-tools.php:520 php/livepress-updater.php:377
 msgid "Save"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:500
+#: php/livepress-blogging-tools.php:521
 msgid "Notes Saved"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:532
+#: php/livepress-blogging-tools.php:553
 msgid "New comments will be shown here."
 msgstr ""
 
-#: php/livepress-blogging-tools.php:558
+#: php/livepress-blogging-tools.php:579
 msgid "Updates in real-time using your search terms."
 msgstr ""
 
-#: php/livepress-blogging-tools.php:561
+#: php/livepress-blogging-tools.php:582
 msgid "Add Search Term"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:562
+#: php/livepress-blogging-tools.php:583
 msgid "play/pause"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:583
+#: php/livepress-blogging-tools.php:604
 msgid "All"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:583
+#: php/livepress-blogging-tools.php:604
 msgid ""
 "tweets from these remote authors will automatically be published as updates "
 "to this blog post until removed.."
 msgstr ""
 
-#: php/livepress-blogging-tools.php:586
+#: php/livepress-blogging-tools.php:607
 msgid "Account Name"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:587
+#: php/livepress-blogging-tools.php:608
 msgid "Add Remote Author"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:588
+#: php/livepress-blogging-tools.php:609
 msgid "Author error: "
 msgstr ""
 
-#: php/livepress-blogging-tools.php:590
+#: php/livepress-blogging-tools.php:611
 msgid "Done live blogging on this post?"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:591
+#: php/livepress-blogging-tools.php:612
 msgid "Remove All"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:640
+#: php/livepress-blogging-tools.php:661
 msgid "New Real-Time Writing Tools!"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:641
+#: php/livepress-blogging-tools.php:662
 msgid ""
 "Click the above link to expand a set of tools for managing comments, "
 "searching Twitter, adding remote authors, and saving notes. &mdash; All in "
 "real-time!"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:661
+#: php/livepress-blogging-tools.php:682
 msgid "This Post is LIVE"
 msgstr ""
 
-#: php/livepress-blogging-tools.php:664
+#: php/livepress-blogging-tools.php:685
 msgid "This Post is NOT LIVE"
 msgstr ""
 
@@ -297,11 +297,11 @@ msgstr ""
 msgid "LivePress Real-time Tools"
 msgstr ""
 
-#: php/livepress-communication.php:619
+#: php/livepress-communication.php:629
 msgid "Connection refused."
 msgstr ""
 
-#: php/livepress-post-format-controller.php:246
+#: php/livepress-post-format-controller.php:256
 msgid "(see updates...)"
 msgstr ""
 
@@ -339,433 +339,433 @@ msgid ""
 "liveblogging workflow."
 msgstr ""
 
-#: php/livepress-updater.php:295
+#: php/livepress-updater.php:308
 msgid "Error: [USERNAME] isn't a valid Google Talk account"
 msgstr ""
 
-#: php/livepress-updater.php:296
+#: php/livepress-updater.php:309
 msgid "Error: [USERNAME] wasn't find in jabber client bot roster"
 msgstr ""
 
-#: php/livepress-updater.php:297 php/livepress-updater.php:298
+#: php/livepress-updater.php:310 php/livepress-updater.php:311
 msgid "[USERNAME] has been authorized"
 msgstr ""
 
-#: php/livepress-updater.php:299
+#: php/livepress-updater.php:312
 msgid "LivePress! error. Try again in a few minutes"
 msgstr ""
 
-#: php/livepress-updater.php:300
+#: php/livepress-updater.php:313
 msgid "Authorization request sent to [USERNAME]"
 msgstr ""
 
-#: php/livepress-updater.php:301
+#: php/livepress-updater.php:314
 msgid "new updates"
 msgstr ""
 
-#: php/livepress-updater.php:302
+#: php/livepress-updater.php:315
 msgid "Refresh"
 msgstr ""
 
-#: php/livepress-updater.php:303
+#: php/livepress-updater.php:316
 msgid "to see"
 msgstr ""
 
-#: php/livepress-updater.php:304
+#: php/livepress-updater.php:317
 msgid "them"
 msgstr ""
 
-#: php/livepress-updater.php:305
+#: php/livepress-updater.php:318
 msgid "Refresh page"
 msgstr ""
 
-#: php/livepress-updater.php:306
+#: php/livepress-updater.php:319
 msgid "updated just now"
 msgstr ""
 
-#: php/livepress-updater.php:307
+#: php/livepress-updater.php:320
 msgid "updated 1 minute ago"
 msgstr ""
 
-#: php/livepress-updater.php:308
+#: php/livepress-updater.php:321
 msgid "updated"
 msgstr ""
 
-#: php/livepress-updater.php:309
+#: php/livepress-updater.php:322
 msgid "minutes ago"
 msgstr ""
 
-#: php/livepress-updater.php:310
+#: php/livepress-updater.php:323
 msgid "no recent updates"
 msgstr ""
 
-#: php/livepress-updater.php:311
+#: php/livepress-updater.php:324
 msgid "Sending error."
 msgstr ""
 
-#: php/livepress-updater.php:312 php/livepress-updater.php:331
+#: php/livepress-updater.php:325 php/livepress-updater.php:344
 msgid "Sending"
 msgstr ""
 
-#: php/livepress-updater.php:313
+#: php/livepress-updater.php:326
 msgid "Unknown error."
 msgstr ""
 
-#: php/livepress-updater.php:314
+#: php/livepress-updater.php:327
 msgid "Comment Status"
 msgstr ""
 
-#: php/livepress-updater.php:328
+#: php/livepress-updater.php:341
 msgid ""
 "Unexpected result from the LivePress server.  Please contact LivePress "
 "support at support@livepress.com for help."
 msgstr ""
 
-#: php/livepress-updater.php:329
+#: php/livepress-updater.php:342
 msgid "Connection problem... Try Again..."
 msgstr ""
 
-#: php/livepress-updater.php:330
+#: php/livepress-updater.php:343
 msgid "Authenticated"
 msgstr ""
 
-#: php/livepress-updater.php:333
+#: php/livepress-updater.php:346
 msgid "Remove"
 msgstr ""
 
-#: php/livepress-updater.php:335
+#: php/livepress-updater.php:348
 msgid "Sending out alerts on Twitter account"
 msgstr ""
 
-#: php/livepress-updater.php:336
+#: php/livepress-updater.php:349
 msgid "Failed to check status."
 msgstr ""
 
-#: php/livepress-updater.php:337
+#: php/livepress-updater.php:350
 msgid "Checking authorization status"
 msgstr ""
 
-#: php/livepress-updater.php:338
+#: php/livepress-updater.php:351
 msgid "Status isn't available yet."
 msgstr ""
 
-#: php/livepress-updater.php:339
+#: php/livepress-updater.php:352
 msgid "Internal server error."
 msgstr ""
 
-#: php/livepress-updater.php:340
+#: php/livepress-updater.php:353
 msgid "Can't connect to Twitter."
 msgstr ""
 
-#: php/livepress-updater.php:341
+#: php/livepress-updater.php:354
 msgid "Can't connect to livepress service."
 msgstr ""
 
-#: php/livepress-updater.php:342
+#: php/livepress-updater.php:355
 msgid "Failed for an unknown reason."
 msgstr ""
 
-#: php/livepress-updater.php:343
+#: php/livepress-updater.php:356
 msgid "return code"
 msgstr ""
 
-#: php/livepress-updater.php:344
+#: php/livepress-updater.php:357
 msgid "A new window should be open to Twitter.com awaiting your login."
 msgstr ""
 
-#: php/livepress-updater.php:345
+#: php/livepress-updater.php:358
 msgid "Twitter access unauthorized."
 msgstr ""
 
-#: php/livepress-updater.php:346
+#: php/livepress-updater.php:359
 msgid "Start live blogging"
 msgstr ""
 
-#: php/livepress-updater.php:347
+#: php/livepress-updater.php:360
 msgid "Stop live blogging"
 msgstr ""
 
-#: php/livepress-updater.php:348
+#: php/livepress-updater.php:361
 msgid "readers online"
 msgstr ""
 
-#: php/livepress-updater.php:349
+#: php/livepress-updater.php:362
 msgid "live updates posted"
 msgstr ""
 
-#: php/livepress-updater.php:350
+#: php/livepress-updater.php:363
 msgid "comments"
 msgstr ""
 
-#: php/livepress-updater.php:351
+#: php/livepress-updater.php:364
 msgid "Click to toggle"
 msgstr ""
 
-#: php/livepress-updater.php:352
+#: php/livepress-updater.php:365
 msgid "Live Blogging Real-Time Editor"
 msgstr ""
 
-#: php/livepress-updater.php:353
+#: php/livepress-updater.php:366
 msgid "off"
 msgstr ""
 
-#: php/livepress-updater.php:354
+#: php/livepress-updater.php:367
 msgid "on"
 msgstr ""
 
-#: php/livepress-updater.php:355
+#: php/livepress-updater.php:368
 msgid "Private chat"
 msgstr ""
 
-#: php/livepress-updater.php:356
+#: php/livepress-updater.php:369
 msgid "Person Online"
 msgstr ""
 
-#: php/livepress-updater.php:358
+#: php/livepress-updater.php:371
 msgid "Comment"
 msgstr ""
 
-#: php/livepress-updater.php:360
+#: php/livepress-updater.php:373
 msgid "include timestamp and author information"
 msgstr ""
 
-#: php/livepress-updater.php:361
+#: php/livepress-updater.php:374
 msgid "Delete Permanently"
 msgstr ""
 
-#: php/livepress-updater.php:362
+#: php/livepress-updater.php:375
 msgid "Ctrl+Enter"
 msgstr ""
 
-#: php/livepress-updater.php:363
+#: php/livepress-updater.php:376
 msgid "Cancel"
 msgstr ""
 
-#: php/livepress-updater.php:365
+#: php/livepress-updater.php:378
 msgid "Push Update"
 msgstr ""
 
-#: php/livepress-updater.php:366
+#: php/livepress-updater.php:379
 msgid "Add update"
 msgstr ""
 
-#: php/livepress-updater.php:367
+#: php/livepress-updater.php:380
 msgid ""
 "Are you sure you want to cancel your changes? This action cannot be undone."
 msgstr ""
 
-#: php/livepress-updater.php:368
+#: php/livepress-updater.php:381
 msgid ""
 "Are you sure you want to delete this update? This action cannot be undone."
 msgstr ""
 
-#: php/livepress-updater.php:369
+#: php/livepress-updater.php:382
 msgid "Updates"
 msgstr ""
 
-#: php/livepress-updater.php:370
+#: php/livepress-updater.php:383
 msgid "You have unsaved editors open. Discard them?"
 msgstr ""
 
-#: php/livepress-updater.php:371
+#: php/livepress-updater.php:384
 msgid "Loading content"
 msgstr ""
 
-#: php/livepress-updater.php:372
+#: php/livepress-updater.php:385
 msgid "Double added updates. Not supported now."
 msgstr ""
 
-#: php/livepress-updater.php:373
+#: php/livepress-updater.php:386
 msgid "Are you sure you want to switch to Not Live?"
 msgstr ""
 
-#: php/livepress-updater.php:374
+#: php/livepress-updater.php:387
 msgid "Scroll to Comment"
 msgstr ""
 
-#: php/livepress-updater.php:375
+#: php/livepress-updater.php:388
 msgid "Update was published live to users."
 msgstr ""
 
-#: php/livepress-updater.php:376
+#: php/livepress-updater.php:389
 msgid "Update was published NOT live."
 msgstr ""
 
-#: php/livepress-updater.php:377
+#: php/livepress-updater.php:390
 msgid "Can't get update status from LivePress."
 msgstr ""
 
-#: php/livepress-updater.php:378
+#: php/livepress-updater.php:391
 msgid "Wrong AJAX nonce."
 msgstr ""
 
-#: php/livepress-updater.php:379
+#: php/livepress-updater.php:392
 msgid "Can't get upate status from blog server."
 msgstr ""
 
-#: php/livepress-updater.php:380
+#: php/livepress-updater.php:393
 msgid "Checking authorization status..."
 msgstr ""
 
-#: php/livepress-updater.php:382
+#: php/livepress-updater.php:395
 msgid "Live Blogging Tools"
 msgstr ""
 
-#: php/livepress-updater.php:383
+#: php/livepress-updater.php:396
 msgid "submit"
 msgstr ""
 
-#: php/livepress-updater.php:384
+#: php/livepress-updater.php:397
 msgid "Live Press"
 msgstr ""
 
-#: php/livepress-updater.php:385
+#: php/livepress-updater.php:398
 msgid "Live Chat"
 msgstr ""
 
-#: php/livepress-updater.php:386
+#: php/livepress-updater.php:399
 msgid "Warning"
 msgstr ""
 
-#: php/livepress-updater.php:387
+#: php/livepress-updater.php:400
 msgid "Will try to reconnect in some time."
 msgstr ""
 
-#: php/livepress-updater.php:388
+#: php/livepress-updater.php:401
 msgid "Please try to reconnect later."
 msgstr ""
 
-#: php/livepress-updater.php:389
+#: php/livepress-updater.php:402
 msgid "The connection to the server has been lost."
 msgstr ""
 
-#: php/livepress-updater.php:390
+#: php/livepress-updater.php:403
 msgid ""
 "Syncronization of live editor seems to be lost. Try to enable/disable live "
 "editor or reload page."
 msgstr ""
 
-#: php/livepress-updater.php:391
+#: php/livepress-updater.php:404
 msgid "Collaboration state may be out of sync. Try to reload page."
 msgstr ""
 
-#: php/livepress-updater.php:392
+#: php/livepress-updater.php:405
 msgid "Collaboration may be out of sync. Try to reload page."
 msgstr ""
 
-#: php/livepress-updater.php:393
+#: php/livepress-updater.php:406
 msgid "Copy the commenter name and full text into the post text box"
 msgstr ""
 
-#: php/livepress-updater.php:394
+#: php/livepress-updater.php:407
 msgid "Send to editor"
 msgstr ""
 
-#: php/livepress-updater.php:395
+#: php/livepress-updater.php:408
 msgid "Approve this comment"
 msgstr ""
 
-#: php/livepress-updater.php:396
+#: php/livepress-updater.php:409
 msgid "Approve"
 msgstr ""
 
-#: php/livepress-updater.php:397
+#: php/livepress-updater.php:410
 msgid "Unapprove this comment"
 msgstr ""
 
-#: php/livepress-updater.php:398
+#: php/livepress-updater.php:411
 msgid "Unapprove"
 msgstr ""
 
-#: php/livepress-updater.php:399
+#: php/livepress-updater.php:412
 msgid "Mark this comment as spam"
 msgstr ""
 
-#: php/livepress-updater.php:400
+#: php/livepress-updater.php:413
 msgid "Spam"
 msgstr ""
 
-#: php/livepress-updater.php:401
+#: php/livepress-updater.php:414
 msgid "Move this comment to the trash"
 msgstr ""
 
-#: php/livepress-updater.php:402
+#: php/livepress-updater.php:415
 msgid "Trash"
 msgstr ""
 
-#: php/livepress-updater.php:403
+#: php/livepress-updater.php:416
 msgid "Save and Refresh"
 msgstr ""
 
-#: php/livepress-updater.php:404
+#: php/livepress-updater.php:417
 msgid "Publish and Refresh"
 msgstr ""
 
-#: php/livepress-updater.php:405
+#: php/livepress-updater.php:418
 msgid "Click to pause the tweets so you can decide when to display them"
 msgstr ""
 
-#: php/livepress-updater.php:406
+#: php/livepress-updater.php:419
 msgid "Click to copy tweets into the post editor."
 msgstr ""
 
-#: php/livepress-updater.php:407
+#: php/livepress-updater.php:420
 msgid "Copy the tweet into the post editing area"
 msgstr ""
 
-#: php/livepress-updater.php:408
+#: php/livepress-updater.php:421
 msgid "Remove this term"
 msgstr ""
 
-#: php/livepress-updater.php:409
+#: php/livepress-updater.php:422
 msgid "Remove this account"
 msgstr ""
 
-#: php/livepress-updater.php:410
+#: php/livepress-updater.php:423
 msgid "remove"
 msgstr ""
 
-#: php/livepress-updater.php:411
+#: php/livepress-updater.php:424
 msgid "Remote Author"
 msgstr ""
 
-#: php/livepress-updater.php:413
+#: php/livepress-updater.php:426
 msgid "Account not found"
 msgstr ""
 
-#: php/livepress-updater.php:414
+#: php/livepress-updater.php:427
 msgid "Connecting"
 msgstr ""
 
-#: php/livepress-updater.php:415
+#: php/livepress-updater.php:428
 msgid "offline"
 msgstr ""
 
-#: php/livepress-updater.php:416
+#: php/livepress-updater.php:429
 msgid "connected"
 msgstr ""
 
-#: php/livepress-updater.php:417
+#: php/livepress-updater.php:430
 msgid "username/password invalid"
 msgstr ""
 
-#: php/livepress-updater.php:418
+#: php/livepress-updater.php:431
 msgid "Wrong account name supplied"
 msgstr ""
 
-#: php/livepress-updater.php:419
+#: php/livepress-updater.php:432
 msgid "Problem connecting to the blog server."
 msgstr ""
 
-#: php/livepress-updater.php:420
+#: php/livepress-updater.php:433
 msgid "Test message sent"
 msgstr ""
 
-#: php/livepress-updater.php:421
+#: php/livepress-updater.php:434
 msgid "Failure sending test message"
 msgstr ""
 
-#: php/livepress-updater.php:422
+#: php/livepress-updater.php:435
 msgid "Send test message again"
 msgstr ""
 
@@ -812,10 +812,10 @@ msgid ""
 "%s"
 msgstr ""
 
-#: php/special_comments.php:18
+#: php/special_comments.php:20
 msgid "Name"
 msgstr ""
 
-#: php/special_comments.php:22
+#: php/special_comments.php:24
 msgid "Email"
 msgstr ""

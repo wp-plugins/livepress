@@ -87,6 +87,7 @@ Livepress.Admin.PostStatus = function () {
 	function error (msg) {
 		message(msg, "lp-error");
 	}
+    SELF.error = error;
 
 	/**
 	 * Add a warning message for the user.
@@ -524,11 +525,7 @@ Livepress.Admin.Tools = function () {
 				post_id:    Livepress.Config.post_id,
 				ajax_nonce: nonces.data('live-status')
 			},
-			type:    'post',
-			success: function (data) {
-					jQuery('#livepress_status_meta_box').toggleClass('live').toggleClass('not-live');
-					SELF.Dashboard.Helpers.setupLivePressTabs();
-			}
+			type:    'post'
 		});
 
 		promise2 = jQuery.ajax({
@@ -538,11 +535,7 @@ Livepress.Admin.Tools = function () {
 				post_id: Livepress.Config.post_id
 			},
 			type:     'post',
-			dataType: 'json',
-			success:  function (data) {
-				OORTLE.Livepress.LivepressHUD.init();
-				Collaboration.Edit.initialize(data);
-			}
+			dataType: 'json'
 		});
 
 		// Return a promise combining callbacks
@@ -1050,6 +1043,8 @@ jQuery(function () {
 
 					var originalContent = editor.getContent({format: 'raw'});
 					originalContent = originalContent.replace( '<p><br data-mce-bogus="1"></p>', '' );
+					// Remove the toolbar/dashicons present on images/galleries since WordPress 3.9 and embeds since 4.0
+					originalContent = originalContent.replace( '<div class="toolbar"><div class="dashicons dashicons-edit edit"></div><div class="dashicons dashicons-no-alt remove"></div></div>', '' );
 
 					if ( '' === originalContent.trim() ) {
 						editor.undoManager.redo();
@@ -1403,7 +1398,69 @@ jQuery(function () {
 				 * function: mergeData
 				 * merge data from external Edit info with current liveCanvas
 				 */
+                mergeIncrementalData: function (update) {
+                    var $target, gen, $block, dom = new Livepress.DOMManipulator(""),
+                        $inside_first = $liveCanvas.find('div.inside:first');
+                    switch(update.op) {
+                        case "append":
+                        case "prepend":
+                            // add at top or bottom
+                            $target = $inside_first.find('div#livepress-update-'+update.id);
+                            if($target.length > 0) {
+                                // ignore already added update
+                                return;
+                            }
+                            $block = $j(update.prefix + update.proceed + update.suffix);
+							$block.data("nonExpandedContent", update.content);
+							$block.data("originalContent", update.orig);
+							$block.data("originalHtmlContent", update.origproc);
+							$block.data("originalId", update.id);
+							$block.attr("editStyle", "");
+                            dom.process_twitter($block[0], update.proceed);
+                            if(update.op==="append") {
+                                $block.appendTo( $inside_first );
+                            } else {
+                                $block.prependTo( $inside_first );
+                            }
+                            Collaboration.Edit.update_live_posts_number();
+                            break;
+                        case "replace":
+                            // update update
+                            $target = $inside_first.find('div#livepress-update-'+update.id);
+                            if($target.length < 1) {
+                                // could happen if update come for already deleted update
+                                // f.e., in scenario: add update, edit it, delete it, refresh
+                                return;
+                            }
+                            gen = $target.data("lpg");
+                            if (update.lpg <= gen) {
+                                // will ignore update for own changes, and old updates
+                                // received on first page load.
+                                return;
+                            }
+                            $block = $j(update.prefix + update.proceed + update.suffix);
+							$block.data("nonExpandedContent", update.content);
+							$block.data("originalContent", update.orig);
+							$block.data("originalHtmlContent", update.origproc);
+							$block.data("originalId", update.id);
+							$block.attr("editStyle", "");
+                            dom.process_twitter($block[0], update.proceed);
+                            $target.replaceWith($block);
+                            break;
+                        case "delete":
+                            // remove update
+                            $target = $inside_first.find('div#livepress-update-'+update.id).remove();
+                            Collaboration.Edit.update_live_posts_number();
+                            break;
+                        default:
+                            console.log("Unknown incremental operation", update.op, update);
+                    }
+                    return;
+                },
 				mergeData:      function (regions) {
+                    if("op" in regions) {
+                        return this.mergeIncrementalData(regions);
+                    }
 					var r, c, nc, reg, $block, curr = [], currlink = {}, reglink = {},
 						$inside_first = $liveCanvas.find('div.inside:first');
 					// Get list of currently visible regions
@@ -1486,9 +1543,10 @@ jQuery(function () {
 				displayContent: function (el) {
 					var $newPost = $j(this.originalHtmlContent);
 					$newPost.data("nonExpandedContent", this.originalContent);
-					$newPost.data("originalContent", "");
+					$newPost.data("originalContent", this.originalHtmlContent);
+                    $newPost.data("originalId", this.originalId);
 					$newPost.attr('editStyle', ''); // on cancel, disable delete mode
-					window.twttr.widgets.load($newPost[0]);
+					try { window.twttr.widgets.load($newPost[0]); } catch ( e ) {}
 					$newPost.insertAfter(el);
 					el.remove();
 					this.addListeners($newPost);
@@ -1539,11 +1597,17 @@ jQuery(function () {
 						var $spin = $spinner;
 						var afterUpdate = (function (self) {
 							return function (region) {
-								self.originalHtmlContent = region.prefix + region.proceed + region.suffix;
-								self.originalContent = region.content;
-								self.originalId = region.id;
-								self.displayContent($spin);
-								Collaboration.Edit.update_live_posts_number();
+                                var $target = $liveCanvas.find('div#livepress-update-'+region.id);
+                                // Check, what faster: AJAX answer or oortle publish
+                                if ($target.length > 0) {
+                                    $spin.remove();
+                                } else {
+                                    self.originalHtmlContent = region.prefix + region.proceed + region.suffix;
+                                    self.originalContent = region.content;
+                                    self.originalId = region.id;
+                                    self.displayContent($spin);
+                                    Collaboration.Edit.update_live_posts_number();
+                                }
 							};
 						}(this));
 						// Save of non-empty update can be:
@@ -1563,7 +1627,7 @@ jQuery(function () {
 							$spinner.insertAfter(this.$form);
 							$spinner.data("nonExpandedContent", newContent); // Make sure syncData works even while spinner active
 							this.$form.remove();
-							Helper.changePostUpdate(this.originalUpdateId, newContent, afterUpdate);
+							Helper.changePostUpdate(this.originalId, newContent, afterUpdate);
 						}
 					}
 
@@ -1601,7 +1665,7 @@ jQuery(function () {
 						$spinner.insertAfter(this.$form);
 						this.$form.remove();
 
-						Helper.deletePostUpdate(this.originalUpdateId, function () {
+						Helper.deletePostUpdate(this.originalId, function () {
 							$spinner.remove();
 							Collaboration.Edit.update_live_posts_number();
 						});
@@ -1959,7 +2023,8 @@ jQuery(function () {
 						return {"prepend": prepend, "append": append, "changed": changed, "deleted": deleted, "regions": regions};
 					};
 					var startError = function (error) {
-						//Livepress.Admin.PostStatus.error(error);
+						var ps = new Livepress.Admin.PostStatus();
+                        ps.error(error);
 						$j('#post-body-content .livepress-newform,.secondary-editor-tools').hide();
 						$liveCanvas.hide();
 						$postdivrich.show();
@@ -1976,8 +2041,11 @@ jQuery(function () {
 							// Got complete on aborted ajax call
 							return;
 						}
+						if ( 'undefined' === typeof regions ) {
+							return;
+						}
 						var blogContent = "", i = 0;
-						if (regions === undefined) {
+						if (regions === undefined && 'parsererror' !== textError && 'error' !== textError ) {
 							return startError("Error: " + textError + " : " + errorThrown);
 						}
 						if (regions.edit_uuid) {
@@ -2086,6 +2154,8 @@ jQuery(function () {
 								.clone(true)
 								.insertAfter('#titlediv')
 								.addClass('secondary-editor-tools')
+								// This next line undoes WP 4.0 editor-expand (sticky toolbar/media button)
+								.css( { position: "relative", top: "auto", width: "auto" } )
 								.find('#content-tmce, #content-html')
 								.each(function () {
 									jQuery(this)

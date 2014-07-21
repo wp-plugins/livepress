@@ -136,7 +136,7 @@ jQuery.extend(Collaboration.Edit, {
 		data = JSON.parse(data);
 
 		if ( null !== data ) {
-			window.twttr.widgets.load(data);
+			try { window.twttr.widgets.load( data ); } catch( e ) {}
 			OORTLE.Livepress.mergeLiveCanvasData(data);
 		}
 	}
@@ -271,8 +271,7 @@ jQuery.extend(Collaboration.Edit, {
 			params = {
 				action:           'collaboration_get_live_edition_data',
 				_ajax_nonce:      Livepress.Config.ajax_nonce,
-				post_id:          Livepress.Config.post_id,
-				livepress_action: true
+				post_id:          Livepress.Config.post_id
 			};
 			jQuery.ajax({
 				type:     "GET",

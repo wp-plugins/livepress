@@ -15,7 +15,7 @@ class LivePress_Config {
 	 * @var array $configurable_options Configurable options.
 	 */
 	private $configurable_options = array (
-		'STATIC_HOST'               => 'http://static.livepress.com',
+		'STATIC_HOST'               => '//static.livepress.com',
 		'LIVEPRESS_SERVICE_HOST'    => 'http://api.livepress.com',
 		'OORTLE_VERSION'            => '1.5',
 		'LIVEPRESS_CLUSTER'         => 'livepress.com',
@@ -56,7 +56,18 @@ class LivePress_Config {
 	 * Contructor that assigns the wordpress hooks, initialize the
 	 * configurable options and gets the wordpress options set.
 	 */
-	private function __construct() {}
+	private function __construct() {
+        $options = $this->read_initialize_configurable_options();
+		$this->configurable_options = array_merge($this->configurable_options, $options);
+	}
+
+    // That function read developers-only configuration options override
+    // it doesn't suppose to work in production, but required to work in development
+	private function read_initialize_configurable_options() {
+        $options = array();
+        @include(dirname(__FILE__) .'/../config.php');
+        return $options;
+    }
 
 	/**
 	 * Static host.

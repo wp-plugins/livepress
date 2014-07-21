@@ -59,7 +59,8 @@ Livepress.DOMManipulator.prototype = {
 	},
 
 	clean_whitespaces: function () {
-		if (this.cleaned_ws) {
+        return;
+		/* if (this.cleaned_ws) {
 			return false;
 		}
 		this.cleaned_ws = true;
@@ -68,7 +69,7 @@ Livepress.DOMManipulator.prototype = {
 		var content = this.containerElement;
 		this.clean_children_ws(content);
 
-		return true;
+		return true; */
 	},
 
 	block_elements: function () {
@@ -185,7 +186,25 @@ Livepress.DOMManipulator.prototype = {
 		this.selector('.oortle-diff-removed-block').remove();
 	},
 
+    process_twitter: function(el, html) {
+        if ( html.match( /<blockquote[^>]*twitter-tweet/i )) {
+            if ( 'twttr' in window ) {
+                try { window.twttr.widgets.load(el); } catch ( e ) {}
+            } else {
+                try {
+                    if(!document.getElementById('twitter-wjs')) {
+                        var wg = document.createElement('script');
+                        wg.src = "https://platform.twitter.com/widgets.js";
+                        wg.id = "twitter-wjs";
+                        document.getElementsByTagName('head')[0].appendChild(wg);
+                    }
+                } catch(e) {}
+            }
+        }
+    },
+
 	apply_changes: function (changes, options) {
+		var $ = jQuery;
 		var display_with_effects = options.effects_display || false,
 			registers = [],
 			i;
@@ -196,7 +215,7 @@ Livepress.DOMManipulator.prototype = {
 			this.log('apply changes i=', i, ' changes.length = ', changes.length);
 			var change = changes[i];
 			this.log('change[i] = ', change[i]);
-			var parts, node, parent, container, childIndex, el, childRef, parent_path;
+			var parts, node, parent, container, childIndex, el, childRef, parent_path, content, x;
 			switch (change[0]) {
 
 				// ['add_class', 'element xpath', 'class name changed']
@@ -243,6 +262,7 @@ Livepress.DOMManipulator.prototype = {
 					break;
 
 				// ['del_node',  'element xpath']
+				// working fine with path via #elId
 				case 'del_node':
 					try {
 						parts = this.get_path_parts(change[1]);
@@ -250,7 +270,7 @@ Livepress.DOMManipulator.prototype = {
 
 						if (node.nodeType === 3) { // TextNode
 							parent = node.parentNode;
-							for (var x = 0; x < parent.childNodes.length; x++) {
+							for (x = 0; x < parent.childNodes.length; x++) {
 								if (parent.childNodes[x] === node) {
 									container = parent.ownerDocument.createElement('span');
 									container.appendChild(node);
@@ -324,24 +344,87 @@ Livepress.DOMManipulator.prototype = {
 
 						if (childIndex > -1 && parent !== null) {
 							el = document.createElement('span');
-							var html = change[2];
-							var found = html.match( /<blockquote[^>]*twitter-tweet/i );
-							el.innerHTML = html;
-
-							var content = el.childNodes[0];
-							childRef = parent.childNodes.length <= childIndex ? null : parent.childNodes[childIndex];
-
-							this.log("the case, childRef = ", childRef, ', content = ', content);
-							if ( null !== found && 'twttr' in window ) {
-								window.twttr.widgets.load(content);
+							el.innerHTML = change[2];
+							content = el.childNodes[0];
+                            // Suppress duplicate insert
+							if(content.id==="" || document.getElementById(content.id)===null) {
+                                this.process_twitter( content, change[2] );
+								childRef = parent.childNodes.length <= childIndex ? null : parent.childNodes[childIndex];
+								parent.insertBefore(content, childRef);
 							}
-							parent.insertBefore(content, childRef);
 						}
 					} catch (ein1) {
 						this.log('Exception on ins_node: ', ein1);
-					}
-
+                    }
 					break;
+
+                // ['append_child', 'parent xpath', content]
+                // instead of "insertBefore", "appendChild" on found element called 
+                case 'append_child':
+                    try {
+                        // parent is passed path
+						parent_path = this.get_path_parts(change[1]);
+						parent = this.node_at_path(parent_path);
+						if (parent !== null) {
+							el = document.createElement('span');
+							el.innerHTML = change[2];
+							content = el.childNodes[0];
+                            // Suppress duplicate append
+							if(content.id!=="" && document.getElementById(content.id)!==null) {
+                                this.process_twitter( content, change[2] );
+								parent.appendChild(content);
+							}
+						}
+                    } catch (ein1) {
+                        this.log('Exception on append_child: ', ein1);
+                    }
+                    break;
+
+                // ['replace_node', 'node xpath', new_content]
+                case 'replace_node':
+                    try {
+						parts = this.get_path_parts(change[1]);
+						node = this.node_at_path(parts);
+                        parent = node.parentNode;
+
+						el = document.createElement('span');
+						el.innerHTML = change[2];
+						content = el.childNodes[0];
+
+                        // suppress duplicates
+                        var lpg = $(content).data("lpg");
+                        if (lpg!=="" && lpg!==null && lpg<=$(node).data("lpg")) {
+                            // duplicate detected, skip silently
+                        } else {
+                            this.process_twitter( content, change[2] );
+                            this.add_class(content, 'oortle-diff-changed');
+                            parent.insertBefore(content, node);
+
+                            // FIXME: call just del_node there
+                            if (node.nodeType === 3) { // TextNode
+                                for (x = 0; x < parent.childNodes.length; x++) {
+                                    if (parent.childNodes[x] === node) {
+                                        container = parent.ownerDocument.createElement('span');
+                                        container.appendChild(node);
+                                        container.className = 'oortle-diff-removed';
+                                        break;
+                                    }
+                                }
+                                if (x < parent.childNodes.length) {
+                                    parent.insertBefore(container, parent.childNodes[x]);
+                                } else {
+                                    parent.appendChild(container);
+                                }
+                            } else if (node.nodeType === 8) { // CommentNode
+                                node.parentNode.removeChild(node);
+                            } else {
+                                this.add_class(node, 'oortle-diff-removed');
+                            }
+                        }
+                    } catch (ein1) {
+                        this.log('Exception on append_child: ', ein1);
+                    }
+                    break;
 
 				default:
 					this.log('Operation not implemented yet.');
@@ -508,7 +591,7 @@ Livepress.DOMManipulator.prototype = {
 				function ($el, old_bg) {
 					$el.slideDown(200);
 					try {
-						$el.animate(self.colorForOperation($el), 200)
+						$el.animate({backgroundColor: self.colorForOperation($el)}, 200)
 							.animate({backgroundColor: old_bg}, 800);
 					} catch (e) {
 						console.log('Error when animating new comment div.');
@@ -559,15 +642,27 @@ Livepress.DOMManipulator.prototype = {
 		}
 	},
 
+    // if list of idices passed -- returns array of indexes
+    // if #elId passed, return array [Parent, Node]
 	get_path_parts: function (nodePath) {
-		var parts = nodePath.split(':');
-		var indices = [];
-		for (var i = 0, len = parts.length; i < len; i++) {
-			indices[i] = parseInt(parts[i], 10);
-		}
-		return indices;
+        if(nodePath[0]==='#') {
+            var el = jQuery(nodePath, this.containerElement)[0];
+            if(el) {
+              return [el.parentNode, el];
+            } else {
+              return [null, null];
+            }
+        } else {
+            var parts = nodePath.split(':');
+            var indices = [];
+            for (var i = 0, len = parts.length; i < len; i++) {
+                indices[i] = parseInt(parts[i], 10);
+            }
+            return indices;
+        }
 	},
 
+    // not working with #elId schema
 	get_child_index: function (pathParts) {
 		if (pathParts.length > 0) {
 			return parseInt(pathParts[pathParts.length - 1], 10);
@@ -575,14 +670,20 @@ Livepress.DOMManipulator.prototype = {
 		return -1;
 	},
 
+    // working with #elId schema
 	get_parent_path: function (pathParts) {
 		var parts = pathParts.slice(); // "clone" the array
 		parts.splice(-1, 1);
 		return parts;
 	},
 
+    // in case #elId just return last element
 	node_at_path: function (pathParts) {
-		return this.get_node_by_path(this.containerElement, pathParts);
+        if(pathParts[0].nodeType===undefined) {
+            return this.get_node_by_path(this.containerElement, pathParts);
+        } else {
+            return pathParts[pathParts.length-1];
+        }
 	},
 
 	get_node_by_path: function (root, pathParts) {

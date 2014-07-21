@@ -105,16 +105,20 @@
 
 #blogging-tools-wrap {
 	padding: 0;
-
 	margin: 0 0 0 -4px;
 	position: relative;
 	overflow: auto;
 }
 
+#blogging-tools-wrap * {
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+
 	.blogging-tools-sidebar {
-		width: 150px;
+		width: 160px;
+		padding: 0 10px;
 		float: right;
-		padding: 0 8px 0 12px;
 		overflow: hidden;
 	}
 
@@ -147,8 +151,10 @@
 		background-position: 0 -26px;
 	}
 
-	.live-highlight {
-		color: #21759B;
+	#livepress-online_num,
+	#livepress-authors_num,
+	#livepress-comments_num	{
+		font-weight: bold;
 	}
 
 	#blogging-tools-back,
@@ -158,12 +164,11 @@
 
 	#blogging-tools-back {
 		background: white;
-
 		position: absolute;
 		top: 0;
 		bottom: 0;
-		left: 150px;
-		right: 170px;
+		left: 149px;
+		right: 159px; /* 149px instead of 150px so the 1px border always shows */
 		border-width: 0 1px;
 		border-style: solid;
 	}
@@ -212,13 +217,11 @@
 		}
 
 		.blogging-tools-tabs-wrap {
-			padding: 0 20px;
 			overflow: auto;
 		}
 
 		.blogging-tools-content {
 			display: none;
-			margin: 0 22px 12px 0;
 			line-height:  1.6em;
 		}
 
@@ -232,9 +235,6 @@
 		#live-notes-text {
 			width: 100%;
 			resize: none;
-		}
-		#live-notes-submit {
-			float: right;
 		}
 
 		.live-notes-status {
@@ -359,6 +359,17 @@
 	.livepress-active .switch-livepress,
 	.livepress-active #blogging-tools-link-wrap {
 		display: inline;
+	}
+
+	.livepress-active .switch-livepress {
+		background-color: #f5f5f5;
+		color: #555;
+		height: 20px;
+		border-bottom: none;
+	}
+
+	.switch-livepress:hover {
+		background-color: #f5f5f5;
 	}
 
 	.ui-dialog.ui-front {

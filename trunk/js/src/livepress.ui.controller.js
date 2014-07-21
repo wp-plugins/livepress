@@ -43,13 +43,13 @@ Livepress.Ui.Controller = function (config, hooks) {
 	var update_box;
 	var widget;
 	var comet = OORTLE.instance;
-	var sounds = Livepress.sounds;
+//	var sounds = Livepress.sounds;
 
 	function connected () {
 		if ( widget !== undefined ) {
 			widget.connected();
 		}
-		sounds.load();
+//		sounds.load();
 	}
 
 	function comet_error_callback ( message ) {
@@ -99,9 +99,9 @@ Livepress.Ui.Controller = function (config, hooks) {
 		call_hook('post_comment_update');
 
 		if (comment_count === 0) {
-			sounds.firstComment.play();
+			//sounds.firstComment.play();
 		} else {
-			sounds.commentAdded.play();
+			//sounds.commentAdded.play();
 		}
 		comment_count += 1;
 
@@ -247,7 +247,7 @@ Livepress.Ui.Controller = function (config, hooks) {
 			update_live_updates();
 		}
 		trigger_action_on_view();
-		sounds.postUpdated.play();
+		//sounds.postUpdated.play();
 
 		$livepress.find('.lp-updated-counter').html( abbr );
 		$livepress.find('.lp-updated-counter').find('.livepress-timestamp').attr('title', dateString );
@@ -262,13 +262,13 @@ Livepress.Ui.Controller = function (config, hooks) {
 		}
 
 		update_box.new_post(post.title, post.link, post.author, post.updated_at_gmt);
-		sounds.postUpdated.play();
+		//sounds.postUpdated.play();
 	}
 
 	function new_post_widget (post) {
 		trigger_action_on_view();
 		widget.post_alert(post.title, post.link, post.author, post.updated_at_gmt);
-		sounds.postUpdated.play();
+		//sounds.postUpdated.play();
 	}
 
 	var imSubscribing = false;
@@ -380,18 +380,6 @@ Livepress.Ui.Controller = function (config, hooks) {
 			comet.subscribe(post_update_topic, post_update, opt);
 
 			widget.subscribeIm(imSubscribeCallback);
-
-			widget.sound_control(
-				Livepress.storage.get('settings-sound', config.sounds_default === undefined || config.sounds_default),
-				function (save) {
-					sounds.on();
-					if (save) { Livepress.storage.set('settings-sound', "1"); }
-				},
-				function (save) {
-					sounds.off();
-					if (save) { Livepress.storage.set('settings-sound', ""); }
-				}
-			);
 
 			widget.live_control(
 				Livepress.storage.get('settings-live', true),

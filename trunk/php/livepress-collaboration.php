@@ -214,7 +214,6 @@ class Collaboration {
 			$avatar = get_avatar($c->comment_author_email, 30);
 			$commentId = $c->comment_ID;
 			$comment = array(
-				'_ajax_nonce' => wp_create_nonce( 'approve-comment_' . $commentId ),
 				'comment_id'  => $commentId,
 				'avatar_url'  => $avatar,
 				'author_url'  => $c->comment_author_url,
