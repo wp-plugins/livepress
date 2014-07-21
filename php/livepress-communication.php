@@ -136,6 +136,16 @@ class LivePress_Communication {
 	}
 
 	/**
+	 * Incremental api functions
+	 * TODO: write docs
+	 * op == append | prepend | replace | delete
+	 */
+	public function send_to_livepress_incremental_post_update($op, $post_vars) {
+		$return_data = json_decode($this->request_content_from_livepress('/message/'.$op.'_update', 'post', $post_vars));
+		return $return_data->oortle->jobs->reader;
+	}
+
+	/**
 	 * Get the current status of a job.
 	 *
 	 * @param string $uuid The job uuid
@@ -231,7 +241,6 @@ class LivePress_Communication {
 	 *     @type string $comments_counter_only        HTML with all comments without the new one but with
 	 *                                                updated counter only.
 	 *     @type string $comments_counter_only_logged As comment_counter_only but for logged user.
-	 *     @type string $ajax_nonce                   As unique identifier to have possibility if current user is an
 	 *                                                author of comment event if he's anonymous.
 	 * }
 	 * @throws LivePress_Communication_Exception If the request don't return the http code 200.
@@ -323,6 +332,7 @@ class LivePress_Communication {
 		$params["format"]  = "json";
 		return wp_remote_retrieve_body( ( $this->do_post_to_livepress("/blog/$ws_action", $params ) ) );
 	}
+
 	/**
 	 * Validate the API key on livepress service.
 	 *

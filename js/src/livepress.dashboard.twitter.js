@@ -204,10 +204,9 @@ if (Dashboard.Twitter.twitter === undefined) {
 			var avatar = jQuery("<img class='avatar avatar-32 photo' width='32' height='32' />").attr('src', tweet.avatar_url).attr('alt', tweet.author);
 			var authorDiv = jQuery("<div class='lp-comment-author author'>")
 				.append(avatar)
-				.append(jQuery("<strong></strong>")
+				.append(jQuery("<span class=\"lp-tweet-author\"></span>")
 				.text(tweet.author))
-				.append("<br/>")
-				.append(jQuery("<span>" + createdAt + "</span>"));
+				.append(jQuery("<span class=\"lp-tweet-date\">" + createdAt + "</span>"));
 
 			tweetDiv.append(authorDiv);
 			tweetDiv.data('term', tweet.term);
@@ -296,7 +295,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 				var termHtml = "";
 
 				for (var i = 0; i < terms.length; i += 1) {
-					termHtml += '<div class="lp-term" id="term-' + i + '"><a class="lp-term-clean-button" title="' + lp_strings.remove_term + '"></a><span class="lp-term-text">' + terms[i] + '</span></div>';
+					termHtml += '<div class="lp-term" id="term-' + i + '"><a class="dashicons dashicons-dismiss lp-term-clean-button" title="' + lp_strings.remove_term + '"></a><span class="lp-term-text">' + terms[i] + '</span></div>';
 				}
 
 				termHtml += '<div class="clear"></div>';
@@ -518,7 +517,6 @@ if (Dashboard.Twitter.twitter === undefined) {
 				jQuery.post(
 					"admin-ajax.php",
 					{
-						livepress_action: true,
 						_ajax_nonce:      Livepress.Config.ajax_twitter_search_nonce,
 						action:           'twitter_search_term',
 						term:             term,
@@ -601,7 +599,6 @@ if (Dashboard.Twitter.twitter === undefined) {
 				jQuery.post(
 					"admin-ajax.php",
 					{
-						livepress_action: true,
 						_ajax_nonce:      Livepress.Config.ajax_twitter_follow_nonce,
 						action:           'twitter_follow',
 						username:         username,

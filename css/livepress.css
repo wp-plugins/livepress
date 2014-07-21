@@ -163,6 +163,14 @@ body#tinymce .livepress-meta img {
 	min-height: 40px;
 }
 
+/* remove oembed admin-facing dashicon stuff on frontend */
+.livepress-old-update .wpview-wrap .wpview-selection-before,
+.livepress-update .wpview-wrap .wpview-selection-before,
+.livepress-update .wpview-wrap .wpview-body .toolbar,
+.livepress-old-update .wpview-wrap .wpview-body .toolbar{
+	display:none;
+}
+
 /* @group Inline Tweets */
 
 .lp-inline-tweet {
@@ -303,17 +311,14 @@ x#lp-pane-errors p.lp-pane-warning {
 }
 
 .lp-spinner {
-	height: 16px;
+	height: 20px;
 	margin: auto;
-	width: 16px;
+	width: 20px;
 	text-indent: -5000px;
-	background: url(../img/wpspin_light.gif);
-	/*background: url(../img/spin.gif) left top no-repeat;*/
+	background: url(../img/spinner.gif);
 }
 
 #lp-twitter-search-terms .lp-spinner, #lp-autotweet-terms .lp-spinner {
-	/*background: url(../img/spin2.gif) left top no-repeat;*/
-	background: url(../img/wpspin_light.gif);
 	left: 0;
 	position: absolute;
 	top: -1px;
@@ -532,17 +537,21 @@ ul#twitter-search-subtabs .tabs {
 
 #lp-twitter-results,
 #tab-panel-live-comments {
-	margin-left: 5%;
 	float: right;
 	max-height: 216px;
 	overflow-y: auto;
 	overflow-x: hidden;
 	position: relative;
-	left: 40px;
+}
+
+#lp-new-comments-notice {
+	margin: 15px;
 }
 
 #lp-twitter-results {
-	width: 60%;
+	width: 100%;
+	margin-left: -180px; /* Width of #live-search-column */
+	padding-left: 180px;
 }
 
 #tab-panel-live-comments {
@@ -564,10 +573,15 @@ ul#twitter-search-subtabs .tabs {
 	color: #666;
 	font-size: 11px;
 	line-height: 1.5em;
-	margin: 6px 8px;
-	padding: 6px 0 0;
-	float: left;
-	width: 150px;
+	margin: 0 8px 6px 8px;
+	padding: 3px 0 0;
+}
+
+@media screen and (min-width: 1100px) {
+	.lp-comment-author {
+		width: 150px;
+		float: left;
+	}
 }
 
 a.lp-comment-link {
@@ -579,8 +593,19 @@ a.lp-comment-link:hover {
 }
 
 .lp-comment-author img.photo {
-	float: left;
+	width: 16px;
+	height: 16px;
 	margin-right: 8px;
+	vertical-align: middle;
+}
+
+@media screen and (min-width: 1100px) {
+	.lp-comment-author img.photo {
+		float: left;
+		width: auto;
+		height: auto;
+		vertical-align: top;
+	}
 }
 
 .lp-comment-author a {
@@ -591,12 +616,24 @@ a.lp-comment-link:hover {
 
 .lp-comment {
 	color: #333;
-	margin-left: 166px; /* 150px for the author box + 8px each for left/right margins on the author box */
-	padding-right: 25px;
+	padding-right: 8px;
+	padding-left: 8px;
+}
+
+@media screen and (min-width: 1100px) {
+	.lp-comment {
+		padding-left: 0;
+		padding-right: 15px;
+		margin-left: 166px; /* 150px for the author box + 8px each for left/right margins on the author box */
+	}
 }
 
 .lp-comment p:last-of-type {
 	margin-bottom: 0;
+}
+
+.lp-comment p:first-of-type {
+	margin-top: 0;
 }
 
 .comment-item {
@@ -606,16 +643,40 @@ a.lp-comment-link:hover {
 	}
 
 .lp-comment .row-actions {
+	font-size: .8em;
+}
 
+.lp-tweet-author {
+	font-weight: bold;
+	line-height: 16px; /* align with avatar */
+}
+
+.lp-tweet-date {
+	margin-left: 1em;
+}
+
+@media screen and (min-width: 1100px) {
+	.lp-tweet-author {
+		display: block;
+	}
+
+	.lp-tweet-date {
+		display: block;
+		margin-left: 0;
+	}
 }
 
 #live-search-query {
-	width: 60%;
+	width: 100%;
+	margin-bottom: .5em;
 }
 
 #live-search-column {
-	width: 35%;
+	width: 180px;
 	float: left;
+	position: relative;
+	z-index: 10; /* place above #lp-twitter-results, which has default z-index */
+	padding: 0 15px;
 }
 
 #lp-twitter-search-terms {
@@ -639,6 +700,10 @@ a.lp-comment-link:hover {
 	color: #888;
 	margin-bottom: 0;
 	}
+
+#remote-authors {
+	margin: 15px;
+}
 
 #remote-authors .configure {
 	float: left;
@@ -670,6 +735,10 @@ a.lp-comment-link:hover {
 	margin: 7px 0 2px 20px;
 }
 
+#tab-panel-live-notes {
+	margin: 15px;
+}
+
 /* @end */
 
 /* @group Terms */
@@ -678,12 +747,11 @@ a.lp-comment-link:hover {
 	float: left;
 	position: relative;
 	margin-right: 15px;
-	margin-bottom: 10px;
 	background: #efefef;
-	padding: 2px 6px;
-	-webkit-border-radius: 8px;
-	-moz-border-radius: 8px;
-	border-radius: 8px
+	padding: 2px 10px 2px 6px; /* 10px/6px provides visual balance with close button */
+	-webkit-border-radius: 2px;
+	-moz-border-radius: 2px;
+	border-radius: 2px
 }
 .lp-term:hover {
 
@@ -700,14 +768,14 @@ a.lp-comment-link:hover {
 	margin-right: 0;
 }
 
-.lp-term-clean-button{
-	background: url(../img/xit.gif) left top no-repeat;
+.lp-term-clean-button {
 	cursor: pointer;
 	float: left;
-	height: 10px;
 	margin-right: 3px;
-	margin-top: 2px;
-	width: 10px;
+	margin-top: .25em;
+	width: 1em;
+	height: 1em;
+	font-size: 1em;
 }
 
 .lp-tweet-clean-button {
@@ -716,17 +784,24 @@ a.lp-comment-link:hover {
 	cursor: pointer;
 	}
 
+.lp-term-clean-button:before {
+	height: 1em;
+	width: 1em;
+	font-size: 1em;
+
+}
+
 a.lp-tweet-clean-button {
-	color: red;
-	font-size: 0.8em;
+	color: #aa0000;
+	font-size: 1em;
 }
 
 a.lp-tweet-clean-button:hover {
 	text-decoration: underline;
 }
 
-.lp-term-clean-button:hover{
-	background: url(../img/xit.gif) right top no-repeat;
+a.lp-term-clean-button:hover{
+	color: #ff0000;
 }
 
 .lp-tweet-text,
@@ -750,14 +825,6 @@ a.lp-tweet-clean-button:hover {
 
 #lp-search-terms {
 	padding: 3px 8px 5px;
-}
-
-#new-search-term, #lp-new-static-search, #new-twitter-account {
-	color: #333 !important;
-	border: 1px solid #bbb;
-	background: #fff;
-	width: 140px;
-	font-size: 11px;
 }
 
 #lp-search-terms input.ghosted {
@@ -900,15 +967,17 @@ a.lp-tweet-clean-button:hover {
 }
 
 /* Enhanced Editor Button */
-.wp-switch-editor.switch-livepress {
+.wp-switch-editor.switch-livepress,
+.wp-switch-editor.switch-livepress:hover {
     padding-left: 30px;
     background-image: url(../img/lp_editor_tab_logo.png);
     background-repeat: no-repeat;
     background-position: 5px 2px;
 }
-.livepress-active .switch-livepress {
-    border-color: #CCC #CCC #e9e9e9;
-    background-color: #e9e9e9;
+.livepress-active .switch-livepress,
+.livepress-active .switch-livepress:hover {
+    border-color: #dfdfdf #dfdfdf #f5f5f5;
+    background-color: #f5f5f5;
 	/* Colors for the Blue-style UI */
 	/*border-color: #CCC #CCC #EAF2FA;
 	background-color: #EAF2FA;*/
@@ -1038,6 +1107,10 @@ a.lp-tweet-clean-button:hover {
 	display: none;
 }
 
+.livepress-live #postdivrich {
+	display: none;
+}
+
 /**
  * HiDPI Graphics
  */
@@ -1048,8 +1121,14 @@ a.lp-tweet-clean-button:hover {
 	}
 
     /* Enhanced Editor Button */
-    .wp-switch-editor.switch-livepress {
+    .wp-switch-editor.switch-livepress,
+		.wp-switch-editor.switch-livepress:hover {
         background-image: url(../img/lp_editor_tab_logo-2x.png);
         background-size: 20px auto;
     }
+
+		.lp-spinner {
+			background-image: url(../img/spinner-2x.gif);
+			background-size: 20px auto;
+		}
 }
