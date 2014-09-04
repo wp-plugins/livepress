@@ -1,4 +1,5 @@
 === LivePress ===
+Contributors: fernandobt
 Requires at least: 3.5
 Tested up to: 3.9.1
 Tags: LivePress, live, live blogging, liveblogging, realtime, collaboration, Twitter
