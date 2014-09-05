@@ -1,9 +1,8 @@
 === LivePress ===
-Contributors: fernandobt
 Requires at least: 3.5
-Tested up to: 3.9.1
+Tested up to: 4.0
 Tags: LivePress, live, live blogging, liveblogging, realtime, collaboration, Twitter
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 
 LivePress is a hosted live blogging solution that integrates seamlessly with your WordPress blog.
 
@@ -96,6 +95,13 @@ The default tab IDs used in LivePress are:
 2. New update sent -- it appears for all readers of this post at the same time.
 
 == Changelog ==
+
+= 1.1.2 =
+
+* Remove Soundmanager, replace it with SoundJS, enable sound.
+* Add translation for timeago().
+* Add embedded media preview on live posts in the admin dashboard.
+* Bug fixes: embeds for Facebook using Facebook's official WP Plugin, incompatibility with WordPress' embedded audio, comment tab on live post editor, display issue for images in old live posts, other small bug fixes.
 
 = 1.1.1 =
 * Continue refining design elements to match new WordPress look

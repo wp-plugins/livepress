@@ -1,4 +1,4 @@
-/*! livepress -v1.1.1
+/*! livepress -v1.1.2
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -1353,7 +1353,7 @@ Dashboard.Controller = Dashboard.Controller || function () {
 		} );
 
 		// Add the new page tab
-		var tab_markup = '<a id="content-livepress" class="hide-if-no-js wp-switch-editor switch-livepress">Real-Time</a>';
+		var tab_markup = '<a id="content-livepress" class="hide-if-no-js wp-switch-editor switch-livepress"><span class="icon-livepress-logo"></span> Real-Time</a>';
 		jQuery( tab_markup ).insertAfter( '#content-tmce' );
 	};
 

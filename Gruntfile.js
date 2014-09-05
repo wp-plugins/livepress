@@ -73,7 +73,6 @@ module.exports = function ( grunt ) {
 					'js/src/jquery.scrollTo.js',
 					'js/src/jquery.color.js',
 					'js/src/jquery.gritter.js',
-					'js/src/jquery.timeago.js',
 					'js/src/livepress.ui.js',
 					'js/src/scroll-controller.js',
 					'js/src/livepress.dommanipulator.js',
@@ -83,7 +82,9 @@ module.exports = function ( grunt ) {
 					'js/src/livepress.ui.controller.js',
 					'js/src/livepress.comment.js',
 					'js/src/livepress.ui-start.js',
-					'js/src/jquery.effects.js'
+					'js/src/jquery.effects.js',
+					'js/src/soundjs-0.5.2.min.js',
+					'js/src/livepress.sounds.js'
 				],
 				dest: 'js/livepress-release.full.js'
 			},

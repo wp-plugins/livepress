@@ -1,5 +1,5 @@
 /*jslint vars:true */
-/*global lp_strings, Livepress, Dashboard, Collaboration, tinymce, tinyMCE, console, confirm, switchEditors, livepress_merge_confirmation */
+/*global lp_strings, Livepress, Dashboard, Collaboration, tinymce, tinyMCE, console, confirm, switchEditors, livepress_merge_confirmation, _wpmejsSettings, FB */
 
 /**
  * Global object into which we add our other functionality.
@@ -440,6 +440,22 @@ Livepress.Admin.Tools = function () {
 		});
 	}
 
+  // If we found the Facebook plugin on PHP, load the Facebook js for
+  // admin panel post embedding:
+  function checkFacebook(){
+    if(Livepress.Config.facebook === 'yes'){
+      if ( typeof(FB) !== 'undefined'){
+        FB.XFBML.parse();
+      } else {
+        var fb_script = "//connect.facebook.net/" + Livepress.Config.locale + "/all.js";
+        jQuery.getScript(fb_script, function(){
+          window.FB.init();
+          FB.XFBML.parse();
+        });
+      }
+    }
+  }
+
 	/**
 	 * Configure event handlers for default Live Blogging Tools tabs.
 	 *
@@ -563,16 +579,39 @@ Livepress.Admin.Tools = function () {
 
 		//tools_link.innerText = 'Live Blogging Tools';
 		$tools_link_wrap.append( tools_link );
-		jQuery( tools_link ).text( 'Live Blogging Tools' );
+		jQuery( tools_link ).html( '<span class="icon-livepress-logo"></span> Live Blogging Tools' );
 		$tools_link_wrap.insertAfter('#screen-options-link-wrap');
 
 		$tools_wrap.insertAfter('#screen-options-wrap');
 
 		getTabs();
 
+		checkFacebook();
+
 		jQuery( window ).trigger( 'livepress.blogging-tools-loaded' );
 	};
 };
+
+function update_embeds(){
+  var settings = {};
+  if ( typeof _wpmejsSettings !== 'undefined' ) {
+    settings.pluginPath = _wpmejsSettings.pluginPath;
+  }
+  settings.success = function (mejs) {
+    var autoplay = mejs.attributes.autoplay && 'false' !== mejs.attributes.autoplay;
+    if ( 'flash' === mejs.pluginType && autoplay ) {
+      mejs.addEventListener( 'canplay', function () {
+        mejs.play();
+      }, false );
+    }
+  };
+  jQuery( ".wp-audio-shortcode, .wp-video-shortcode" ).not('.mejs-container').mediaelementplayer( settings );
+
+  if ( typeof(FB) !== 'undefined'){
+    FB.XFBML.parse();
+  }
+}
+
 
 jQuery(function () {
 	var pstatus = new Livepress.Admin.PostStatus(),
@@ -901,7 +940,7 @@ jQuery(function () {
 
 					if (Livepress.Config.debug !== undefined && Livepress.Config.debug) {
 						$j(document).find('html:first').addClass('debug');
-						if ($eDoc != null) {
+						if ($eDoc !== null) {
 							$eDoc.find('html:first').addClass('debug');
 						}
 					}
@@ -1002,6 +1041,10 @@ jQuery(function () {
 					jQuery('.peeklink span, .peekmessage').removeClass('hidden');
 					jQuery('.peek').addClass('live');
 					jQuery( window ).trigger( 'livepress.post_update' );
+					// Refresh embeds in case the new post is an embed, wait for
+					// the post to be loaded in the inside canvas to run the
+					// function and convert any non-embedded stuff:
+					window.setTimeout(update_embeds, 3000);
 					return SELF.ajaxAction('append_post_update', content, callback, args);
 				};
 
@@ -1041,7 +1084,7 @@ jQuery(function () {
 						return;
 					}
 
-					var originalContent = editor.getContent({format: 'raw'});
+					var originalContent = editor.getContent();
 					originalContent = originalContent.replace( '<p><br data-mce-bogus="1"></p>', '' );
 					// Remove the toolbar/dashicons present on images/galleries since WordPress 3.9 and embeds since 4.0
 					originalContent = originalContent.replace( '<div class="toolbar"><div class="dashicons dashicons-edit edit"></div><div class="dashicons dashicons-no-alt remove"></div></div>', '' );
@@ -2171,6 +2214,7 @@ jQuery(function () {
 
 						showMicroPostForm(microContent);
 						Collaboration.Edit.update_live_posts_number();
+						window.setTimeout(update_embeds, 1000);
 
 						// first micro post
 						var $currentPosts = $liveCanvas.find('div.livepress-update:first');

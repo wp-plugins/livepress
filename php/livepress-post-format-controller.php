@@ -288,47 +288,44 @@ class LivePress_PF_Updates {
 	 */
 	private function clear_most_the_content_filters() {
 		global $wp_filter;
+		//return;
 
-		// Cache the results of this costly function
-		$lp_filtered_the_content_filters_transient_key = 'lp_filtered_the_content_filters_a';
-		if ( false === $filtered_the_content_filters = get_transient( $lp_filtered_the_content_filters_transient_key ) ){
-			// White list of the filters we want to preserve
-			$whiltelisted_content_filters = array(
-				'process_oembeds',
-				'run_shortcode',
-				'autoembed',
-				'wptexturize',
-				'convert_smilies',
-				'convert_chars',
-				'wpautop',
-				'shortcode_unautop',
-				'capital_P_dangit',
-				'do_shortcode',
-				);
+		// White list of the filters we want to preserve
+		$whiltelisted_content_filters = array(
+			'process_oembeds',
+			'run_shortcode',
+			'autoembed',
+			'wptexturize',
+			'convert_smilies',
+			'convert_chars',
+			'wpautop',
+			'shortcode_unautop',
+			'capital_P_dangit',
+			'do_shortcode',
+			'add_children_to_post',
+			);
 
-			// Iterate thru all existing the_content filters
-			foreach ( $wp_filter['the_content'] as $filterkey => $filtervalue) {
-				// Filters are in arrays by priority, so iterate thru each of those
-				foreach ( $filtervalue as $contentfilterkey => $contentfiltervalue) {
-					$found_in_whitelist = false;
-					// Now loop thru the whitelisted filters to see if this filter should be unset
-					foreach ( $whiltelisted_content_filters as $white ) {
-						if ( false !== strpos( $contentfilterkey, $white ) ) {
-							$found_in_whitelist = true;
-							break;
-						}
-					}
-					// If the filter is not in our whitelist, remove it
-					if ( ! $found_in_whitelist ){
-						unset( $wp_filter['the_content'][ $filterkey ] );
+		// Iterate thru all existing the_content filters
+		foreach ( $wp_filter['the_content'] as $filterkey => $filtervalue ) {
+			// Filters are in arrays by priority, so iterate thru each of those
+			foreach ( $filtervalue as $contentfilterkey => $contentfiltervalue) {
+				$found_in_whitelist = false;
+				// Loop thru the whitelisted filters to see if this filter should be unset
+				foreach ( $whiltelisted_content_filters as $white ) {
+					if ( false !== strpos( $contentfilterkey, $white ) ) {
+						$found_in_whitelist = true;
+						break;
 					}
 				}
+
+				// If the filter is not in our whitelist, remove it
+				if ( ! $found_in_whitelist ){
+					unset( $wp_filter['the_content'][ $filterkey ][ $contentfilterkey ] );
+				}
 			}
-			set_transient( $lp_filtered_the_content_filters_transient_key, $wp_filter['the_content'], 5 * MINUTE_IN_SECONDS );
-		} else {
-			$wp_filter['the_content'] = $filtered_the_content_filters;
 		}
 
+		return;
 	}
 
 	/**
@@ -341,7 +338,8 @@ class LivePress_PF_Updates {
 	 * @return string
 	 */
 	public function add_children_to_post( $content ) {
-		global $post, $wp_filter;
+		global $post;
+
 		// Only filter on single post pages
 		if ( ! is_singular( 'post' ) ) {
 			return $content;
@@ -350,11 +348,6 @@ class LivePress_PF_Updates {
 			return $content;
 		}
 
-		// Remove all the_content filters so child posts are not filtered
-		// removing share, vote and other per-post items from the live update stream.
-		// Store the filters first for later restoration so filters still fire outside the update stream
-		$stored_wp_filter_the_content = $wp_filter[ 'the_content' ];
-		$this->clear_most_the_content_filters();
 
 		$this->assemble_pieces( $post );
 
@@ -371,10 +364,6 @@ class LivePress_PF_Updates {
 		}
 		$content = join( '', $response );
 		$content = LivePress_Updater::instance()->add_global_post_content_tag( $content, $this->post_modified_gmt );
-
-		// Restore the_content filters and carry on
-		//add_filter( 'the_content', array( $this, 'add_children_to_post' ) );
-		$wp_filter[ 'the_content' ] = $stored_wp_filter_the_content;
 
 		return $content;
 	}
@@ -666,7 +655,7 @@ class LivePress_PF_Updates {
                      'post_title' => 'livepress_update__'.$piece_id.'__'.$piece_gen,
                      'post_name' => 'livepress_update__'.$piece_id,
                      'post_type' => 'post',
-                     'post_status' => 'publish'
+                     'post_status' => 'inherit'
                 ),
                 true
             );
@@ -892,6 +881,13 @@ class LivePress_PF_Updates {
 	 * @param object $parent Parent post for which we're assembling pieces
 	 */
 	protected function assemble_pieces( $parent, $cache = false ) {
+		global $wp_filter;
+		// Remove all the_content filters so child posts are not filtered
+		// removing share, vote and other per-post items from the live update stream.
+		// Store the filters first for later restoration so filters still fire outside the update stream
+		$stored_wp_filter_the_content = $wp_filter;
+		$this->clear_most_the_content_filters();
+
 		if ( ! is_object( $parent ) ) {
 			$parent = get_post( $parent );
 		}
@@ -911,7 +907,7 @@ class LivePress_PF_Updates {
 		$pieces = array();
 
 		if ( ! $this->is_empty( $parent->post_content ) ) {
-            // parent are always threated as zero, its safe since only one parent per post, 
+            // parent are always threated as zero, its safe since only one parent per post,
             // and all piece ids are > 0
             $piece_id = 0;
 			$pieces[] = array(
@@ -973,6 +969,10 @@ class LivePress_PF_Updates {
 			}
 		}
 		$this->pieces = $pieces;
+
+ 		// Restore the_content filters and carry on
+		$wp_filter = $stored_wp_filter_the_content;
+
 	}
 
 	public function process_oembeds( $content ) {
