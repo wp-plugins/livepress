@@ -56,7 +56,7 @@ jQuery(function () {
 				params.action = 'post_comment';
 				params._ajax_nonce = Livepress.Config.ajax_comment_nonce;
 
-//				Livepress.sounds.commented.play();
+				Livepress.sounds.play("commented");
 
 				jQuery.ajax({
 					url:     Livepress.Config.site_url + '/wp-admin/admin-ajax.php',
