@@ -1,5 +1,5 @@
 /*jslint vars:true */
-/*global lp_client_strings, Livepress, OORTLE, console */
+/*global lp_client_strings, Livepress, OORTLE, console, FB, _wpmejsSettings*/
 /**
  *  Connects to Oortle, apply diff messages and handles the view, playing sounds for each task.
  *
@@ -43,13 +43,12 @@ Livepress.Ui.Controller = function (config, hooks) {
 	var update_box;
 	var widget;
 	var comet = OORTLE.instance;
-//	var sounds = Livepress.sounds;
+	var sounds = Livepress.sounds;
 
 	function connected () {
 		if ( widget !== undefined ) {
 			widget.connected();
 		}
-//		sounds.load();
 	}
 
 	function comet_error_callback ( message ) {
@@ -99,9 +98,9 @@ Livepress.Ui.Controller = function (config, hooks) {
 		call_hook('post_comment_update');
 
 		if (comment_count === 0) {
-			//sounds.firstComment.play();
+			sounds.play("firstComment");
 		} else {
-			//sounds.commentAdded.play();
+			sounds.play("commentAdded");
 		}
 		comment_count += 1;
 
@@ -169,8 +168,46 @@ Livepress.Ui.Controller = function (config, hooks) {
 				});
 				*/
 				$this.addClass('lp-live');
+
 			}
 		});
+	}
+
+	// Once we load the content of a post, check if we need to trigger
+	// some function to display any of the embeds
+	function update_embeds(data){
+		// Workaround for Facebook embeds, see if we need to embed any
+		// facebook posts once there's an update:
+		if ( typeof(FB) !== 'undefined'){
+			FB.XFBML.parse();
+		}
+
+		// Get the update id in the form 'live-press-update-23423423'
+		var re = /id\=\"(livepress-update-[0-9]+)/;
+		// data Array: ['ins_node', '0:0', '<div id="livepress-update..."']
+		var id = re.exec(data[0][2])[1];
+
+		embed_audio_and_video(id);
+	}
+
+	// WordPress' Audio and Video embeds
+	// Basically use the same function WP uses to embed audio and video
+	// from shortcodes:
+	function embed_audio_and_video(update_id){
+		var settings = {};
+		if ( typeof _wpmejsSettings !== 'undefined' ) {
+			settings.pluginPath = _wpmejsSettings.pluginPath;
+		}
+		settings.success = function (mejs) {
+			var autoplay = mejs.attributes.autoplay && 'false' !== mejs.attributes.autoplay;
+			if ( 'flash' === mejs.pluginType && autoplay ) {
+				mejs.addEventListener( 'canplay', function () {
+					mejs.play();
+				}, false );
+			}
+		};
+		var search = ["#", update_id, " .wp-audio-shortcode, ", "#", update_id, " .wp-video-shortcode"].join('');
+		jQuery( search ).not('.mejs-container').mediaelementplayer( settings );
 	}
 
 	function handle_page_title_update (data) {
@@ -247,7 +284,8 @@ Livepress.Ui.Controller = function (config, hooks) {
 			update_live_updates();
 		}
 		trigger_action_on_view();
-		//sounds.postUpdated.play();
+		update_embeds(data);
+		sounds.play("postUpdated");
 
 		$livepress.find('.lp-updated-counter').html( abbr );
 		$livepress.find('.lp-updated-counter').find('.livepress-timestamp').attr('title', dateString );
@@ -262,13 +300,13 @@ Livepress.Ui.Controller = function (config, hooks) {
 		}
 
 		update_box.new_post(post.title, post.link, post.author, post.updated_at_gmt);
-		//sounds.postUpdated.play();
+		sounds.play("postUpdated");
 	}
 
 	function new_post_widget (post) {
 		trigger_action_on_view();
 		widget.post_alert(post.title, post.link, post.author, post.updated_at_gmt);
-		//sounds.postUpdated.play();
+		sounds.play("postUpdated");
 	}
 
 	var imSubscribing = false;

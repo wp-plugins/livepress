@@ -3,12 +3,12 @@
 Plugin Name: LivePress
 Plugin URI:  http://www.livepress.com
 Description: Richly-featured live blogging for WordPress.
-Version:     1.1.1
+Version:     1.1.3
 Author:      LivePress Inc.
 Author URI:  http://www.livepress.com
 */
 
-define( 'LP_PLUGIN_VERSION', '1.1.1' ); // Please sync this with Version in header
+define( 'LP_PLUGIN_VERSION', '1.1.3' ); // Please sync this with Version in header
 define( 'PLUGIN_NAME', 'livepress' );
 define( 'LP_PLUGIN_SYMLINK', FALSE );
 define( 'LP_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );

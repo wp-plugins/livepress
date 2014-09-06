@@ -285,12 +285,13 @@ class LivePress_Updater {
 		wp_enqueue_style( 'livepress_main_sheets' );
 
 		wp_register_style( 'wordpress_override', LP_PLUGIN_URL . 'css/wordpress_override.css' );
+		wp_enqueue_style( 'wp-mediaelement' );
+		wp_enqueue_script( 'wp-mediaelement' );
+
+
 		wp_enqueue_style( 'wordpress_override' );
 
 		wp_register_style( 'livepress_ui', LP_PLUGIN_URL . 'css/ui.css', array(), false, 'screen' );
-
-		wp_register_style( 'soundmanager_flashblock', LP_PLUGIN_URL . 'css/flashblock.css', array(), false, 'screen' );
-		wp_enqueue_style( 'soundmanager_flashblock' );
 
 		// FIXME: temporary import of this script. It must be sent by Oortle
 		// on the next versions
@@ -303,7 +304,7 @@ class LivePress_Updater {
 		}
 
 		if ( is_page() || is_single() || is_home() ) {
-			wp_enqueue_script( 'livepress-plugin-loader', LP_PLUGIN_URL . 'js/plugin_loader_release.' . $mode . '.js', array(), LP_PLUGIN_VERSION );
+			wp_enqueue_script( 'livepress-plugin-loader', LP_PLUGIN_URL . 'js/plugin_loader_release.' . $mode . '.js', array( 'jquery' ), LP_PLUGIN_VERSION );
 			wp_localize_script( 'livepress-plugin-loader', 'lp_client_strings', array(
 				'no_google_acct'       => esc_html__( 'Error: [USERNAME] isn\'t a valid Google Talk account', 'livepress' ),
 				'no_acct_in_jabber'    => esc_html__( 'Error: [USERNAME] wasn\'t find in jabber client bot roster', 'livepress' ),
@@ -329,10 +330,23 @@ class LivePress_Updater {
 
 			wp_enqueue_style( 'livepress_ui' );
 
+			// Enqueue timeago with i18n:
+			wp_enqueue_script('jquery.timeago', LP_PLUGIN_URL . 'js/src/jquery.timeago.js', array('jquery') );
+			switch ( get_locale() ){
+			case "es_ES":
+						wp_enqueue_script('jquery.timeago.es', LP_PLUGIN_URL . "js/locales/jquery.timeago.es.js", array('jquery.timeago') );
+						break;
+			case 'fr_FR':
+						wp_enqueue_script('jquery.timeago.fr', LP_PLUGIN_URL . "js/locales/jquery.timeago.fr.js", array('jquery.timeago') );
+						break;
+			}
+
 		} elseif ( is_admin() ) {
 
 			wp_register_style( 'lp_admin', LP_PLUGIN_URL . 'css/post_edit.css' );
 			wp_enqueue_style( 'lp_admin' );
+
+			wp_enqueue_style( 'lp_admin_font', LP_PLUGIN_URL . 'fonts/livepress-admin/style.css' );
 
 			wp_enqueue_script( 'lp-admin', LP_PLUGIN_URL . 'js/admin/livepress-admin.' . $mode . '.js', array( 'jquery' ), LP_PLUGIN_VERSION );
 
@@ -439,7 +453,6 @@ class LivePress_Updater {
 			wp_localize_script( 'lp-admin', 'lp_strings', $lp_strings );
 
 			wp_enqueue_script( 'dashboard-dyn', LP_PLUGIN_URL . 'js/dashboard-dyn.' . $mode . '.js', array( 'jquery', 'lp-admin' ), LP_PLUGIN_VERSION );
-
 		}
 
 		$current_theme = str_replace( ' ', '-', strtolower( wp_get_theme()->Name ) );
@@ -511,10 +524,19 @@ class LivePress_Updater {
 	 * @param string $hook Hook suffix for the current screen.
 	 */
 	function add_js_config( $hook = null ) {
-		if ( $hook != null && $hook != 'post-new.php' && $hook != 'post.php' && $hook != 'settings_page_livepress-settings' )
-			return;
-
 		global $post;
+
+		// If we are in the admin, only load LivePress JS on the
+		// post page and the livepress settings page
+		if ( is_admin() && $hook != null && $hook != 'post-new.php' && $hook != 'post.php' && $hook != 'settings_page_livepress-settings' ) {
+			return;
+		}
+
+		// On the front end, only load LivePress JS on pages that are live,
+		// or when the WordPress admin bar is showing
+		if ( ! is_admin() && ! is_admin_bar_showing() && ! LivePress_Updater::instance()->blogging_tools->get_post_live_status( $post->ID ) ) {
+			return;
+		}
 
 		$ljsc = new LivePress_JavaScript_Config();
 
@@ -619,6 +641,7 @@ class LivePress_Updater {
 				}
 
                 $ljsc->new_value( 'post_id', $post->ID);
+                $ljsc->new_value( 'post_live_status', LivePress_Updater::instance()->blogging_tools->get_post_live_status( $post->ID ) );
                 $pf = LivePress_PF_Updates::get_instance();
                 if(!$pf->near_uuid) {
                     $pf->cache_pieces( $post );
@@ -677,6 +700,13 @@ class LivePress_Updater {
 
 		$ljsc->new_value("site_url", site_url() );
 		$ljsc->new_value("ajax_url", site_url()."/wp-admin/admin-ajax.php");
+		$ljsc->new_value("locale", get_locale());
+
+		// Check if we have the Facebook embed plugin so we have to load
+		// the FB js on livepress.admin.js:
+		if ( class_exists('Facebook_Loader') ){
+			$ljsc->new_value("facebook", 'yes');
+		}
 
 		$ljsc->flush();
 	}

@@ -33,7 +33,7 @@ class LivePress_Admin_Bar_Status_Menu {
 	 * Enqueue a stylesheets and scripts to handle the LivePress toolbar.
 	 */
 	function enqueue() {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'manage_options' ) || ! is_admin_bar_showing() ) {
 			return;
 		}
 

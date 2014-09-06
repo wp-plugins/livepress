@@ -91,16 +91,13 @@
 	border-bottom-right-radius: 3px;
 }
 
-#screen-meta-links a#blogging-tools-link {
-	padding-left: 30px;
+/* overrides WP styles; looks better when an icon is placed there. Use of !important to avoid double id selector */
+#blogging-tools-link {
+	padding-left: 9px !important;
 }
-#screen-meta-links a#blogging-tools-link:before {
-	content: " ";
-	height: 20px;
-	width: 30px;
-	position: absolute;
-	left: 0;
-	background: url( ../img/lp_editor_tab_logo.png ) no-repeat 5px 2px;
+
+#blogging-tools-link .icon-livepress-logo:before {
+	font-size: 1.3em;
 }
 
 #blogging-tools-wrap {
@@ -122,7 +119,29 @@
 		overflow: hidden;
 	}
 
-	p.peeklink {
+	/* Make the blogging tools icons match dashicons */
+.blogging-tools-sidebar [class^="icon-"]:before,
+.blogging-tools-sidebar [class*=" icon-"]:before,
+.blogging-tools-sidebar .dashicons-admin-comments:before {
+	 display: inline-block;
+	 width: 20px;
+	 height: 20px;
+	 line-height: 20px;
+	 color: #888888;
+ }
+
+.blogging-tools-sidebar [class^="icon-"]:before,
+.blogging-tools-sidebar [class*=" icon-"]:before {
+	 font-size: 16px;
+ }
+
+ /* Needs a slight baseline adjustment */
+ .blogging-tools-sidebar .icon-people-online:before {
+	 position: relative;
+	 top: .2em;
+ }
+
+ p.peeklink {
 		margin-bottom: 6px;
 		float: left;
 		cursor: pointer;
@@ -441,8 +460,4 @@
 		background-size: 20px auto;
 	}
 
-	#screen-meta-links a#blogging-tools-link:before {
-		background-image: url(../img/lp_editor_tab_logo-2x.png);
-		background-size: 20px auto;
-	}
 }

@@ -109,6 +109,72 @@ class LivePress_Admin_Settings {
 	}
 
 	/**
+	 * Display the activation error
+	 */
+	function error_activation() {
+		?>
+		<div class="error lp-activated">
+			<h2><?php _e( 'Website not ready for live blogging', 'livepress' ); ?></h2>
+
+			<p class="explanation"><?php _e( 'LivePress does not have this website on file as being activated.', 'livepress' ); ?></p>
+
+			<p class="solution"><?php _e( 'Signup or login to a LivePress.com account to manage services for your websites.', 'livepress' ); ?></p>
+
+			<p>
+				<a href="#" class="lp-button"><span><?php _ex( 'Signup for live blogging services', 'button text', 'livepress' ); ?></span></a>
+				<a href="#" style="margin-left:1em"><?php _ex( 'Login', 'Sign into LivePress.com, alternate action', 'livepress' ); ?></a>
+			</p>
+		</div>
+	<?php
+	}
+
+	/**
+	 * Display the authorization key error
+	 */
+	function authorization_key_error() {
+		?>
+		<div class="error lp-authorization-key">
+			<h2><?php _e( 'Authorization key missing or invalid', 'livepress' ); ?></h2>
+
+			<p class="explanation"><?php _e( 'The authorization key connects this website with LivePress services.', 'livepress' ); ?></p>
+
+			<p class="solution"><?php printf( __( 'Your authorization key can be found in your welcome email or online in your account at <a href="%s">LivePress.com.</a>', 'livepress' ), 'http://livepress.com/my-account' ); ?></p>
+		</div>
+
+	<?php
+	}
+
+	/**
+	 * Display a connection error
+	 */
+	function connection_error() {
+		?>
+		<div class="error lp-connection">
+			<h2><?php _ex( 'No Connection', 'No connection to LivePress servers', 'livepress' ); ?></h2>
+
+			<p class="explanation"><?php _e( 'LivePress was unable to create a connection.', 'livepress' ); ?></p>
+
+			<p class="solution"><?php _e( 'We\'ll keep trying, but check that you\'re online and that this website is accessible to others on the internet.', 'livepress' ); ?></p>
+		</div>
+	<?php
+	}
+
+	/**
+	 * Dipslay a notice that everything is workring
+	 */
+	function connected_notice() {
+		?>
+		<div class="updated lp-enabled">
+			<h2><?php _e( 'LivePress enabled', 'livepress' ); ?></h2>
+
+			<p class="explanation"><?php _e( 'All posts can be live blogged.', 'livepress' ); ?></p>
+
+			<p class="solution"><?php _e( 'Thank you for using LivePress.', 'livepress' ); ?></p>
+		</div>
+	<?php
+	}
+
+	/**
 	 * API key form output.
 	 */
 	function api_key_form() {

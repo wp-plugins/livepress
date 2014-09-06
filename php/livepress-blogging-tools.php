@@ -234,7 +234,7 @@ function lp_admin_body_class( $classes ) {
 		echo '<div class="pinned-first-option">';
 		echo '<label class="pinnit"><input id="pinfirst" type="checkbox" ' . ( $pin_header ? 'checked="checked" ' : '' ) . ' name="pinfirst" value="1">';
 		//echo ;
-		echo esc_html__('Pinned Live Post Header', 'livepress' );
+		echo esc_html__('First update sticky', 'livepress' );
 		echo '</label></div>';
 	}
 
@@ -398,7 +398,7 @@ function lp_admin_body_class( $classes ) {
 			<div class="blogging-tools-tabs">
 				<ul>
 				<?php
-				$class = ' class="active"';
+				$class = ' class=active';
 				foreach ( $this->get_tabs() as $tab ) :
 					$link_id  = "tab-link-{$tab['id']}";
 					$panel_id = "tab-panel-{$tab['id']}";
@@ -494,8 +494,8 @@ function lp_admin_body_class( $classes ) {
 
 		$sidebar  = '<p><strong>' . esc_html__( 'This post at a glance:', 'livepress' ) . '</strong></p>';
 		$sidebar .= '<p><span class="dashicons dashicons-admin-comments"></span> <span id="livepress-comments_num">0</span> <span class="label">'. esc_html__( 'Comments', 'livepress' ) . '</span></p>';
-		$sidebar .= '<p><span class="dashicons dashicons-admin-users"></span> <span id="livepress-authors_num">0</span> <span class="label">' . esc_html__( 'Remote Authors', 'livepress' ) . '</span></p>';
-		$sidebar .= '<p><span class="dashicons dashicons-welcome-view-site"></span> <span id="livepress-online_num">0</span> <span class="label">' . esc_html__( 'People Online', 'livepress' ) . '</span></p>';
+		$sidebar .= '<p><span class="icon-remote-authors"></span> <span id="livepress-authors_num">0</span> <span class="label">' . esc_html__( 'Remote Authors', 'livepress' ) . '</span></p>';
+		$sidebar .= '<p><span class="icon-people-online"></span> <span id="livepress-online_num">0</span> <span class="label">' . esc_html__( 'People Online', 'livepress' ) . '</span></p>';
 
 		apply_filters( 'livepress_sidebar_top', $sidebar );
 
@@ -580,7 +580,9 @@ function lp_admin_body_class( $classes ) {
 			<p>
 				<input type="text" id="live-search-query" name="live-search-query" />
 				<input type="submit" class="button-secondary" value="<?php esc_html_e( 'Add Search Term', 'livepress' ); ?>" />
-				<a id="lp-tweet-player" class="streamcontrol" href="#" title="<?php esc_attr_e( 'Click to pause the tweets so you can decide when to display them', 'livepress' ); ?>"><?php esc_html_e( 'play/pause', 'livepress' ); ?></a>
+				<a id="lp-tweet-player" class="streamcontrol button-secondary icon-pause" href="#" title="<?php esc_attr_e( 'Click to pause the tweets so you can decide when to display them', 'livepress' ); ?>">
+					<span class="screen-reader-text"><?php esc_html_e( 'play/pause', 'livepress' ); ?><span>
+				</a>
 			</p>
             <div id="lp-twitter-search-terms">
             </div>
