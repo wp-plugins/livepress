@@ -1,4 +1,4 @@
-/*! livepress -v1.1.3
+/*! livepress -v1.1.4
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -21,7 +21,7 @@ jQuery(document).ready(function () {
 		// Disable updates via AJAX
 		var data = {
 			action:  'livepress-disable-global',
-			post_id: Livepress.Config.post_id,
+			post_id: LivepressConfig.post_id,
 			nonce:   jQuery(this).data('nonce')
 		};
 
@@ -31,7 +31,7 @@ jQuery(document).ready(function () {
 	/**
 	 * enabledisable called when user enabled or disabled livepress from the Admin bar can be removed if
 	 * this feature is moved from the admin bar to the plugin settings page
-	 * 
+	 *
 	 * @param object data
 	 *        - action	- string	action to take
 	 *        - post_id - string	post id
@@ -39,7 +39,7 @@ jQuery(document).ready(function () {
 	 */
 	var endisable = function (data) {
 		jQuery.post(
-			ajaxurl || Livepress.Config.ajax_url,
+			ajaxurl || LivepressConfig.ajax_url,
 			data,
 			function (response) {
 				var bar = jQuery('#wp-admin-bar-livepress-status'),
@@ -52,7 +52,7 @@ jQuery(document).ready(function () {
 						external.removeClass('disabled').addClass('enabled');
 						break;
 					case 'disconnected':
-						meta_box.addClass( 'globally_disconnected' ).removeClass( 'globally_disabled' );	
+						meta_box.addClass( 'globally_disconnected' ).removeClass( 'globally_disabled' );
 						bar.removeClass('disabled').removeClass('connected');
 						external.removeClass('disabled').addClass('enabled');
 						break;

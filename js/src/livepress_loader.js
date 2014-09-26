@@ -1,5 +1,6 @@
 /*jslint plusplus:true, vars:true */
-/*global console, Livepress, jQuery, document, navigator */
+/*global LivepressConfig, console, jQuery, document, navigator */
+var Livepress = Livepress || {};
 
 (function () {
 	var loader = function () {
@@ -22,7 +23,7 @@
 		}
 
 		//DEBUG Lines are included only in debugging version. They are completely removed from release code
-		if (Livepress.Config.debug !== undefined && Livepress.Config.debug) { //DEBUG
+		if (LivepressConfig.debug !== undefined && LivepressConfig.debug) { //DEBUG
 			var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
 			scripts = scripts.concat([ //DEBUG
 				'static://oortle.full.js?rnd=' + Math.random(), //DEBUG
@@ -31,8 +32,8 @@
 		} else //DEBUG
 		{
 			scripts = scripts.concat([
-				'static://oortle/' + Livepress.Config.oover[0] + '/oortle.min.js',
-				'static://' + Livepress.Config.oover[1] + '/cluster_settings.js?v=' + Livepress.Config.oover[2]
+				'static://oortle/' + LivepressConfig.oover[0] + '/oortle.min.js',
+				'static://' + LivepressConfig.oover[1] + '/cluster_settings.js?v=' + LivepressConfig.oover[2]
 			]);
 		}
 		var getPath = function (url) {
@@ -41,8 +42,8 @@
 			if (m.length) {
 				if (m[1] === 'http' || m[1] === 'https') {
 					url = url; // Do nothing for global URL
-				} else if ((m[1] + "_url") in Livepress.Config) { // Translate if url mapping defined for it
-					var prefix = Livepress.Config[m[1] + "_url"];
+				} else if ((m[1] + "_url") in LivepressConfig) { // Translate if url mapping defined for it
+					var prefix = LivepressConfig[m[1] + "_url"];
 					if (prefix.substr(-1) !== "/") {
 						prefix += "/";
 					}

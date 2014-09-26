@@ -1,5 +1,5 @@
 /*jslint vars:true */
-/*global lp_client_strings, Livepress, console */
+/*global lp_client_strings, LivepressConfig, Livepress, console */
 Livepress.Ui = {};
 
 Livepress.Ui.View = function (disable_comments) {
@@ -260,7 +260,7 @@ Livepress.Ui.UpdateBoxView = function (homepage_mode) {
 		$balloon.fadeOut();
 	});
 
-	$closeButton.attr('src', Livepress.Config.lp_plugin_url + '/img/lp-settings-close.png');
+	$closeButton.attr('src', LivepressConfig.lp_plugin_url + '/img/lp-settings-close.png');
 
 	function add_to_update_list (li_content) {
 		var item = [

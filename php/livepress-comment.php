@@ -19,8 +19,6 @@ class LivePress_Comment {
 
 	private $overridden_comments_count;
 
-	private static $special_comments_template_file = 'special_comments.php';
-
 	private static $ajax_response_codes = array(
 		'error'         => 404,
 		'closed'        => 403,
@@ -60,33 +58,35 @@ class LivePress_Comment {
 		// TODO: fix those operations with comments
 		add_action( 'transition_comment_status', array( &$this, 'send_comment_if_approved' ), 10, 3 );
 
-		add_action( 'wp_ajax_post_comment',        array( &$this, 'post_comment' ) );
-		add_action( 'wp_ajax_nopriv_post_comment', array( &$this, 'post_comment' ) );
-		add_action( 'wp_ajax_lp_dim_comment',      array( &$this, 'dim_comment' ) );
-		add_action( 'wp_ajax_lp-dim-comment',      array( &$this, 'dim_comment' ) );
+		add_action( 'wp_ajax_lp_post_comment',        array( &$this, 'lp_post_comment' ) );
+		add_action( 'wp_ajax_nopriv_lp_post_comment', array( &$this, 'lp_post_comment' ) );
+		add_action( 'wp_ajax_lp_dim_comment',         array( &$this, 'lp_dim_comment' ) );
 
 		if ( $is_ajax_lp_comment_request ) {
-			add_action( 'comment_duplicate_trigger', array( &$this, 'received_a_duplicate_comment' ) );
 			add_action( 'comment_flood_trigger',     array( &$this, 'received_a_flood_comment' ) );
 		} else {
 			add_filter( 'comments_template', array( &$this, 'enclose_comments_in_div' ) );
 		}
 	}
 
-	/**
-	 * Workaround over unique nonce per comment for admin interface
-	 **/
-	public function dim_comment() {
+	// Verifies the nonce for the live edit screen, takes the comment id as $_POST['id'] and
+	// returns the nonce required to take action on a comment
+	public function lp_dim_comment() {
+
 		$id = isset( $_POST['id'] ) ? (int) $_POST['id'] : 0;
 		if ( $comment = get_comment( $id ) ) {
-			check_ajax_referer( "post_comment" ); // TODO: Use $comment->post_ID for nonce
-			$nonce = wp_create_nonce( "approve-comment_".$id );
-			$_POST['_ajax_nonce'] = $nonce;
-			$_REQUEST['_ajax_nonce'] = $nonce;
+			check_ajax_referer( "post_comment" );
+			$nonce = array(
+				'approve_comment_nonce' => wp_create_nonce( 'approve-comment_' . $id ),
+				'delete_comment_nonce'  => wp_create_nonce( 'delete-comment_' . $id )
+				);
+			wp_send_json_success( $nonce );
+		} else {
+			wp_send_json_error();
 		}
-		// Forward to uplink
-		return wp_ajax_dim_comment();
 	}
+
+
 
 	/**
 	 * Add comments needed by JS on frontend
@@ -100,29 +100,29 @@ class LivePress_Comment {
 		$config = LivePress_Config::get_instance();
 
 		if ( isset( $post->comment_count ) ) {
-			$ljsc->new_value( 'comment_count', $post->comment_count, Configuration_Item::$LITERAL );
+			$ljsc->new_value( 'comment_count', $post->comment_count, Livepress_Configuration_Item::$LITERAL );
 		} else {
-			$ljsc->new_value( 'comment_count', 0, Configuration_Item::$LITERAL );
+			$ljsc->new_value( 'comment_count', 0, Livepress_Configuration_Item::$LITERAL );
 		}
 
 		$pagination_on = ( $config->get_host_option( "page_comments" ) == "1" );
-		$ljsc->new_value( 'comment_pagination_is_on', $pagination_on, Configuration_Item::$BOOLEAN );
-		$ljsc->new_value( 'comment_page_number', $page_active, Configuration_Item::$LITERAL );
-		$ljsc->new_value( 'comment_pages_count', $comments_per_page, Configuration_Item::$LITERAL );
+		$ljsc->new_value( 'comment_pagination_is_on', $pagination_on, Livepress_Configuration_Item::$BOOLEAN );
+		$ljsc->new_value( 'comment_page_number', $page_active, Livepress_Configuration_Item::$LITERAL );
+		$ljsc->new_value( 'comment_pages_count', $comments_per_page, Livepress_Configuration_Item::$LITERAL );
 
 		$comment_order = $config->get_host_option( 'comment_order' );
-		$ljsc->new_value( 'comment_order', $comment_order, Configuration_Item::$STRING );
+		$ljsc->new_value( 'comment_order', $comment_order, Livepress_Configuration_Item::$STRING );
 
 		$ljsc->new_value( 'disable_comments',
-				$this->options['disable_comments'], Configuration_Item::$BOOLEAN );
+				$this->options['disable_comments'], Livepress_Configuration_Item::$BOOLEAN );
 		$ljsc->new_value( 'comment_live_updates_default',
-				$this->options['comment_live_updates_default'], Configuration_Item::$BOOLEAN );
+				$this->options['comment_live_updates_default'], Livepress_Configuration_Item::$BOOLEAN );
 
 		if ( isset( $post->ID ) && $post->ID ) {
 			$comment_msg_id = LivePress_WP_Utils::get_from_post( $post->ID, "comment_update", true );
 			$ljsc->new_value( 'comment_msg_id', $comment_msg_id );
 			$ljsc->new_value( 'can_edit_comments', current_user_can( 'edit_post', $post->ID ),
-							Configuration_Item::$BOOLEAN );
+							Livepress_Configuration_Item::$BOOLEAN );
 		}
 	}
 
@@ -138,7 +138,7 @@ class LivePress_Comment {
 	 */
 	public function enclose_comments_in_div( $comments_template_path ) {
 		self::$comments_template_path = $comments_template_path;
-		return LP_PLUGIN_PATH . 'php/' . self::$special_comments_template_file;
+		return LP_PLUGIN_PATH . 'php/special_comments.php';
 	}
 
 	/**
@@ -338,11 +338,11 @@ class LivePress_Comment {
 		$dom = new DOMDocument( '1.0', 'UTF-8' );
 		$dom->validateOnParse = true;
 		$dom->formatOutput    = true;
-		@$parse_success       = $dom->loadHTML( '<?xml encoding="UTF-8"?>' . $view );
+		$parse_success       = @$dom->loadHTML( '<?xml encoding="UTF-8"?>' . $view );
 
 		if ( !$parse_success ) {
 			// fix for encoding detection bug, as "UTF-8" passed to constructor is not enough. *sigh*.
-			@$parse_success = $dom->loadHTML( '<?xml encoding="UTF-8"?>' . $view );
+			$parse_success = $dom->loadHTML( '<?xml encoding="UTF-8"?>' . $view );
 		}
 
 		$response = new DOMDocument( '1.0', 'UTF-8' );
@@ -415,8 +415,8 @@ class LivePress_Comment {
 
 		// Fakes $comments_by_type
 		$c_by_type =  separate_comments( $comments );
-		$wp_query->comments_by_type = &$c_by_type;
-		$comments_by_type = &$wp_query->comments_by_type;
+		$wp_query->comments_by_type = $c_by_type;
+		$comments_by_type = $wp_query->comments_by_type;
 		// Hack for bad-written themes, which rely on globals instead of functions
 		$GLOBALS['comments'] = &$comments;
 		$GLOBALS['comment_count'] = &$comments_count;
@@ -445,7 +445,7 @@ class LivePress_Comment {
 	 * Receives an ajax request to post a comment, returns comment's state
 	 * Uses a lot of GLOBAL variables and functions
 	 */
-	public function post_comment() {
+	public function lp_post_comment() {
 		global $wpdb, $post;
 		$comment_post_ID = ( int ) $_POST['comment_post_ID'];
 

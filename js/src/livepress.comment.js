@@ -1,4 +1,4 @@
-/*global lp_client_strings, Livepress, console */
+/*global LivepressConfig, lp_client_strings, Livepress, console */
 
 jQuery(function () {
 	Livepress.Comment = (function () {
@@ -53,21 +53,21 @@ jQuery(function () {
 				params._wp_unfiltered_html_comment = (form._wp_unfiltered_html_comment !== undefined) ? form._wp_unfiltered_html_comment.value : '';
 				params.redirect_to = '';
 				params.livepress_update = 'true';
-				params.action = 'post_comment';
-				params._ajax_nonce = Livepress.Config.ajax_comment_nonce;
+				params.action = 'lp_post_comment';
+				params._ajax_nonce = LivepressConfig.ajax_comment_nonce;
 
 				Livepress.sounds.play("commented");
 
 				jQuery.ajax({
-					url:     Livepress.Config.site_url + '/wp-admin/admin-ajax.php',
+					url:     LivepressConfig.site_url + '/wp-admin/admin-ajax.php',
 					type:    'post',
 					dataType:'json',
 					data:    params,
 					error:   function (request, textStatus, errorThrown) {
-						// TODO: Display message that send failed.
+
 						console.log("comment response: " + request.status + ' :: ' + request.statusText);
 						console.log("comment ajax failed: %s", textStatus);
-						set_comment_status( lp_client_strings.unknown_error );
+						set_comment_status( lp_client_strings.comment_status + ": " + request.responseText );
 						unblock_comment_textarea(false);
 					},
 					success: function (data, textStatus) {
@@ -99,7 +99,7 @@ jQuery(function () {
 		// we check if new comment is of same author and if user didn't modify it's contents meanwhile
 		var before_live_comment = function (comment_data) {
 			var comment_textarea = jQuery("#comment");
-			if (comment_data.ajax_nonce === Livepress.Config.ajax_nonce && comment_textarea.val() === comment_data.content) {
+			if (comment_data.ajax_nonce === LivepressConfig.ajax_nonce && comment_textarea.val() === comment_data.content) {
 				unblock_comment_textarea(true);
 			}
 		};
@@ -141,7 +141,7 @@ jQuery(function () {
 			return true;
 		};
 
-		if (!Livepress.Config.disable_comments) {
+		if (!LivepressConfig.disable_comments) {
 			attach();
 		}
 

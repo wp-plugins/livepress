@@ -1,4 +1,4 @@
-/*global Livepress, console */
+/*global LivepressConfig, Livepress, console */
 /*jslint plusplus:true, vars:true */
 
 Livepress.DOMManipulator = function (containerId, custom_background_color) {
@@ -215,7 +215,7 @@ Livepress.DOMManipulator.prototype = {
 			this.log('apply changes i=', i, ' changes.length = ', changes.length);
 			var change = changes[i];
 			this.log('change[i] = ', change[i]);
-			var parts, node, parent, container, childIndex, el, childRef, parent_path, content, x;
+			var parts, node, parent, container, childIndex, el, childRef, parent_path, content, x, inserted;
 			switch (change[0]) {
 
 				// ['add_class', 'element xpath', 'class name changed']
@@ -306,6 +306,7 @@ Livepress.DOMManipulator.prototype = {
 							this.log('push_node: parentNode = ', parentNode, ', node = ', node);
 
 							registers[change[2]] = parentNode.removeChild(node);
+							$( registers[change[2]] ).addClass( 'oortle-diff-inserted' );
 						}
 					} catch (epn) {
 						this.log('Exception on push_node: ', epn);
@@ -325,7 +326,8 @@ Livepress.DOMManipulator.prototype = {
 							childRef = parent.childNodes.length <= childIndex ? null : parent.childNodes[childIndex];
 
 							this.log("pop_node", el, 'from register', change[2], 'before element', childRef, 'on index ', childIndex, ' on parent ', parent);
-							parent.insertBefore(el, childRef);
+							inserted = parent.insertBefore(el, childRef);
+							$( inserted ).addClass( 'oortle-diff-inserted' );
 						}
 					} catch (epon) {
 						this.log('Exception on pop_node: ', epon);
@@ -350,7 +352,8 @@ Livepress.DOMManipulator.prototype = {
 							if(content.id==="" || document.getElementById(content.id)===null) {
                                 this.process_twitter( content, change[2] );
 								childRef = parent.childNodes.length <= childIndex ? null : parent.childNodes[childIndex];
-								parent.insertBefore(content, childRef);
+								inserted = parent.insertBefore(content, childRef);
+								$( inserted ).addClass( 'oortle-diff-inserted' );
 							}
 						}
 					} catch (ein1) {
@@ -359,7 +362,7 @@ Livepress.DOMManipulator.prototype = {
 					break;
 
                 // ['append_child', 'parent xpath', content]
-                // instead of "insertBefore", "appendChild" on found element called 
+                // instead of "insertBefore", "appendChild" on found element called
                 case 'append_child':
                     try {
                         // parent is passed path
@@ -372,7 +375,8 @@ Livepress.DOMManipulator.prototype = {
                             // Suppress duplicate append
 							if(content.id!=="" && document.getElementById(content.id)!==null) {
                                 this.process_twitter( content, change[2] );
-								parent.appendChild(content);
+								inserted = parent.appendChild(content);
+								$( inserted ).addClass( 'oortle-diff-inserted' );
 							}
 						}
                     } catch (ein1) {
@@ -481,7 +485,7 @@ Livepress.DOMManipulator.prototype = {
 		var $el = jQuery(el);
 
 		// if user is not on the page
-		if (!Livepress.Config.page_active) {
+		if (!LivepressConfig.page_active) {
 			$el.getBg();
 			$el.data("oldbg", $el.css('background-color'));
 			$el.addClass('unfocused-lp-update');

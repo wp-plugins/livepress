@@ -15,20 +15,18 @@ class LivePress_Config {
 	 * @var array $configurable_options Configurable options.
 	 */
 	private $configurable_options = array (
-		'STATIC_HOST'               => '//static.livepress.com',
-		'LIVEPRESS_SERVICE_HOST'    => 'http://api.livepress.com',
+		'STATIC_HOST'               => 'https://static.livepress.com',
+		'LIVEPRESS_SERVICE_HOST'    => 'https://api.livepress.com',
 		'OORTLE_VERSION'            => '1.5',
 		'LIVEPRESS_CLUSTER'         => 'livepress.com',
-		'LIVEPRESS_VERSION'         => '1.0.7',
+		'LIVEPRESS_VERSION'         => '1.1.4',
 		'TIMESTAMP_HTML_TEMPLATE'   => '<abbr title="###TIMESTAMP###" class="livepress-timestamp">###TIME###</abbr>',
 		'TIMESTAMP_TEMPLATE'        => 'G:i',
 		'AUTHOR_TEMPLATE'           => '<span class="livepress-update-author">###AUTHOR###</span>',
 		'DEBUG'                     => FALSE,
 		'SCRIPT_DEBUG'              => FALSE,
-		'JABBER_DOMAIN'             => 'livepress.com',
 		'PLUGIN_SYMLINK'            => FALSE,
-		'SCRAPE_HOOKS'              => FALSE,
-		'PLUGIN_NAME'               => 'livepress-wp',
+		'LP_PLUGIN_NAME'            => 'livepress',
 	);
 
 	/**
@@ -56,18 +54,7 @@ class LivePress_Config {
 	 * Contructor that assigns the wordpress hooks, initialize the
 	 * configurable options and gets the wordpress options set.
 	 */
-	private function __construct() {
-        $options = $this->read_initialize_configurable_options();
-		$this->configurable_options = array_merge($this->configurable_options, $options);
-	}
-
-    // That function read developers-only configuration options override
-    // it doesn't suppose to work in production, but required to work in development
-	private function read_initialize_configurable_options() {
-        $options = array();
-        @include(dirname(__FILE__) .'/../config.php');
-        return $options;
-    }
+	private function __construct() {}
 
 	/**
 	 * Static host.
@@ -128,15 +115,6 @@ class LivePress_Config {
 	}
 
 	/**
-	 * Scrape hooks.
-	 *
-	 * @return mixed
-	 */
-	public function scrape_hooks() {
-		return $this->configurable_options['SCRAPE_HOOKS'];
-	}
-
-	/**
 	 * LivePress option getter.
 	 *
 	 * @param string $option_name Option name.
@@ -146,8 +124,8 @@ class LivePress_Config {
 	public function get_option($option_name) {
 		$option_name = strtoupper($option_name);
 
-		if (!isset($this->configurable_options[$option_name])) {
-			throw new Exception("Invalid livepress option.");
+		if ( ! isset( $this->configurable_options[ $option_name ] ) ) {
+			_doing_it_wrong( 'LivePress_Config::get_option', 'Invalid livepress option.', 1 );
 		}
 
 		return $this->configurable_options[$option_name];

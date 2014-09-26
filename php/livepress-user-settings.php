@@ -95,6 +95,36 @@ class LivePress_User_Settings {
 		<?php
 			if ( ( isset( $lp_options['allow_remote_twitter'] ) && $lp_options['allow_remote_twitter'] == 'allow' ) ):
 		?>
+		<?php
+		// Use actual password for VIP
+		if ( defined( 'WPCOM_IS_VIP_ENV' ) && true === WPCOM_IS_VIP_ENV ) {
+
+		?>
+			<tr>
+				<th><label for="lp_user_password"><?php esc_html_e( 'WordPress password', 'livepress' ) ?></label></th>
+				<td>
+				<?php
+					$blogging_tools = new LivePress_Blogging_Tools();
+					if ( $blogging_tools->get_have_user_pass( $user->ID ) ) {
+				?>
+					<div class="password_already_saved">Password already saved. <a class="reset_lp_user_password"><?php esc_html_e( 'Reset password', 'livepress' ) ?></a></div>
+				<div class="hidden_lp_user_password hidden">
+
+				<?php
+					} else {
+				?>
+				<div>
+				<?php } ?>
+					<input type="password" name="lp_user_password" id="lp_user_password" value="" class="regular-text" />
+					<table class="description">
+						<tr>
+							<td><?php esc_html_e( 'Please enter your WordPress password to enable remote publishing', 'livepress' ) ?></td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+		<?php } ?>
+
 			<tr>
 				<th><label for="lp_twitter"><?php esc_html_e( 'Publish from Twitter', 'livepress' ) ?></label></th>
 				<td class="input-prepend">
@@ -161,14 +191,15 @@ class LivePress_User_Settings {
 	function save_fields( $user_id ) {
 
 		// Check permissions and nonce.
-		if ( ! current_user_can( 'edit_user', $user_id ) && wp_verify_nonce( $_POST['_wpnonce'] ) )
+		if ( ( ! current_user_can( 'edit_user', $user_id ) && wp_verify_nonce( $_POST['_wpnonce'] ) ) ) {
 			return $user_id;
+		}
 
-			// TOOO: lp_phone_number
+		$old_lp_twitter   = get_user_meta( $user_id, 'lp_twitter', true ); // returns empty string if not set, perfect
+		$lp_twitter       = isset( $_POST['lp_twitter'] ) ? sanitize_text_field( $_POST['lp_twitter'] ) : '';
+		$lp_user_password = isset( $_POST['lp_user_password'] ) ? sanitize_text_field( $_POST['lp_user_password'] ) : '';
 
-		$old_lp_twitter = get_user_meta( $user_id, 'lp_twitter', true ); // returns empty string if not set, perfect
-		$lp_twitter     = isset( $_POST['lp_twitter'] ) ? sanitize_text_field( $_POST['lp_twitter'] ) : '';
-		if($old_lp_twitter != $lp_twitter) {
+		if( $old_lp_twitter != $lp_twitter || '' !== $lp_user_password ) {
 			$user = get_userdata( $user_id );
 
 			$options = get_option(LivePress_Administration::$options_name);
@@ -181,11 +212,11 @@ class LivePress_User_Settings {
 				$return_code   = $e->get_code();
 				$error_message = $e->getMessage();
 			}
-
-			if ( $return_code == 403 ) { /* User not found at livepress, or password invalid */
+			/* User not found at livepress, or password invalid, or WordPress password entered */
+			if ( $return_code == 403 || '' !== $lp_user_password ) {
 				$la = new LivePress_Administration();
 				$error_message = $livepress_com->get_last_error_message();
-				if ( ! $la->enable_remote_post( $user_id ) ) {
+				if ( ! $la->enable_remote_post( $user_id, $lp_user_password ) ) {
 					$this->add_error( "Error from the LivePress service: ", $error_message );
 				} else {
 					$error_message = '';
@@ -232,7 +263,7 @@ class LivePress_User_Settings {
 			if ( $return_code == 403 ) { /* User not found at livepress, or password invalid */
 				$la = new LivePress_Administration();
 				$error_message = $livepress_com->get_last_error_message();
-				if ( ! $la->enable_remote_post( $user_id ) ) {
+				if ( ! $la->enable_remote_post( $user_id, $lp_user_password ) ) {
 					$this->add_error( "Error from the LivePress service: ", $error_message );
 				} else {
 					$error_message = '';

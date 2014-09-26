@@ -145,7 +145,8 @@ body#tinymce .livepress-meta img {
 }
 
 /* live updates main pages (fixes floating issue) */
-.livepress-update {
+.livepress-update,
+.livepress-old-update {
 	display: block;
 	clear: both;
 	position: relative;
@@ -157,11 +158,13 @@ body#tinymce .livepress-meta img {
 	z-index: 10;
 }
 
-.livepress-update.lp-hl-on-hover:hover {
+.livepress-update.lp-hl-on-hover:hover,
+.livepress-old-update.lp-hl-on-hover:hover {
 	background: #f9f9c3;
 }
 
-.livepress-update.livepress-has-avatar {
+.livepress-update.livepress-has-avatar,
+.livepress-old-update.livepress-has-avatar  {
 	min-height: 40px;
 }
 
@@ -174,7 +177,7 @@ body#tinymce .livepress-meta img {
 }
 
 /* Images shouldn't be on the same line as meta header */
-.livepress-old-update, .livepress-update img{
+.livepress-old-update img, .livepress-update img{
 	clear: both;
 	display: block;
 }

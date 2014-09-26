@@ -74,25 +74,18 @@ class LivePress_PF_Updates {
 		$this->order = $options['feed_order'];
 
 		// Wire actions
-		add_action( 'wp_ajax_start_ee',           array( $this, 'start_editor' ) );
-		add_action( 'wp_ajax_append_post_update', array( $this, 'append_update' ) );
-		add_action( 'wp_ajax_change_post_update', array( $this, 'change_update' ) );
-		add_action( 'wp_ajax_delete_post_update', array( $this, 'delete_update' ) );
-		add_action( 'before_delete_post',         array( $this, 'delete_children' ) );
-		add_action( 'pre_get_posts',              array( $this, 'filter_children_from_query' ) );
+		add_action( 'wp_ajax_start_ee',              array( $this, 'start_editor' ) );
+		add_action( 'wp_ajax_lp_append_post_update', array( $this, 'append_update' ) );
+		add_action( 'wp_ajax_lp_change_post_update', array( $this, 'change_update' ) );
+		add_action( 'wp_ajax_lp_delete_post_update', array( $this, 'delete_update' ) );
+		add_action( 'before_delete_post',            array( $this, 'delete_children' ) );
+		add_action( 'pre_get_posts',                 array( $this, 'filter_children_from_query' ) );
 
 		// Wire filters
-		add_filter( 'parse_query',                array( $this, 'hierarchical_posts_filter' ) );
-
-		// WordPress 3.7 introduces a new filter for the Post count
-		if ( get_bloginfo('version') < 3.7 ) {
-			add_filter( 'edit_posts_per_page',    array( $this, 'setup_post_counts' ), 10, 2 );
-		} else {
-			add_filter( 'wp_count_posts',         array( $this, 'setup_post_counts_37' ), 10, 3 );
-		}
-		add_filter( 'the_content',                array( $this, 'process_oembeds' ), -10 );
-		add_filter( 'the_content',                array( $this, 'append_more_tag' ) );
-		add_filter( 'the_content',                array( $this, 'add_children_to_post' ) );
+		add_filter( 'parse_query',                   array( $this, 'hierarchical_posts_filter' ) );
+		add_filter( 'the_content',                   array( $this, 'process_oembeds' ), -10 );
+		add_filter( 'the_content',                   array( $this, 'append_more_tag' ) );
+		add_filter( 'the_content',                   array( $this, 'add_children_to_post' ) );
 	}
 
 	/**
@@ -129,101 +122,6 @@ class LivePress_PF_Updates {
 		}
 
 		return $query;
-	}
-
-	/**
-	 * Modify returned post counts by status to avoid counting the live sub-posts.
-	 *
-	 * @since 1.0.6
-	 *
-	 * @param object $counts An object containing the current post_type's post counts by status.
-	 * @param string $type   The post type.
-	 * @param string $perm   The permission to determine if the posts are 'readable' by the current user.
-	 */
-	public function setup_post_counts_37( $counts, $post_type, $perm ) {
-
-		global $wpdb;
-
-		$user = wp_get_current_user();
-		$cache_key = 'posts-' . $post_type;
-
-		$query = "SELECT post_status, COUNT( * ) AS num_posts FROM {$wpdb->posts} WHERE post_status!='auto-draft' AND post_type='%s' AND post_parent = '0'";
-			if ( is_user_logged_in() ) {
-				$post_type_object = get_post_type_object( $post_type );
-				if ( ! current_user_can( $post_type_object->cap->read_private_posts ) ) {
-					$cache_key .= '_' . $perm . '_' . $user->ID;
-					$query .= " AND (post_status != 'private' OR ( post_author = '$user->ID' AND post_status = 'private' ))";
-				}
-			}
-		$query      .= ' GROUP BY post_status';
-		$counts = wp_cache_get( $cache_key, 'counts' );
-		if ( false === $counts ) {
-			$query       = $wpdb->prepare( $query, $post_type );
-			$new_count   = $wpdb->get_results( $query, ARRAY_A );
-			$post_status = wp_list_pluck( $new_count, 'num_posts' );
-
-			$include_in_count = array( 'publish', 'draft', 'trash', 'private' );
-			foreach( $new_count as $count ) {
-				if( in_array( $count[ 'post_status' ], $include_in_count ) ) {
-					$counts->$count[ 'post_status' ] = $count[ 'num_posts' ];
-				} else {
-					$counts->$count[ 'post_status' ] = 0;
-				}
-			}
-			wp_cache_set( $cache_key, $counts, 'counts' );
-		}
-		return $counts;
-	}
-
-	/**
-	 * Hacky way to fix post counts on the post edit screen, required before WordPress 3.7.
-	 *
-	 * Note: Will not be called if WordPress 3.7+ available
-	 *
-	 * By default, the post counts will list all posts, even the hidden child posts that we want to hide.  This
-	 * can cause confusion if the list is only showing 5 posts by shows there are a total of 20 posts in the database.
-	 * To fix this, we hook in to the last filter we can before `$wp_list_table->get_views()` is called on the post
-	 * list screen and run our own query to update the count cache, omitting child posts from our query.
-	 *
-	 * Since we're hooking on to a filter rather than an action, be sure to return whatever value was passed in.
-	 *
-	 * @param int    $per_page
-	 * @param string $post_type
-	 *
-	 * @return int
-	 */
-	public function setup_post_counts( $per_page, $post_type ) {
-		if ( 'post' !== $post_type ) {
-			return $per_page;
-		}
-
-		global $wpdb;
-
-		$user = wp_get_current_user();
-
-		$cache_key = $post_type;
-
-		$query = "SELECT post_status, COUNT( * ) AS num_posts FROM {$wpdb->posts} WHERE post_type = %s AND post_parent = 0";
-		if ( is_user_logged_in() ) {
-			$post_type_object = get_post_type_object( $post_type );
-			if ( ! current_user_can( $post_type_object->cap->read_private_posts ) ) {
-				$cache_key .= '_' . 'readable' . '_' . $user->ID;
-				$query     .= " AND (post_status != 'private' OR ( post_author = '$user->ID' AND post_status = 'private' ))";
-			}
-		}
-		$query .= ' GROUP BY post_status';
-		$count  = $wpdb->get_results( $wpdb->prepare( $query, $post_type ), ARRAY_A );
-
-		$stats = array();
-		foreach ( get_post_stati() as $state )
-			$stats[$state] = 0;
-
-		foreach ( (array) $count as $row )
-			$stats[$row['post_status']] = $row['num_posts'];
-		$stats = (object) $stats;
-		wp_cache_set($cache_key, $stats, 'counts');
-
-		return $per_page;
 	}
 
 	/**
@@ -385,19 +283,26 @@ class LivePress_PF_Updates {
 		$excerpt = trim( $post->post_excerpt );
 
 		if ( $this->is_empty( $content ) && $this->is_empty( $excerpt ) ) {
-			// We have no content to display. Grab the post's first update and return it instead.
-			$children = get_children(
-				array(
-					'post_type'   => 'post',
-					'post_parent' => $post->ID,
-					'numberposts' => 1
-				)
-			);
 
-			if ( count( $children ) > 0 ) {
-				reset( $children );
-				$child    = $children[key( $children )];
-				$extras = apply_filters( 'the_content', $child->post_content );
+			// Use transient cache to ensure child query only runs once/minute
+			if ( false === ( $extras = get_transient( 'lp_first_child_extra_' . $post->ID ) ) ) {
+				// We have no content to display. Grab the post's first update and return it instead.
+				$children = get_children(
+					array(
+						'post_type'   => 'post',
+						'post_parent' => $post->ID,
+						'numberposts' => 1
+					)
+				);
+
+				if ( count( $children ) > 0 ) {
+					reset( $children );
+					$child    = $children[key( $children )];
+					$piece_id = get_post_meta( $child->ID, '_livepress_update_id', true );
+
+					$extras = apply_filters( 'the_content', $child->post_content );
+				}
+				set_transient( 'lp_first_child_extra_' . $post->ID, $extras, MINUTE_IN_SECONDS );
 			}
 		}
 
@@ -852,7 +757,7 @@ class LivePress_PF_Updates {
 
 		try {
 			$job_uuid = $this->lp_comm->send_to_livepress_incremental_post_update( $op, $message );
-			LivePress_WP_Utils::save_on_post( $parent->ID, 'status_uuid', $job_uuid );
+			LivePress_WP_Utils::save_on_post( $post->ID, 'status_uuid', $job_uuid );
 		} catch( livepress_communication_exception $e ) {
 			$e->log( 'incremental post update' );
 		}
@@ -1006,7 +911,7 @@ class LivePress_PF_Updates {
 		$options = array(
 			'post_parent' => $post_id,
 			'post_type'   => 'revision',
-			'numberposts' => -1,
+			'numberposts' => 2,
 			'post_status' => 'any',
 		);
 
@@ -1033,24 +938,26 @@ class LivePress_PF_Updates {
 	 * @return null|object Returns null if a post doesn't exist.
 	 */
 	protected function get_update( $parent_id, $livepress_update_id ) {
-		$query = new WP_Query(
-			array(
-				'post_type' => 'post',
-				'post_parent' => $parent_id,
-				# post_name is indexed field, plus storend in same table as post contents,
-				# so its retrive/update are atomic operation.
-				# since slug doesn't required for updates, we can freely use that field for us.
-				'name' => 'livepress_update__'.$livepress_update_id,
-			)
-		);
+		global $wpdb;
 
-		if ( ! $query->have_posts() ) {
+		$query = $wpdb->prepare( '
+			SELECT      *
+			FROM        wp_posts
+			WHERE       wp_posts.post_name   = %s
+			AND         wp_posts.post_type   = "post"
+			AND         wp_posts.post_parent = %s
+			LIMIT 1',
+			'livepress_update__' . $livepress_update_id,
+			$parent_id
+		);
+		$wpdb->get_results( $query );
+
+		if ( 0 === $wpdb->num_rows ) {
 			return null;
 		}
 
-		return $query->post;
+		return $wpdb->last_result[0];
 	}
-
 }
 
 LivePress_PF_Updates::get_instance();

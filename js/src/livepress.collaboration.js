@@ -1,5 +1,5 @@
 /*jslint nomen:true, plusplus:true */
-/*global lp_strings, Livepress, Dashboard, console, OORTLE */
+/*global LivepressConfig, lp_strings, Livepress, Dashboard, console, OORTLE, LivepressConfig */
 var Collaboration = Livepress.ensureExists(Collaboration);
 Collaboration.chat_topic_id = function () {
 	var topic = Collaboration.post_topic() + "_chat";
@@ -143,7 +143,7 @@ jQuery.extend(Collaboration.Edit, {
 });
 
 Collaboration.post_topic = function () {
-	return "|livepress|" + Livepress.Config.site_url + "|post-" + Livepress.Config.post_id;
+	return "|livepress|" + LivepressConfig.site_url + "|post-" + LivepressConfig.post_id;
 };
 
 Collaboration.edit_post_topic = function () {
@@ -153,7 +153,7 @@ Collaboration.edit_post_topic = function () {
 
 jQuery.extend(Collaboration, {
 	Connected: false,
-	Author:    Livepress.Config.current_user,
+	Author:    LivepressConfig.current_user,
 
 	start: function (mode) {
 		if (mode.enabled) {
@@ -209,7 +209,7 @@ jQuery.extend(Collaboration.Edit, {
 		this.update_live_posts_number();
 
 		// Collaborative editing...
-		var opt = Livepress.Config.post_edit_msg_id ? {last_id: Livepress.Config.post_edit_msg_id} : {fetch_all: true};
+		var opt = LivepressConfig.post_edit_msg_id ? {last_id: LivepressConfig.post_edit_msg_id} : {fetch_all: true};
 		OORTLE.instance.subscribe(Collaboration.edit_post_topic(), this.editing_post_callback, opt);
 		// Readers online
 		OORTLE.instance.subscribe("|subcount" + Collaboration.post_topic(), this.readers_callback);
@@ -269,14 +269,14 @@ jQuery.extend(Collaboration.Edit, {
 
 		if (!args) {
 			params = {
-				action:           'collaboration_get_live_edition_data',
-				_ajax_nonce:      Livepress.Config.ajax_nonce,
-				post_id:          Livepress.Config.post_id
+				action:           'lp_collaboration_get_live_edition_data',
+				_ajax_nonce:      LivepressConfig.ajax_get_live_edition_data,
+				post_id:          LivepressConfig.post_id
 			};
 			jQuery.ajax({
 				type:     "GET",
 				dataType: "json",
-				url:      Livepress.Config.site_url + '/wp-admin/admin-ajax.php',
+				url:      LivepressConfig.site_url + '/wp-admin/admin-ajax.php',
 				data:     params,
 				success:  success,
 				error:    error

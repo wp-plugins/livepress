@@ -1,5 +1,6 @@
 /*jslint white: false, vars:true, nomen: false */
-/*global Livepress, jQuery, document */
+/*global LivepressConfig, jQuery, document */
+var Livepress = Livepress || {};
 (function () {
 	var lpEnabled = false;
 	var lpLoad = function () {
@@ -9,18 +10,18 @@
 		lpEnabled = true;
 		Livepress.CSSQueue = [];
 		var mode = 'min';
-		if (Livepress.Config.debug) {
+		if (LivepressConfig.debug) {
 			mode = 'full';
 		}
-		Livepress.JSQueue = [(jQuery === undefined ? 'jquery://' : ''), 'wpstatic://js/' + '/livepress-release.full.js?v=' + Livepress.Config.ver];
+		Livepress.JSQueue = [(jQuery === undefined ? 'jquery://' : ''), 'wpstatic://js/' + '/livepress-release.full.js?v=' + LivepressConfig.ver];
 		var loader = document.createElement('script');
 		loader.setAttribute('id', 'LivePress-loader-script');
-		loader.setAttribute('src', Livepress.Config.wpstatic_url + 'js/livepress_loader.' + mode + '.js?v=' + Livepress.Config.ver);
+		loader.setAttribute('src', LivepressConfig.wpstatic_url + 'js/livepress_loader.' + mode + '.js?v=' + LivepressConfig.ver);
 		loader.setAttribute('type', 'text/javascript');
 		document.getElementsByTagName('head').item(0).appendChild(loader);
 	};
 
-	if (Livepress.Config.page_type === 'home' || Livepress.Config.page_type === 'single') {
+	if (LivepressConfig.page_type === 'home' || LivepressConfig.page_type === 'single') {
 		lpLoad();
 	}
 }());

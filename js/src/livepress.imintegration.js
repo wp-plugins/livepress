@@ -1,4 +1,4 @@
-/*global lp_strings, Livepress, console */
+/*global lp_strings, Livepress, console, LivepressConfig */
 /**
  * Object containing methods pertaining to instance message integration.
  *
@@ -29,7 +29,7 @@ ImIntegration.check_status = function (protocol) {
  * @private
  */
 ImIntegration.__spin_loading = function () {
-	var image_path = Livepress.Config.lp_plugin_url + '/img/spin.gif',
+	var image_path = LivepressConfig.lp_plugin_url + '/img/spin.gif',
 		html_image = jQuery("<img />").attr('src', image_path);
 
 	console.log("created spin: " + html_image.html());
@@ -49,9 +49,10 @@ ImIntegration.__check_status = function (protocol, tries) {
 	var params = {},
 		$check_button = jQuery("#check_" + protocol),
 		$check_message = jQuery("#check_message_" + protocol),
-		admin_ajax_url = Livepress.Config.site_url + '/wp-admin/admin-ajax.php';
+		admin_ajax_url = LivepressConfig.site_url + '/wp-admin/admin-ajax.php';
 
-	params.action = "im_integration";
+	params.action = "lp_im_integration";
+	params._ajax_nonce = LivepressConfig.ajax_lp_im_integration;
 	params.im_integration_check_status = true;
 	params.im_service = protocol;
 
@@ -162,7 +163,7 @@ ImIntegration.send_test_message = function (source, protocol) {
 	console.log("Sending test message to: " + buddy + " using " + protocol + " protocol");
 
 	jQuery.ajax({
-		url:      Livepress.Config.site_url + '/wp-admin/admin-ajax.php',
+		url:      LivepressConfig.ajax_url,
 		type:     'post',
 		dataType: 'json',
 		data:     params,

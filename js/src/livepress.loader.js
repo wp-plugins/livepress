@@ -1,5 +1,6 @@
 /*jslint vars:true, regexp:true */
-/*global Livepress*/
+/*global LivepressConfig*/
+var Livepress = Livepress || {};
 (function () {
 	var loader = function () {
 		var scripts = [],
@@ -20,9 +21,9 @@
 			styles = styles.concat(Livepress.CSSQueue);
 		}
 
-		if ( Livepress.Config.current_screen !== undefined && Livepress.Config.current_screen[0] === 'post' && Livepress.Config.current_screen[1] === 'post' ) {
+		if ( LivepressConfig.current_screen !== undefined && LivepressConfig.current_screen.base === 'post' && LivepressConfig.current_screen.id === 'post' ) {
 			//DEBUG Lines are included only in debugging version. They are completely removed from release code
-			if (Livepress.Config.debug !== undefined && Livepress.Config.debug) { //DEBUG
+			if (LivepressConfig.debug !== undefined && LivepressConfig.debug) { //DEBUG
 				var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
 				scripts = scripts.concat([ //DEBUG
 					'static://oortle.full.js?rnd=' + Math.random(), //DEBUG
@@ -31,8 +32,8 @@
 			} else //DEBUG
 			{
 				scripts = scripts.concat([
-					'static://oortle/' + Livepress.Config.oover[0] + '/oortle.min.js',
-					'static://' + Livepress.Config.oover[1] + '/cluster_settings.js?v=' + Livepress.Config.oover[2]
+					'static://oortle/' + LivepressConfig.oover[0] + '/oortle.min.js',
+					'static://' + LivepressConfig.oover[1] + '/cluster_settings.js?v=' + LivepressConfig.oover[2]
 				]);
 			}
 		}
@@ -40,8 +41,8 @@
 			var m = url.match(/^([a-z]+):\/\/(.*)$/);
 
 			if (m.length) {
-				if (Livepress.Config[m[1] + '_url'] !== undefined) { // Translate if url mapping defined for it
-					var prefix = Livepress.Config[m[1] + "_url"];
+				if (LivepressConfig[m[1] + '_url'] !== undefined) { // Translate if url mapping defined for it
+					var prefix = LivepressConfig[m[1] + "_url"];
 					if (prefix.substr(-1) !== "/") {
 						prefix += "/";
 					}

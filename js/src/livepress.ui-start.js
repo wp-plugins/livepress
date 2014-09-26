@@ -1,4 +1,4 @@
-/*global OORTLE, Livepress */
+/*global OORTLE, LivepressConfig, Livepress */
 
 if (jQuery !== undefined) {
 	jQuery.ajax = (function (jQajax) {
@@ -13,7 +13,7 @@ if (jQuery !== undefined) {
 
 Livepress.Ready = function () {
 
-	var $lpcontent, $firstUpdate, $livepressBar, $heightOfUpdate,
+	var $lpcontent, $firstUpdate, $livepressBar, $heightOfFirstUpdate, $firstUpdateContainer, diff,
 		hooks = {
 			post_comment_update:  Livepress.Comment.attach,
 			before_live_comment:  Livepress.Comment.before_live_comment,
@@ -26,24 +26,30 @@ Livepress.Ready = function () {
 	if ( jQuery( '.lp-status' ).hasClass( 'livepress-pinned-header' ) ) {
 		// Adjust the positioning of the first post to pin it to the top
 		var adjustTopPostPositioning = function() {
-			$lpcontent    = jQuery( '.livepress_content' );
-			$firstUpdate  = $lpcontent.find( '.livepress-update:first' );
-			$livepressBar = jQuery( '#livepress' );
-			$heightOfUpdate = ( $firstUpdate.outerHeight() + 20 );
-			$firstUpdate.css( {
-				'margin-top': '-' + ( $heightOfUpdate + 30 ) + 'px',
-				'position': 'absolute',
-				'width' : ( $livepressBar.outerWidth() ) + 'px'
-			} );
-			$livepressBar.css( { 'margin-top': $heightOfUpdate + 'px' } );
+			setTimeout( function() {
+				window.console.log( 'adjust top' );
+				$lpcontent    = jQuery( '.livepress_content' );
+				$firstUpdate  = $lpcontent.find( '.livepress-update#livepress-update-0' );
+				$firstUpdateContainer = $lpcontent.parent();
+				$firstUpdate.css( 'marginTop', 0 );
+				diff = $firstUpdate.offset().top - $firstUpdateContainer.offset().top;
+				$livepressBar = jQuery( '#livepress' );
+				$heightOfFirstUpdate = ( $firstUpdate.outerHeight() + 20 );
+				$firstUpdate.css( {
+					'margin-top': '-' + ( diff + 50 ) + 'px',
+					'position': 'absolute',
+					'width' : ( $livepressBar.outerWidth() ) + 'px'
+				} );
+				$livepressBar.css( { 'margin-top': $heightOfFirstUpdate + 'px' } );
+			}, 1500 );
 		};
 
 		adjustTopPostPositioning();
 
 		// Adjust the top position whenever the post is updated so it fits properly
-		jQuery( document ).on( 'post_update', function(){
+		jQuery( document ).on( 'live_post_update', function(){
 			adjustTopPostPositioning();
 		});
 	}
-	return new Livepress.Ui.Controller(Livepress.Config, hooks);
+	return new Livepress.Ui.Controller(LivepressConfig, hooks);
 };

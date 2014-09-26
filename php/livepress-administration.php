@@ -10,7 +10,7 @@
  * This file has all the code that does the
  * communication with the livepress service.
  */
-require_once 'livepress-communication.php';
+require_once ( LP_PLUGIN_PATH . 'php/livepress-communication.php' );
 
 class LivePress_Administration {
 
@@ -192,7 +192,7 @@ class LivePress_Administration {
 	}
 
 	/**
-	 * Post admin footer nonces.
+	 * Post admin footer nonces. Added on post edit screen.
 	 */
 	function admin_footer() {
 		global $post;
@@ -212,26 +212,42 @@ class LivePress_Administration {
 	/**
 	 * Remote post toggle.
 	 *
-	 * @param int $user_id The user ID.
-	 * @return bool Whether to enable remote posting.
+	 * @param int    $user_id          The user ID.
+	 * @param string $lp_user_password The user's password, for VIP only
+	 * @return bool                    Whether to enable remote posting.
 	 */
-	public function enable_remote_post($user_id) {
+	public function enable_remote_post($user_id, $lp_user_password = '' ) {
 		$user          = get_userdata($user_id);
 		$this->options = get_option( self::$options_name );
 		$livepress_com = new LivePress_Communication($this->options['api_key']);
-		$user_pass     = wp_generate_password( 20, false );
-		$lp_key        = wp_hash_password( $user_pass );
-		/* Avoid race condition by enabling two passwords at that point */
-		update_user_meta( $user_id, 'livepress-access-key-new', $lp_key );
-		$return_code = $livepress_com->create_blog_user( $user->user_login, $user_pass );
-		if ( $return_code != 200 ) {
-			$this->add_error( esc_html__( "Can't enable remote post feature, so the remote post updates for this user will not work.", 'livepress' ) );
-			$res = false;
+		// Use token for non VIP
+		if ( ! defined( 'WPCOM_IS_VIP_ENV' ) || false === WPCOM_IS_VIP_ENV ) {
+			$user_pass     = wp_generate_password( 20, false );
+			$lp_key        = wp_hash_password( $user_pass );
+			update_user_meta( $user_id, 'livepress-access-key-new', $lp_key );
+			/* Avoid race condition by enabling two passwords at that point */
+			$return_code = $livepress_com->create_blog_user( $user->user_login, $user_pass );
+			if ( $return_code != 200 ) {
+				$this->add_error( esc_html__( "Can't enable remote post feature, so the remote post updates for this user will not work.", 'livepress' ) );
+				$res = false;
+			} else {
+				update_user_meta( $user_id, 'livepress-access-key', $lp_key );
+				$res = true;
+			}
+			delete_user_meta( $user_id, 'livepress-access-key-new' );
 		} else {
-			update_user_meta( $user_id, 'livepress-access-key', $lp_key );
-			$res = true;
+			// In VIP use actual password, don't store locally at all
+			$return_code = $livepress_com->create_blog_user( $user->user_login, $lp_user_password );
+			$blogging_tools = new LivePress_Blogging_Tools();
+			if ( $return_code != 200 ) {
+				$this->add_error( esc_html__( "Can't enable remote post feature, so the remote post updates for this user will not work.", 'livepress' ) );
+				$res = false;
+			} else {
+				$res = true;
+			}
+			$blogging_tools->set_have_user_pass( $user_id, $res );
 		}
-		delete_user_meta( $user_id, 'livepress-access-key-new' );
+
 		return $res;
 	}
 
@@ -341,6 +357,7 @@ class LivePress_Administration {
 		$livepress_com = new LivePress_Communication($this->options['api_key']);
 
 		if ( $this->has_changed( 'api_key' ) ) {
+			// Note: site_url is the admin url on VIP
 			$validation = $livepress_com->validate_on_livepress( site_url() );
 			$api_key = $this->options['api_key'];
 			$this->options = $this->old_options;
@@ -380,42 +397,6 @@ class LivePress_Administration {
 		$return_code = 200;
 	}
 
-	/**
-	 * Update bool options.
-	 *
-	 * @access private
-	 *
-	 * @param $options
-	 * @param $bool_options
-	 */
-	private function update_bool_options( &$options, $bool_options ) {
-		foreach ( $bool_options as $option => $value ) {
-			if ( !in_array( $option, $this->internal_options ) ) {
-				if ( isset($_POST[$option]) ) {
-					$options[$option] = TRUE;
-				} else {
-					$options[$option] = FALSE;
-				}
-			}
-		}
-	}
-
-	/**
-	 * Update string options.
-	 *
-	 * @access private
-	 *
-	 * @param $options
-	 * @param $string_options
-	 */
-	private function update_string_options( &$options, $string_options ) {
-		foreach ( $string_options as $option => $value ) {
-			if ( isset($_POST[$option]) ) {
-				$options[$option] = esc_html( stripslashes( $_POST[$option] ) );
-			}
-		}
-	}
-
 	/*
 	 * Receives an ajax request to validate the api key
 	 * on the livepress webservice
@@ -428,15 +409,29 @@ class LivePress_Administration {
 	 * @return string
 	 */
 	public static function api_key_validate() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return 'Ouch';
+		self::die_if_not_allowed();
+		check_ajax_referer( 'livepress_api_validate_nonce' );
+
+		$api_key   = esc_html( stripslashes( $_GET['api_key'] ) );
+
+		// Add domain mapping primary domain
+		if ( function_exists( 'domain_mapping_siteurl' ) ) {
+			$domain_mapping_siteurl = domain_mapping_siteurl();
+			$domains[ 'alias' ] = $domain_mapping_siteurl;
+		} else {
+			$home_url = get_home_url(); // Mapped domain on VIP
+			$domains[ 'alias' ] = $home_url;
 		}
-		$api_key  = esc_html( stripslashes( $_GET['api_key'] ) );
-		$site_url = get_bloginfo( 'url' );
+
+		//@todo Add all domain aliased to the domains?
+		// Ensure unique list of domains
+		// $domains[ 'alias' ] = array_unique( $domains[ 'alias' ] );
+		// String any http/https headers
+		// $domains = preg_replace( '/^https?:\/\/(.*)/i', '$1', $domains );
 
 		// Validate with the LivePress webservice
 		$livepress_communication = new LivePress_Communication( $api_key );
-		$status = $livepress_communication->validate_on_livepress( $site_url );
+		$status = $livepress_communication->validate_on_livepress( $domains );
 
 		$options = get_option( self::$options_name );
 		$options['api_key'] = ( $api_key );
@@ -488,7 +483,7 @@ class LivePress_Administration {
 			header( 'HTTP/1.1 403 Forbidden' );
 			die();
 		} else {
-			@die($url);
+			die($url);
 		}
 	}
 
@@ -500,6 +495,7 @@ class LivePress_Administration {
 	 */
 	public static function post_to_twitter_ajaxed() {
 		self::die_if_not_allowed();
+		check_ajax_referer( 'lp_post_to_twitter_nonce' );
 		$options = get_option( self::$options_name );
 
 		if ( !isset($_POST['change_oauth_user'])
@@ -533,7 +529,7 @@ class LivePress_Administration {
 		}
 
 		update_option( self::$options_name, $options );
-		@die($url);
+		die($url);
 	}
 
 	/**
@@ -543,6 +539,7 @@ class LivePress_Administration {
 	 */
 	public static function check_oauth_authorization_status() {
 		self::die_if_not_allowed();
+		check_ajax_referer( 'lp_check_oauth_nonce' );
 		$options = get_option( self::$options_name );
 
 		$livepress_com = new LivePress_Communication($options['api_key']);
@@ -571,7 +568,7 @@ class LivePress_Administration {
 	 */
 	private static function die_if_not_allowed() {
 		if ( !current_user_can( 'manage_options' ) ) {
-			@die();
+			die();
 		}
 	}
 
@@ -597,6 +594,7 @@ class LivePress_Administration {
 		$this->messages['updated'][] = $msg;
 	}
 
+	// Functions that handle the changes
 	/**
 	 * Update post to Twitter.
 	 *
