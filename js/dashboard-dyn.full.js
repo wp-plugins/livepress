@@ -1,4 +1,4 @@
-/*! livepress -v1.1.3
+/*! livepress -v1.1.4
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -791,7 +791,7 @@ Livepress.DOMManipulator.prototype = {
 			this.log('apply changes i=', i, ' changes.length = ', changes.length);
 			var change = changes[i];
 			this.log('change[i] = ', change[i]);
-			var parts, node, parent, container, childIndex, el, childRef, parent_path, content, x;
+			var parts, node, parent, container, childIndex, el, childRef, parent_path, content, x, inserted;
 			switch (change[0]) {
 
 				// ['add_class', 'element xpath', 'class name changed']
@@ -882,6 +882,7 @@ Livepress.DOMManipulator.prototype = {
 							this.log('push_node: parentNode = ', parentNode, ', node = ', node);
 
 							registers[change[2]] = parentNode.removeChild(node);
+							$( registers[change[2]] ).addClass( 'oortle-diff-inserted' );
 						}
 					} catch (epn) {
 						this.log('Exception on push_node: ', epn);
@@ -901,7 +902,8 @@ Livepress.DOMManipulator.prototype = {
 							childRef = parent.childNodes.length <= childIndex ? null : parent.childNodes[childIndex];
 
 							this.log("pop_node", el, 'from register', change[2], 'before element', childRef, 'on index ', childIndex, ' on parent ', parent);
-							parent.insertBefore(el, childRef);
+							inserted = parent.insertBefore(el, childRef);
+							$( inserted ).addClass( 'oortle-diff-inserted' );
 						}
 					} catch (epon) {
 						this.log('Exception on pop_node: ', epon);
@@ -926,7 +928,8 @@ Livepress.DOMManipulator.prototype = {
 							if(content.id==="" || document.getElementById(content.id)===null) {
                                 this.process_twitter( content, change[2] );
 								childRef = parent.childNodes.length <= childIndex ? null : parent.childNodes[childIndex];
-								parent.insertBefore(content, childRef);
+								inserted = parent.insertBefore(content, childRef);
+								$( inserted ).addClass( 'oortle-diff-inserted' );
 							}
 						}
 					} catch (ein1) {
@@ -935,7 +938,7 @@ Livepress.DOMManipulator.prototype = {
 					break;
 
                 // ['append_child', 'parent xpath', content]
-                // instead of "insertBefore", "appendChild" on found element called 
+                // instead of "insertBefore", "appendChild" on found element called
                 case 'append_child':
                     try {
                         // parent is passed path
@@ -948,7 +951,8 @@ Livepress.DOMManipulator.prototype = {
                             // Suppress duplicate append
 							if(content.id!=="" && document.getElementById(content.id)!==null) {
                                 this.process_twitter( content, change[2] );
-								parent.appendChild(content);
+								inserted = parent.appendChild(content);
+								$( inserted ).addClass( 'oortle-diff-inserted' );
 							}
 						}
                     } catch (ein1) {
@@ -1057,7 +1061,7 @@ Livepress.DOMManipulator.prototype = {
 		var $el = jQuery(el);
 
 		// if user is not on the page
-		if (!Livepress.Config.page_active) {
+		if (!LivepressConfig.page_active) {
 			$el.getBg();
 			$el.data("oldbg", $el.css('background-color'));
 			$el.addClass('unfocused-lp-update');
@@ -1319,7 +1323,7 @@ Dashboard.Controller = Dashboard.Controller || function () {
 	var init = function () {
 
 		if ( Dashboard.Comments !== undefined ) {
-			if ( Livepress.Config.disable_comments ) {
+			if ( LivepressConfig.disable_comments ) {
 				jQuery( "#bar-controls .comment-count" ).hide();
 				$paneHolder.find( 'div[data-pane-name="Comments"]' ).hide();
 				Dashboard.Comments.disable();
@@ -1465,13 +1469,13 @@ function DHelpers() {
 	}
 
 	SELF.saveEEState = function ( state ) {
-		var postId = Livepress.Config.post_id;
+		var postId = LivepressConfig.post_id;
 		Livepress.storage.set( 'post-' + postId + '-eeenabled', state );
 	};
 
 	SELF.getEEState = function () {
 		if ( jQuery.getUrlVar( 'action' ) === 'edit' ) {
-			var postId = Livepress.Config.post_id;
+			var postId = LivepressConfig.post_id;
 			if ( ! postId ) {
 				return false;
 			}
@@ -1574,7 +1578,7 @@ function DHelpers() {
 
 Dashboard.Helpers = Dashboard.Helpers || new DHelpers();
 
-/*global lp_strings, Livepress, Dashboard, console, OORTLE */
+/*global LivepressConfig, lp_strings, Livepress, Dashboard, console, OORTLE, LivepressConfig */
 var Collaboration = Livepress.ensureExists(Collaboration);
 Collaboration.chat_topic_id = function () {
 	var topic = Collaboration.post_topic() + "_chat";
@@ -1718,7 +1722,7 @@ jQuery.extend(Collaboration.Edit, {
 });
 
 Collaboration.post_topic = function () {
-	return "|livepress|" + Livepress.Config.site_url + "|post-" + Livepress.Config.post_id;
+	return "|livepress|" + LivepressConfig.site_url + "|post-" + LivepressConfig.post_id;
 };
 
 Collaboration.edit_post_topic = function () {
@@ -1728,7 +1732,7 @@ Collaboration.edit_post_topic = function () {
 
 jQuery.extend(Collaboration, {
 	Connected: false,
-	Author:    Livepress.Config.current_user,
+	Author:    LivepressConfig.current_user,
 
 	start: function (mode) {
 		if (mode.enabled) {
@@ -1784,7 +1788,7 @@ jQuery.extend(Collaboration.Edit, {
 		this.update_live_posts_number();
 
 		// Collaborative editing...
-		var opt = Livepress.Config.post_edit_msg_id ? {last_id: Livepress.Config.post_edit_msg_id} : {fetch_all: true};
+		var opt = LivepressConfig.post_edit_msg_id ? {last_id: LivepressConfig.post_edit_msg_id} : {fetch_all: true};
 		OORTLE.instance.subscribe(Collaboration.edit_post_topic(), this.editing_post_callback, opt);
 		// Readers online
 		OORTLE.instance.subscribe("|subcount" + Collaboration.post_topic(), this.readers_callback);
@@ -1844,14 +1848,14 @@ jQuery.extend(Collaboration.Edit, {
 
 		if (!args) {
 			params = {
-				action:           'collaboration_get_live_edition_data',
-				_ajax_nonce:      Livepress.Config.ajax_nonce,
-				post_id:          Livepress.Config.post_id
+				action:           'lp_collaboration_get_live_edition_data',
+				_ajax_nonce:      LivepressConfig.ajax_get_live_edition_data,
+				post_id:          LivepressConfig.post_id
 			};
 			jQuery.ajax({
 				type:     "GET",
 				dataType: "json",
-				url:      Livepress.Config.site_url + '/wp-admin/admin-ajax.php',
+				url:      LivepressConfig.site_url + '/wp-admin/admin-ajax.php',
 				data:     params,
 				success:  success,
 				error:    error
@@ -1952,7 +1956,7 @@ Collaboration.initialize = function () {
 	}
 };
 
-/*global lp_strings, Dashboard, console, Collaboration, OORTLE, Livepress, tinyMCE */
+/*global lp_strings, Dashboard, console, Collaboration, OORTLE, Livepress, tinyMCE, LivepressConfig */
 if (Dashboard.Comments === undefined) {
 	Dashboard.Comments = (function () {
 		var comments_on_hold = [];
@@ -2083,10 +2087,11 @@ if (Dashboard.Comments === undefined) {
 					return;
 				}
 				var params = {};
-				params.action = 'collaboration_comments_number';
-				params.post_id = Livepress.Config.post_id;
+				params.action = 'lp_collaboration_comments_number';
+				params._ajax_nonce = LivepressConfig.ajax_lp_collaboration_comments;
+				params.post_id = LivepressConfig.post_id;
 				jQuery.ajax({
-					url:      Livepress.Config.site_url + '/wp-admin/admin-ajax.php',
+					url:      LivepressConfig.site_url + '/wp-admin/admin-ajax.php',
 					type:     'post',
 					dataType: 'json',
 					data:     params,
@@ -2173,7 +2178,7 @@ if (Dashboard.Comments.Builder === undefined) {
 				nonces = jQuery('#blogging-tool-nonces');
 			var linkForSpamAndTrash = href.substring(0, href.lastIndexOf('/')) + "/edit-comments.php";
 			var defaultAjaxData = {
-				_ajax_nonce:      Livepress.Config.ajax_comment_nonce,
+				_ajax_nonce:      LivepressConfig.ajax_comment_nonce,
 				id:               commentId
 			};
 
@@ -2181,7 +2186,7 @@ if (Dashboard.Comments.Builder === undefined) {
 				return jQuery("<a></a>").attr("href", href).text(text).attr('title', title);
 			};
 
-			var postAndCommentIds = "&p=" + Livepress.Config.post_id + "&c=" + commentId + "&_wpnonce=" + nonces.data( 'live-comments' );
+			var postAndCommentIds = "&p=" + LivepressConfig.post_id + "&c=" + commentId + "&_wpnonce=" + nonces.data( 'live-comments' );
 			var linkAction = function (action) {
 				return "comment.php?action=" + action + postAndCommentIds;
 			};
@@ -2215,11 +2220,19 @@ if (Dashboard.Comments.Builder === undefined) {
 
 					jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
 						'new':    'approved',
-						action:   'lp-dim-comment',
+						action:   'lp_dim_comment',
 						dimClass: 'unapproved'
 					}),
-						function () {
-							jQuery("#lp-comment-" + commentId).removeClass("unapproved").addClass("approved");
+						function( returnnonce ) {
+							jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
+								'new':       'approved',
+								action:      'dim-comment',
+								dimClass:    'unapproved',
+								_ajax_nonce: returnnonce.data.approve_comment_nonce
+							}),
+							function () {
+								jQuery("#lp-comment-" + commentId).removeClass("unapproved").addClass("approved");
+							} );
 						}
 					);
 				});
@@ -2231,11 +2244,19 @@ if (Dashboard.Comments.Builder === undefined) {
 					e.stopPropagation();
 					jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
 						'new':    'unapproved',
-						action:   'lp-dim-comment',
+						action:   'lp_dim_comment',
 						dimClass: 'unapproved'
 					}),
-						function () {
-							jQuery("#lp-comment-" + commentId).removeClass("approved").addClass("unapproved");
+						function( returnnonce ) {
+							jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
+								'new':       'unapproved',
+								action:      'dim-comment',
+								dimClass:    'unapproved',
+								_ajax_nonce: returnnonce.data.approve_comment_nonce
+							}),
+							function () {
+								jQuery("#lp-comment-" + commentId).removeClass("approved").addClass("unapproved");
+							} );
 						}
 					);
 				});
@@ -2248,29 +2269,48 @@ if (Dashboard.Comments.Builder === undefined) {
 				e.preventDefault();
 				e.stopPropagation();
 
-				jQuery.post("admin-ajax.php",
-					jQuery.extend({}, defaultAjaxData,
-						{
-							action: 'delete-comment',
-							spam:   1,
-							_url:   linkForSpamAndTrash
-						}),
-					removeComment
-				);
+				jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
+						'new':    'unapproved',
+						action:   'lp_dim_comment',
+						dimClass: 'unapproved'
+					} ),
+					function( returnnonce ) {
+						jQuery.post("admin-ajax.php",
+							jQuery.extend({}, defaultAjaxData,
+								{
+									action: 'delete-comment',
+									spam:   1,
+									comment_status: 'all',
+									_url:   linkForSpamAndTrash,
+									_ajax_nonce: returnnonce.data.delete_comment_nonce
+								}),
+							removeComment
+						);
+					});
 			});
 
 			trashLink.click(function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				jQuery.post("admin-ajax.php",
-					jQuery.extend({}, defaultAjaxData,
-						{
-							action: 'delete-comment',
-							trash:  1,
-							_url:   linkForSpamAndTrash
-						}),
-					removeComment
-				);
+
+				jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
+						'new':    'unapproved',
+						action:   'lp_dim_comment',
+						dimClass: 'unapproved'
+					}),
+					function( returnnonce ) {
+						jQuery.post("admin-ajax.php",
+							jQuery.extend({}, defaultAjaxData,
+								{
+									action: 'delete-comment',
+									trash:  1,
+									comment_status: 'all',
+									_url:   linkForSpamAndTrash,
+									_ajax_nonce: returnnonce.data.delete_comment_nonce
+								}),
+							removeComment
+						);
+					});
 			});
 
 			postLink.bind('click', function (e) {
@@ -3575,7 +3615,7 @@ if (typeof twttr === "undefined" || twttr === null) {
 	}
 
 }());
-/*global lp_strings, Dashboard, Livepress, tinyMCE, OORTLE, twttr */
+/*global LivepressConfig, lp_strings, Dashboard, Livepress, tinyMCE, OORTLE, twttr */
 Dashboard.Twitter = Livepress.ensureExists(Dashboard.Twitter);
 
 Dashboard.Twitter.terms = [];
@@ -4093,11 +4133,11 @@ if (Dashboard.Twitter.twitter === undefined) {
 				jQuery.post(
 					"admin-ajax.php",
 					{
-						_ajax_nonce:      Livepress.Config.ajax_twitter_search_nonce,
-						action:           'twitter_search_term',
+						_ajax_nonce:      LivepressConfig.ajax_twitter_search_nonce,
+						action:           'lp_twitter_search_term',
 						term:             term,
 						action_type:      action_type,
-						post_id:          Livepress.Config.post_id
+						post_id:          LivepressConfig.post_id
 					},
 					success
 				);
@@ -4112,7 +4152,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 
 			// Auto tweets
 			checkIfAutoTweetPossible: function () {
-				if (!Livepress.Config.remote_post) {
+				if (!LivepressConfig.remote_post) {
 					$paneHolder.find(".autotweet-container").hide();
 					jQuery("#autotweet-blocked .warning").show();
 				} else {
@@ -4175,11 +4215,11 @@ if (Dashboard.Twitter.twitter === undefined) {
 				jQuery.post(
 					"admin-ajax.php",
 					{
-						_ajax_nonce:      Livepress.Config.ajax_twitter_follow_nonce,
-						action:           'twitter_follow',
+						_ajax_nonce:      LivepressConfig.ajax_twitter_follow_nonce,
+						action:           'lp_twitter_follow',
 						username:         username,
 						action_type:      action_type,
-						post_id:          Livepress.Config.post_id
+						post_id:          LivepressConfig.post_id
 					},
 					success
 				);
@@ -4203,7 +4243,8 @@ if (Dashboard.Twitter.twitter === undefined) {
 	}()));
 }
 
-/*global Livepress*/
+/*global LivepressConfig*/
+var Livepress = Livepress || {};
 (function () {
 	var loader = function () {
 		var scripts = [],
@@ -4224,9 +4265,9 @@ if (Dashboard.Twitter.twitter === undefined) {
 			styles = styles.concat(Livepress.CSSQueue);
 		}
 
-		if ( Livepress.Config.current_screen !== undefined && Livepress.Config.current_screen[0] === 'post' && Livepress.Config.current_screen[1] === 'post' ) {
+		if ( LivepressConfig.current_screen !== undefined && LivepressConfig.current_screen.base === 'post' && LivepressConfig.current_screen.id === 'post' ) {
 			//DEBUG Lines are included only in debugging version. They are completely removed from release code
-			if (Livepress.Config.debug !== undefined && Livepress.Config.debug) { //DEBUG
+			if (LivepressConfig.debug !== undefined && LivepressConfig.debug) { //DEBUG
 				var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
 				scripts = scripts.concat([ //DEBUG
 					'static://oortle.full.js?rnd=' + Math.random(), //DEBUG
@@ -4235,8 +4276,8 @@ if (Dashboard.Twitter.twitter === undefined) {
 			} else //DEBUG
 			{
 				scripts = scripts.concat([
-					'static://oortle/' + Livepress.Config.oover[0] + '/oortle.min.js',
-					'static://' + Livepress.Config.oover[1] + '/cluster_settings.js?v=' + Livepress.Config.oover[2]
+					'static://oortle/' + LivepressConfig.oover[0] + '/oortle.min.js',
+					'static://' + LivepressConfig.oover[1] + '/cluster_settings.js?v=' + LivepressConfig.oover[2]
 				]);
 			}
 		}
@@ -4244,8 +4285,8 @@ if (Dashboard.Twitter.twitter === undefined) {
 			var m = url.match(/^([a-z]+):\/\/(.*)$/);
 
 			if (m.length) {
-				if (Livepress.Config[m[1] + '_url'] !== undefined) { // Translate if url mapping defined for it
-					var prefix = Livepress.Config[m[1] + "_url"];
+				if (LivepressConfig[m[1] + '_url'] !== undefined) { // Translate if url mapping defined for it
+					var prefix = LivepressConfig[m[1] + "_url"];
 					if (prefix.substr(-1) !== "/") {
 						prefix += "/";
 					}

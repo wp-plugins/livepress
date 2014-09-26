@@ -1,5 +1,5 @@
 /*jslint vars:true */
-/*global lp_strings, Dashboard, console, Collaboration, OORTLE, Livepress, tinyMCE */
+/*global lp_strings, Dashboard, console, Collaboration, OORTLE, Livepress, tinyMCE, LivepressConfig */
 if (Dashboard.Comments === undefined) {
 	Dashboard.Comments = (function () {
 		var comments_on_hold = [];
@@ -130,10 +130,11 @@ if (Dashboard.Comments === undefined) {
 					return;
 				}
 				var params = {};
-				params.action = 'collaboration_comments_number';
-				params.post_id = Livepress.Config.post_id;
+				params.action = 'lp_collaboration_comments_number';
+				params._ajax_nonce = LivepressConfig.ajax_lp_collaboration_comments;
+				params.post_id = LivepressConfig.post_id;
 				jQuery.ajax({
-					url:      Livepress.Config.site_url + '/wp-admin/admin-ajax.php',
+					url:      LivepressConfig.site_url + '/wp-admin/admin-ajax.php',
 					type:     'post',
 					dataType: 'json',
 					data:     params,
@@ -220,7 +221,7 @@ if (Dashboard.Comments.Builder === undefined) {
 				nonces = jQuery('#blogging-tool-nonces');
 			var linkForSpamAndTrash = href.substring(0, href.lastIndexOf('/')) + "/edit-comments.php";
 			var defaultAjaxData = {
-				_ajax_nonce:      Livepress.Config.ajax_comment_nonce,
+				_ajax_nonce:      LivepressConfig.ajax_comment_nonce,
 				id:               commentId
 			};
 
@@ -228,7 +229,7 @@ if (Dashboard.Comments.Builder === undefined) {
 				return jQuery("<a></a>").attr("href", href).text(text).attr('title', title);
 			};
 
-			var postAndCommentIds = "&p=" + Livepress.Config.post_id + "&c=" + commentId + "&_wpnonce=" + nonces.data( 'live-comments' );
+			var postAndCommentIds = "&p=" + LivepressConfig.post_id + "&c=" + commentId + "&_wpnonce=" + nonces.data( 'live-comments' );
 			var linkAction = function (action) {
 				return "comment.php?action=" + action + postAndCommentIds;
 			};
@@ -262,11 +263,19 @@ if (Dashboard.Comments.Builder === undefined) {
 
 					jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
 						'new':    'approved',
-						action:   'lp-dim-comment',
+						action:   'lp_dim_comment',
 						dimClass: 'unapproved'
 					}),
-						function () {
-							jQuery("#lp-comment-" + commentId).removeClass("unapproved").addClass("approved");
+						function( returnnonce ) {
+							jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
+								'new':       'approved',
+								action:      'dim-comment',
+								dimClass:    'unapproved',
+								_ajax_nonce: returnnonce.data.approve_comment_nonce
+							}),
+							function () {
+								jQuery("#lp-comment-" + commentId).removeClass("unapproved").addClass("approved");
+							} );
 						}
 					);
 				});
@@ -278,11 +287,19 @@ if (Dashboard.Comments.Builder === undefined) {
 					e.stopPropagation();
 					jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
 						'new':    'unapproved',
-						action:   'lp-dim-comment',
+						action:   'lp_dim_comment',
 						dimClass: 'unapproved'
 					}),
-						function () {
-							jQuery("#lp-comment-" + commentId).removeClass("approved").addClass("unapproved");
+						function( returnnonce ) {
+							jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
+								'new':       'unapproved',
+								action:      'dim-comment',
+								dimClass:    'unapproved',
+								_ajax_nonce: returnnonce.data.approve_comment_nonce
+							}),
+							function () {
+								jQuery("#lp-comment-" + commentId).removeClass("approved").addClass("unapproved");
+							} );
 						}
 					);
 				});
@@ -295,29 +312,48 @@ if (Dashboard.Comments.Builder === undefined) {
 				e.preventDefault();
 				e.stopPropagation();
 
-				jQuery.post("admin-ajax.php",
-					jQuery.extend({}, defaultAjaxData,
-						{
-							action: 'delete-comment',
-							spam:   1,
-							_url:   linkForSpamAndTrash
-						}),
-					removeComment
-				);
+				jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
+						'new':    'unapproved',
+						action:   'lp_dim_comment',
+						dimClass: 'unapproved'
+					} ),
+					function( returnnonce ) {
+						jQuery.post("admin-ajax.php",
+							jQuery.extend({}, defaultAjaxData,
+								{
+									action: 'delete-comment',
+									spam:   1,
+									comment_status: 'all',
+									_url:   linkForSpamAndTrash,
+									_ajax_nonce: returnnonce.data.delete_comment_nonce
+								}),
+							removeComment
+						);
+					});
 			});
 
 			trashLink.click(function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				jQuery.post("admin-ajax.php",
-					jQuery.extend({}, defaultAjaxData,
-						{
-							action: 'delete-comment',
-							trash:  1,
-							_url:   linkForSpamAndTrash
-						}),
-					removeComment
-				);
+
+				jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
+						'new':    'unapproved',
+						action:   'lp_dim_comment',
+						dimClass: 'unapproved'
+					}),
+					function( returnnonce ) {
+						jQuery.post("admin-ajax.php",
+							jQuery.extend({}, defaultAjaxData,
+								{
+									action: 'delete-comment',
+									trash:  1,
+									comment_status: 'all',
+									_url:   linkForSpamAndTrash,
+									_ajax_nonce: returnnonce.data.delete_comment_nonce
+								}),
+							removeComment
+						);
+					});
 			});
 
 			postLink.bind('click', function (e) {

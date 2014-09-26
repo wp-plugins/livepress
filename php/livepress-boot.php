@@ -24,11 +24,11 @@ require_once( 'livepress-fix-twitter-oembed.php' );
 add_action( 'plugins_loaded', 'livepress_init' );
 
 // Handle plugin install / upgrade
-add_action( 'activate_' . PLUGIN_NAME . '/livepress.php', 'LivePress_Administration::plugin_install' );
+add_action( 'activate_' . LP_PLUGIN_NAME . '/livepress.php', 'LivePress_Administration::plugin_install' );
 add_action( 'plugins_loaded',                             'LivePress_Administration::install_or_upgrade' );
 
 if ( ! defined( 'WPCOM_IS_VIP_ENV' ) || false === WPCOM_IS_VIP_ENV ) {
-	add_action( 'deactivate_' . PLUGIN_NAME . '/livepress.php', 'LivePress_Administration::deactivate_livepress' );
+	add_action( 'deactivate_' . LP_PLUGIN_NAME . '/livepress.php', 'LivePress_Administration::deactivate_livepress' );
 }
 
 add_action( 'init', 'LivePress_Updater::instance' );
@@ -50,64 +50,24 @@ add_action( 'admin_menu', 'LivePress_Administration::initialize' );
 
 
 // Ajax response on server-side
-add_action( 'wp_ajax_api_key_validate',                    'LivePress_Administration::api_key_validate' );
-add_action( 'wp_ajax_post_to_twitter',                     'LivePress_Administration::post_to_twitter_ajaxed' );
-add_action( 'wp_ajax_get_twitter_avatar',                  'LivePress_Administration::get_twitter_avatar' );
-add_action( 'wp_ajax_check_oauth_authorization_status',    'LivePress_Administration::check_oauth_authorization_status' );
-add_action( 'wp_ajax_collaboration_comments_number',       'Collaboration::comments_number' );
-add_action( 'wp_ajax_collaboration_get_live_edition_data', 'Collaboration::get_live_edition_data' );
-add_action( 'wp_ajax_im_integration',                      'LivePress_IM_Integration::initialize' );
+add_action( 'wp_ajax_lp_api_key_validate',                    'LivePress_Administration::api_key_validate' );
+add_action( 'wp_ajax_lp_post_to_twitter',                     'LivePress_Administration::post_to_twitter_ajaxed' );
 
-//add_action('init', 'register_im_follower_handler');
+add_action( 'wp_ajax_lp_check_oauth_authorization_status',    'LivePress_Administration::check_oauth_authorization_status' );
+add_action( 'wp_ajax_lp_collaboration_comments_number',       'Collaboration::comments_number' );
+add_action( 'wp_ajax_lp_collaboration_get_live_edition_data', 'Collaboration::get_live_edition_data_ajax' );
+add_action( 'wp_ajax_lp_im_integration',                      'LivePress_IM_Integration::initialize' );
+
 
 // Live Blogging Tools
 $blogging_tools = new LivePress_Blogging_Tools();
 $blogging_tools->setup_tabs();
-add_action( 'wp_ajax_get_blogging_tools',   array( $blogging_tools, 'ajax_render_tabs' ) );
-add_action( 'wp_ajax_update-live-notes',    array( $blogging_tools, 'update_author_notes' ) );
-add_action( 'wp_ajax_update-live-comments', array( $blogging_tools, 'update_live_comments' ) );
-add_action( 'wp_ajax_update-live-status',   array( $blogging_tools, 'toggle_live_status' ) );
+add_action( 'wp_ajax_lp_get_blogging_tools',   array( $blogging_tools, 'ajax_render_tabs' ) );
+add_action( 'wp_ajax_lp_update-live-notes',    array( $blogging_tools, 'update_author_notes' ) );
+add_action( 'wp_ajax_lp_update-live-comments', array( $blogging_tools, 'update_live_comments' ) );
+add_action( 'wp_ajax_lp_update-live-status',   array( $blogging_tools, 'toggle_live_status' ) );
 
 add_action( 'manage_posts_custom_column' , array( $blogging_tools, 'display_posts_livestatus' ) , 10, 2 );
-
-add_action( 'init', 'alter_category_update_count_callback', 100 );
-
-/**
- * Override the default update_count_callback for the category taxonomy
- *
- * @since  1.0.6
- */
-function alter_category_update_count_callback() {
-	global $wp_taxonomies;
-	if ( ! taxonomy_exists( 'category' ) )
-		return false;
-
-	$cat_tax_callback = &$wp_taxonomies['category']->update_count_callback;
-	$cat_tax_callback = 'livepress_category_update_count_callback';
-}
-
-/**
- * Alter the category post counts to exclude the live subposts
- *
- * Note: Only called when counts are updated (eg. post added or removed)
- *
- * @param  String $terms    Array of terms
- * @param  Object $taxonomy Passed taxonomy
- *
- * @since  1.0.6
- */
-function livepress_category_update_count_callback( $terms, $taxonomy ) {
-	global $wpdb;
-	foreach ( (array) $terms as $term ) {
-		do_action( 'edit_term_taxonomy', $term, $taxonomy );
-
-		$count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_parent=0 AND term_taxonomy_id = %d", $term ) );
-
-		$wpdb->update( $wpdb->term_taxonomy, array( 'count' => (int) $count ), array( 'term_taxonomy_id' => $term ) );
-
-		do_action( 'edited_term_taxonomy', $term, $taxonomy );
-	}
-}
 
 /**
  * Add custom column to post list.
@@ -133,6 +93,7 @@ function livepress_update_blog_name() {
 	$api_key  = isset( $settings['api_key'] ) ? $settings['api_key'] : '';
 	$comm     = new LivePress_Communication( $api_key );
 
+	// Note: site_url is the admin url on VIP
 	$comm->validate_on_livepress( site_url() );
 }
 add_action( 'update_option_blogname', 'livepress_update_blog_name' );
@@ -172,5 +133,6 @@ function livepress_render_dashboard() {
 }
 
 function livepress_init() {
-	load_plugin_textdomain( 'livepress', false, plugin_basename( LP_PLUGIN_PATH ) . '/languages/' );
+	$textdomain = defined( 'WPCOM_IS_VIP_ENV' ) && true === WPCOM_IS_VIP_ENV ? 'default' : 'livepress';
+	load_plugin_textdomain( $textdomain, false, plugin_basename( LP_PLUGIN_PATH ) . '/languages/' );
 }

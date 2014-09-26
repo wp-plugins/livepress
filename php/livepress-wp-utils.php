@@ -12,7 +12,7 @@ class LivePress_WP_Utils {
 	 * @param   string  $value          The value to be saved
 	 */
 	public static function save_on_post( $post_id, $key, $value ) {
-		return update_post_meta( $post_id, '_'.PLUGIN_NAME.'_'. $key, $value );
+		return update_post_meta( $post_id, '_'.LP_PLUGIN_NAME.'_'. $key, $value );
 	}
 
 	/**
@@ -26,7 +26,7 @@ class LivePress_WP_Utils {
 	 * @return  array|string  The value
 	 */
 	public static function get_from_post( $post_id, $key, $single = false ) {
-		return get_post_meta( $post_id, '_'.PLUGIN_NAME.'_'. $key, $single );
+		return get_post_meta( $post_id, '_'.LP_PLUGIN_NAME.'_'. $key, $single );
 	}
 
 

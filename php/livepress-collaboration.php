@@ -168,7 +168,11 @@ class Collaboration {
 	}
 
 	static function comments_number() {
+		check_ajax_referer( 'lp_collaboration_comments_nonce' );
 		$post = get_post(intval($_POST['post_id']));
+		if ( ! current_user_can(  'edit_post', $post_id ) ){
+			die;
+		}
 		echo esc_html( $post->comment_count );
 		die;
 	}
@@ -190,6 +194,16 @@ class Collaboration {
 		die;
 	}
 
+	// Ajax version of get_live_edition_data checks nonce and user capabilities
+	static function get_live_edition_data_ajax() {
+		check_ajax_referer( 'get_live_edition_data_nonce' );
+		$post_id = (int) $_POST['post_id'];
+		if ( ! current_user_can( 'edit_post', $post_id ) ){
+			die;
+		}
+		$this->get_live_edition_data();
+	}
+
 	private static function tracked_and_followed() {
 		global $current_user;
 		$options = get_option(LivePress_Administration::$options_name);
@@ -202,18 +216,19 @@ class Collaboration {
 	}
 
 	private static function comments_of_post() {
-		$post_id = $_REQUEST['post_id'];
+		$post_id = absint( $_REQUEST['post_id'] );
 
 		$args = 'post_id=' . $post_id;
 		$post_comments = get_comments($args);
 
 		$comments = array();
-		$comment_msg_id = get_post_meta($post_id, "_".PLUGIN_NAME."_comment_update", true);
+		$comment_msg_id = get_post_meta($post_id, "_".LP_PLUGIN_NAME."_comment_update", true);
 
 		foreach ($post_comments as $c) {
 			$avatar = get_avatar($c->comment_author_email, 30);
 			$commentId = $c->comment_ID;
 			$comment = array(
+				'_ajax_nonce' => wp_create_nonce( 'approve-comment_' . $commentId ),
 				'comment_id'  => $commentId,
 				'avatar_url'  => $avatar,
 				'author_url'  => $c->comment_author_url,

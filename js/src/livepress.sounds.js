@@ -1,5 +1,7 @@
+/*jslint vars:true */
+/*global LivepressConfig, Livepress, soundManager, console */
 Livepress.sounds = (function () {
-	var soundsBasePath = Livepress.Config.lp_plugin_url + "sounds/";
+	var soundsBasePath = LivepressConfig.lp_plugin_url + "sounds/";
 	var soundOn = true;
 	var sounds = {};
 

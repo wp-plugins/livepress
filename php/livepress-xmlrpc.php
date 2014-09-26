@@ -35,8 +35,6 @@ class LivePress_XMLRPC {
 	 */
 	private function __construct() {
 		add_filter( 'xmlrpc_methods',             array( $this, 'add_livepress_functions_to_xmlrpc' ) );
-		add_filter( 'authenticate',               array( $this, 'livepress_authenticate' ), 5, 3 );
-		add_filter( 'authenticate',               array( $this, 'livepress_deauthenticate' ), 999999, 3 );
 		add_filter( 'pre_option_enable_xmlrpc',   array( $this, 'livepress_enable_xmlrpc' ), 0, 1 );
 		add_filter( 'wp_insert_post_data',        array( $this, 'insert_post_data' ), 10, 2 );
 		add_filter( 'xmlrpc_wp_insert_post_data', array( $this, 'insert_post_data' ), 10, 2 );
@@ -62,9 +60,7 @@ class LivePress_XMLRPC {
 		// unfortunatelly, it seems passed function names must relate to global ones
 		$methods['livepress.appendToPost']      = 'livepress_append_to_post';
 		$methods['livepress.setPostLiveStatus'] = 'livepress_set_post_live_status';
-		if ( LivePress_Config::get_instance()->scrape_hooks() ) {
-			$methods['scrape.newComment'] = 'new_comment_from_scrape';
-		}
+		$methods['livepress.newLivePost']       = 'livepress_new_live_post';
 
 		return $methods;
 	}
@@ -85,85 +81,6 @@ class LivePress_XMLRPC {
 		$val = ! ( $this->livepress_auth_called || $this->livepress_authenticated );
 
 		return $val || (bool) $v;
-	}
-
-	/**
-	 * We should take care of authentication, and pass auth reason only
-	 * when livepress auth has taken, or enable_xmlrpc are really set
-	 *
-	 * @param mixed  $user
-	 * @param string $username
-	 * @param string $password
-	 *
-	 * @return mixed|WP_Error
-	 */
-	function livepress_deauthenticate( $user, $username, $password ) {
-		// If we're using version 3.5 or higher, skip the authentication check.
-		if ( version_compare( '3.5', get_bloginfo( 'version' ) ) <= 0 ) {
-			return $user;
-		}
-
-		if ( $this->livepress_authenticated ) {
-			return $user;
-		}
-
-		// Get enable_xmlrpc option without our short-circuit...
-		remove_filter( 'pre_option_enable_xmlrpc', array( &$this, 'livepress_enable_xmlrpc' ), 0, 1 );
-		$enable = get_option( 'enable_xmlrpc' );
-		add_filter( 'pre_option_enable_xmlrpc', array( &$this, 'livepress_enable_xmlrpc' ), 0, 1 );
-
-		if ( ! $enable ) {
-			return new WP_Error( 405, sprintf( esc_html__( 'XML-RPC services are disabled on this site. An admin user can enable them at %s' ), admin_url( 'options-writing.php' ) ) );
-		}
-
-		return $user;
-	}
-
-	/**
-	 * Transparent authentication. Will just allow if pass match, all other ways -- as we not there.
-	 *
-	 * @param mixed  $user
-	 * @param string $username
-	 * @param string $password
-	 *
-	 * @return WP_User
-	 */
-	function livepress_authenticate( $user, $username, $password ) {
-		$this->livepress_auth_called = true;
-		if ( is_a( $user, 'WP_User' ) ) {
-			return $user;
-		}
-
-		if ( empty( $username ) || empty( $password ) ) {
-			return $user;
-		}
-
-		$userdata = get_user_by( 'login', $username );
-		if ( ! $userdata ) {
-			return $user;
-		}
-
-		$lp_pass = get_user_meta( $userdata->ID, 'livepress-access-key', true );
-
-		$auth = false;
-
-		if ( ! empty( $lp_pass ) && wp_check_password( $password, $lp_pass, $userdata->ID ) ) {
-			$auth = true;
-		}
-
-		if ( ! $auth ) {
-			$lp_pass = get_user_meta( $userdata->ID, 'livepress-access-key-new', true );
-			if ( ! empty( $lp_pass ) && wp_check_password( $password, $lp_pass, $userdata->ID ) ) {
-				$auth = true;
-			}
-		}
-
-		if ( $auth ) {
-			$user                          = new WP_User( $userdata->ID );
-			$this->livepress_authenticated = true;
-		}
-
-		return $user;
 	}
 
 	/**
@@ -206,6 +123,13 @@ class LivePress_XMLRPC {
 		// Get the post we're updating so we can compare the new content with the old content.
 		$post_id = $unparsed_data['ID'];
 		$post    = get_post( $post_id );
+
+		$live_posts = get_option( 'livepress_live_posts', array() );
+		$is_live = in_array( $post_id, $live_posts );
+
+		if ( ! $is_live ){
+			return $post_data;
+		}
 
 		$original_posts = $this->get_existing_updates( $post );
 		$new_posts = $this->parse_updates( $unparsed_data['post_content'] );
@@ -278,7 +202,7 @@ class LivePress_XMLRPC {
 				'post_parent' => $parent->ID,
 				'orderby'     => 'ID',
 				'order'       => 'ASC',
-				'limit'       => -1
+				'numberposts' => 1000
 			)
 		);
 
@@ -338,22 +262,65 @@ class LivePress_XMLRPC {
 	}
 }
 
-/**
- * Called by scrape tool. Does nothing special except turning off the wordpress
- * check for comment flood. Then passes untouched $args to wp.newComment function.
- *
- * @global <type> $wp_xmlrpc_server
- *
- * @param  <type> $args
- *
- * @return <type>
- */
-function new_comment_from_scrape( $args ) {
-	global $wp_xmlrpc_server;
-	LivePress_XMLRPC::scrape_hooks();
 
-	return $wp_xmlrpc_server->wp_newComment( $args );
+/**
+ * XMLRPC authentication, lets Livepress server post on behalf of user.
+ * Use token based authentication or built in authentication if in VIP
+ *
+ * @param mixed  $user
+ * @param string $username
+ * @param string $password
+ *
+ * @return WP_User
+ */
+function _livepress_authenticate( $username, $password ) {
+
+	if ( empty( $password ) || empty( $password ) ) {
+		return false;
+	}
+
+	$userdata = get_user_by( 'login', $username );
+	if ( ! $userdata ) {
+		return false;
+	}
+
+	// Use built in authentication on VIP - token based authentication disallowed
+	if ( defined( 'WPCOM_IS_VIP_ENV' ) && true === WPCOM_IS_VIP_ENV ) {
+		global $wp_xmlrpc_server;
+
+		if ( ! $user = $wp_xmlrpc_server->login( $username, $password ) ) {
+			return false;
+		}
+
+		// Authentication success!
+		return $user;
+
+	} else {
+		// Use token based authentication
+		$lp_pass = get_user_meta( $userdata->ID, 'livepress-access-key', true );
+
+		$auth = false;
+
+		if ( ! empty( $lp_pass ) && wp_check_password( $password, $lp_pass, $userdata->ID ) ) {
+			$auth = true;
+		}
+
+		if ( ! $auth ) {
+			$lp_pass = get_user_meta( $userdata->ID, 'livepress-access-key-new', true );
+			if ( ! empty( $lp_pass ) && wp_check_password( $password, $lp_pass, $userdata->ID ) ) {
+				$auth = true;
+			}
+		}
+		if ( $auth ) {
+			$user = new WP_User( $userdata->ID );
+			return $user;
+		} else {
+			return false;
+		}
+
+	}
 }
+
 
 /**
  * Called by livepress webservice instead of editPost as we need to save
@@ -372,20 +339,32 @@ function new_comment_from_scrape( $args ) {
  */
 function livepress_append_to_post( $args ) {
 	global $wp_xmlrpc_server, $wpdb;
+
+	$wp_xmlrpc_server->escape( $args );
 	$username       = esc_sql( $args[1] );
 	$password       = esc_sql( $args[2] );
 	$post_id        = (int) $args[0];
 	$content_struct = $args[3];
 
-	if ( ! $wp_xmlrpc_server->login( $username, $password ) ) {
+	if ( ! $user = _livepress_authenticate( $username, $password ) ) {
 		return $wp_xmlrpc_server->error;
 	}
 
-    LivePress_PF_Updates::get_instance()->add_update($post_id, "[livepress_metainfo] ".$content_struct['description']);
+	// at this point the user is authenticated
 
-    return true;
+	// Check that the user can edit the post
+	if ( ! user_can( $user, 'edit_post', $post_id ) ) {
+		return false;
+	}
 
-    /*
+	// Verify that the post is live
+	$blogging_tools = new LivePress_Blogging_Tools();
+	$is_live = $blogging_tools->get_post_live_status( $post_id );
+	if ( ! $is_live ){
+		return false;
+	}
+	wp_set_current_user( $user->ID ); // Allow updates
+
 	if ( isset( $content_struct['display_author'] ) ) {
 		LivePress_Updater::instance()->set_custom_author_name( $content_struct['display_author'] );
 	}
@@ -404,31 +383,11 @@ function livepress_append_to_post( $args ) {
 	$content_struct['description'] = "[livepress_metainfo] "
 		. $content_struct['description'];
 
-	// append content to post's original
-	$edited = $wp_xmlrpc_server->mw_getPost( array( $args[0], $args[1], $args[2] ) );
-	if ( $plugin_options['feed_order'] == 'top' ) {
-		$content_struct['description'] = $content_struct['description'] . "\n\n" . $edited['description'];
-	} else {
-		$content_struct['description'] = $edited['description'] . "\n\n" . $content_struct['description'];
-	}
 
-	// replacing other fields if given
-	$allowed_keys = array(
-		'title', 'mt_excerpt', 'mt_text_more', 'mt_keywords',
-		'mt_tb_ping_urls', 'categories', 'enclosure'
-	);
+	$content_struct['ID'] = $args[0];
+	$content_struct['post_content'] = $content_struct['description'];
 
-	foreach ( $allowed_keys as $field ) {
-		if ( ! array_key_exists( $field, $content_struct ) ) {
-			$content_struct[$field] = $edited[$field];
-		}
-	}
-
-	// pass modified args to original xmlrpc method
-	$args[3] = $content_struct;
-
-    return $wp_xmlrpc_server->mw_editPost( $args );
-    */
+	return wp_update_post( $content_struct );
 }
 
 /**
@@ -436,27 +395,107 @@ function livepress_append_to_post( $args ) {
  *
  * @param array $args {
  *		An array of arguments.
- *		@param string $username    Username for action.
- *		@param string $password    Livepress generated user access key.
- *		@param string $post_id     ID of the post to set the status of.
- *		@param bool   $live_status True to turn live on, false to turn live off.
+ *		@param  string     $username    Username for action.
+ *		@param  string     $password    Livepress generated user access key.
+ *		@param  string     $post_id     ID of the post to set the status of, -1 to check password only.
+ *		@param  bool       $live_status True to turn live on, false to turn live off.
+ *		@return int|Object 1 if password verified or status updated, false on error.
  * }
  */
 function livepress_set_post_live_status( $args ) {
 	global $wp_xmlrpc_server, $wpdb;
 
+	$wp_xmlrpc_server->escape( $args );
 	$username    = esc_sql( $args[0] );
 	$password    = esc_sql( $args[1] );
 	$post_id     = (int)  $args[2];
 	$live_status = (bool) $args[3];
 
 	// Verify user is autorized
-	if ( ! $wp_xmlrpc_server->login( $username, $password ) ) {
-		return $wp_xmlrpc_server->error;
+	if ( ! $user = _livepress_authenticate( $username, $password ) ) {
+		return false;
+	}
+
+	// If post_id is -1 call is only to check password
+	if ( -1 == $post_id ) {
+		return true;
+	}
+
+	// Verify user can edit post
+	if ( ! user_can( $user, 'edit_post', $post_id ) ) {
+		return false;
 	}
 
 	// Set the post live status
-	LivePress_Updater::instance()->blogging_tools->set_post_live_status( $post_id, $live_status );
-
-
+	$blogging_tools = new LivePress_Blogging_Tools();
+	$blogging_tools->set_post_live_status( $post_id, $args[3] );
+	return 1;
 }
+
+/**
+ * Called by livepress webservice to create a new live post.
+ *
+ * @param array $args {
+ *		An array of arguments.
+ *		@param  int    $blog_id           Id of blog to to add post to.
+ *		@param  string $username          Username for action.
+ *		@param  string $password          Livepress generated user access key.
+ *		@param  array  $content_struct    Initial post content.
+ *		@return Object Post object or false on error.
+ * }
+ */
+function livepress_new_live_post( $args ) {
+	global $wp_xmlrpc_server, $wpdb;
+
+	$wp_xmlrpc_server->escape( $args );
+	$blog_id        = (int) $args[0];
+	$username       = $args[1];
+	$password       = $args[2];
+	$content_struct = $args[3];
+
+	// Verify user is autorized
+	if ( ! $user = _livepress_authenticate( $username, $password ) ) {
+		return false;
+	}
+
+	// Verify user can edit posts
+	if ( ! user_can( $user, 'edit_posts' ) ) {
+		return false;
+	}
+
+	unset( $content_struct['ID'] );
+
+	$defaults = array( 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => $user->ID,
+		'post_title' => $content_struct['title'] );
+
+	$post_data = wp_parse_args( $content_struct, $defaults );
+
+	// Insert the new post
+	$post_id = wp_insert_post( $post_data, true );
+
+
+	if ( is_wp_error( $post_id ) ) {
+		return false;
+	}
+
+	if ( ! $post_id ) {
+		return false;
+	}
+
+	$post = get_post( $post_id );
+
+	if ( ! $post ) {
+		return false;
+	}
+
+	// Set the post live status to live
+	$blogging_tools = new LivePress_Blogging_Tools();
+	$blogging_tools->set_post_live_status( $post_id, true );
+
+	return $post;
+}
+
+
+
+
+

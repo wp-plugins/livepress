@@ -63,6 +63,7 @@ class LivePress_Communication {
 
 		$this->livepress_config = LivePress_Config::get_instance();
 		$this->api_key          = $api_key;
+		// Note: site_url is the admin url on VIP
 		$this->address          = site_url(); // WP API
 		$this->last_error       = "";
 		$this->last_response    = null;
@@ -78,7 +79,11 @@ class LivePress_Communication {
 	 * @param $post_vars
 	 */
 	public function get_blog($post_vars=null) {
-		return json_decode($this->request_content_from_livepress('/blog/get', 'post', $post_vars))->blog;
+		try {
+			return json_decode( $this->request_content_from_livepress( '/blog/get', 'post', $post_vars ) )->blog;
+		} catch ( Exception $e ) {
+			return '';
+		}
 	}
 
 	/**
@@ -194,7 +199,7 @@ class LivePress_Communication {
 	 */
 	public function send_to_livepress_new_post($params) {
 		$params['uuid'] = $this->new_uuid();
-		$params['previous_uuid'] = get_option(PLUGIN_NAME."_new_post");
+		$params['previous_uuid'] = get_option(LP_PLUGIN_NAME."_new_post");
 		$return_data = json_decode($this->request_content_from_livepress('/message/new_post', 'post', $params));
 		return array(
 			'oortle_msg' => $params['uuid'],
@@ -241,6 +246,7 @@ class LivePress_Communication {
 	 *     @type string $comments_counter_only        HTML with all comments without the new one but with
 	 *                                                updated counter only.
 	 *     @type string $comments_counter_only_logged As comment_counter_only but for logged user.
+	 *     @type string $ajax_nonce                   As unique identifier to have possibility if current user is an
 	 *                                                author of comment event if he's anonymous.
 	 * }
 	 * @throws LivePress_Communication_Exception If the request don't return the http code 200.
@@ -336,12 +342,13 @@ class LivePress_Communication {
 	/**
 	 * Validate the API key on livepress service.
 	 *
-	 * @param string $site_url The url to be validated with the api key.
-	 * @return int 0 if wrong API key, 1 if OK, 2 if Pending, and -1 if connection problems.
+	 * @param  Array $domains The urls to be validated with the api key.
+	 * @return int   0 if wrong API key, 1 if OK, 2 if Pending, and -1 if connection problems.
 	 */
-	public function validate_on_livepress( $site_url ) {
+	public function validate_on_livepress( $domains ) {
 		$params = array();
-		$params['title'] = rawurlencode(get_bloginfo( 'name' ));
+		$params['title'] = esc_html( get_bloginfo( 'name' ) );
+		$params = is_array( $domains ) ? array_merge( $params, $domains ) : $params;
 		$status = $this->request_to_livepress( '/message/api_key_validate', 'get', $params );
 
 		if ( $status == 202 ) {
@@ -687,10 +694,9 @@ class LivePress_Communication_Exception extends Exception {
 	 * @param string $failed_message The kind of message that failed to be delivered
 	 */
 	public function log($message) {
-		$error_msg = <<<EOD
-Failed to send *$message* message to livepress service
-(HTTP return code: {$this->get_code()})
-EOD;
+		$error_msg = 'Failed to send *' . esc_html( $message ).
+			'* message to livepress service
+			(HTTP return code: ' . esc_html( $this->get_code() ) . ')';
 	}
 
 }

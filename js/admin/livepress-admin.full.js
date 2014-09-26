@@ -1,4 +1,4 @@
-/*! livepress -v1.1.3
+/*! livepress -v1.1.4
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -290,7 +290,7 @@ ImIntegration.check_status = function (protocol) {
  * @private
  */
 ImIntegration.__spin_loading = function () {
-	var image_path = Livepress.Config.lp_plugin_url + '/img/spin.gif',
+	var image_path = LivepressConfig.lp_plugin_url + '/img/spin.gif',
 		html_image = jQuery("<img />").attr('src', image_path);
 
 	console.log("created spin: " + html_image.html());
@@ -310,9 +310,10 @@ ImIntegration.__check_status = function (protocol, tries) {
 	var params = {},
 		$check_button = jQuery("#check_" + protocol),
 		$check_message = jQuery("#check_message_" + protocol),
-		admin_ajax_url = Livepress.Config.site_url + '/wp-admin/admin-ajax.php';
+		admin_ajax_url = LivepressConfig.site_url + '/wp-admin/admin-ajax.php';
 
-	params.action = "im_integration";
+	params.action = "lp_im_integration";
+	params._ajax_nonce = LivepressConfig.ajax_lp_im_integration;
 	params.im_integration_check_status = true;
 	params.im_service = protocol;
 
@@ -423,7 +424,7 @@ ImIntegration.send_test_message = function (source, protocol) {
 	console.log("Sending test message to: " + buddy + " using " + protocol + " protocol");
 
 	jQuery.ajax({
-		url:      Livepress.Config.site_url + '/wp-admin/admin-ajax.php',
+		url:      LivepressConfig.ajax_url,
 		type:     'post',
 		dataType: 'json',
 		data:     params,
@@ -453,7 +454,7 @@ ImIntegration.send_test_message = function (source, protocol) {
 		}
 	});
 };
-/*global lp_strings, Livepress, Dashboard, Collaboration, tinymce, tinyMCE, console, confirm, switchEditors, livepress_merge_confirmation, _wpmejsSettings, FB */
+/*global LivepressConfig, lp_strings, Livepress, Dashboard, Collaboration, tinymce, tinyMCE, console, confirm, switchEditors, livepress_merge_confirmation, LivepressConfig, _wpmejsSettings, FB  */
 
 /**
  * Global object into which we add our other functionality.
@@ -478,7 +479,7 @@ Livepress.Admin = Livepress.Admin || {};
  * @memberOf Livepress.Admin
  * @namespace
  * @constructor
- * @requires Livepress.Config
+ * @requires LivepressConfig
  */
 Livepress.Admin.PostStatus = function () {
 	var CHECK_WAIT_TIME = 4, // Seconds
@@ -582,8 +583,8 @@ Livepress.Admin.PostStatus = function () {
 	/**
 	 * Check the current post's update status.
 	 *
-	 * @requires Livepress.Config#ajax_nonce
-	 * @requires Livepress.Config#post_id
+	 * @requires LivepressConfig#ajax_nonce
+	 * @requires LivepressConfig#post_id
 	 */
 	SELF.check = function () {
 		var nonces = jQuery('#blogging-tool-nonces');
@@ -592,8 +593,8 @@ Livepress.Admin.PostStatus = function () {
 			url:     'admin-ajax.php',
 			data:    {
 				livepress_action: true,
-				_ajax_nonce:      nonces.data( 'lp-status' ),
-				post_id:          Livepress.Config.post_id,
+				_ajax_nonce:      LivepressConfig.ajax_status_nonce,
+				post_id:          LivepressConfig.post_id,
 				action:           'lp_status'
 			},
 			success: set_status,
@@ -661,7 +662,10 @@ Livepress.Admin.PostToTwitter = function () {
 	function check_oauth_authorization_status(attempts) {
 		var $msg_span = jQuery('#' + msg_span_id),
 			times = attempts || 1,
-			params = {action: 'check_oauth_authorization_status'};
+			params = {
+						action:      'lp_check_oauth_authorization_status',
+						_ajax_nonce: LivepressConfig.ajax_check_oauth
+					};
 
 		$msg_span.html( lp_strings.checking_auth + '... (' + times + ')');
 
@@ -730,7 +734,8 @@ Livepress.Admin.PostToTwitter = function () {
 		$msg_span = jQuery('#' + msg_span_id);
 
 		params = {};
-		params.action = 'post_to_twitter';
+		params.action = 'lp_post_to_twitter';
+		params._ajax_nonce = LivepressConfig.ajax_lp_post_to_twitter;
 		params.enable = document.getElementById('lp-remote').checked;
 		if (change_oauth_user) {
 			params.change_oauth_user = true;
@@ -860,10 +865,11 @@ Livepress.Admin.Tools = function () {
 	 */
 	function getTabs () {
 		jQuery.ajax({
-			url:     Livepress.Config.ajax_url,
+			url:     LivepressConfig.ajax_url,
 			data:    {
-				action:  'get_blogging_tools',
-				post_id: Livepress.Config.post_id
+				action:  'lp_get_blogging_tools',
+				_ajax_nonce: LivepressConfig.ajax_render_tabs,
+				post_id: LivepressConfig.post_id
 			},
 			type:    'post',
 			success: function (data) {
@@ -897,11 +903,11 @@ Livepress.Admin.Tools = function () {
   // If we found the Facebook plugin on PHP, load the Facebook js for
   // admin panel post embedding:
   function checkFacebook(){
-    if(Livepress.Config.facebook === 'yes'){
+    if(LivepressConfig.facebook === 'yes'){
       if ( typeof(FB) !== 'undefined'){
         FB.XFBML.parse();
       } else {
-        var fb_script = "//connect.facebook.net/" + Livepress.Config.locale + "/all.js";
+        var fb_script = "//connect.facebook.net/" + LivepressConfig.locale + "/all.js";
         jQuery.getScript(fb_script, function(){
           window.FB.init();
           FB.XFBML.parse();
@@ -928,10 +934,10 @@ Livepress.Admin.Tools = function () {
 			submit.attr('disabled', 'disabled');
 
 			jQuery.ajax({
-				url:     Livepress.Config.ajax_url,
+				url:     LivepressConfig.ajax_url,
 				data:    {
-					action:     'update-live-notes',
-					post_id:    Livepress.Config.post_id,
+					action:     'lp_update-live-notes',
+					post_id:    LivepressConfig.post_id,
 					content:    jQuery('#live-notes-text').val(),
 					ajax_nonce: nonces.data('live-notes')
 				},
@@ -964,7 +970,7 @@ Livepress.Admin.Tools = function () {
 						// When toggle complete, redirect to complete the merge
 						jQuery( 'form#post' )
 							.attr( 'action', jQuery( 'form#post' ).attr( 'action' ) +
-								'?post=' + Livepress.Config.post_id + '&action=edit' +
+								'?post=' + LivepressConfig.post_id + '&action=edit' +
 								'&merge_action=merge_children&merge_noonce=' + nonces.data( 'merge-post' ) )
 							.submit();
 					});
@@ -989,20 +995,21 @@ Livepress.Admin.Tools = function () {
 			promise2;
 
 		promise1 = jQuery.ajax({
-			url:     Livepress.Config.ajax_url,
+			url:     LivepressConfig.ajax_url,
 			data:    {
-				action:     'update-live-status',
-				post_id:    Livepress.Config.post_id,
+				action:     'lp_update-live-status',
+				post_id:    LivepressConfig.post_id,
 				ajax_nonce: nonces.data('live-status')
 			},
 			type:    'post'
 		});
 
 		promise2 = jQuery.ajax({
-			url:      Livepress.Config.ajax_url,
+			url:      LivepressConfig.ajax_url,
 			data:     {
-				action:  'update-live-comments',
-				post_id: Livepress.Config.post_id
+				action:  'lp_update-live-comments',
+				post_id: LivepressConfig.post_id,
+				_ajax_nonce: LivepressConfig.ajax_update_live_comments
 			},
 			type:     'post',
 			dataType: 'json'
@@ -1170,13 +1177,13 @@ jQuery(function () {
 				/** Default namespace of the current plugin. */
 					pluginNamespace = 'en.livepress.',
 				/** Relative folder for the TinyMCE plugin. */
-					path = Livepress.Config.lp_plugin_url + 'tinymce/',
+					path = LivepressConfig.lp_plugin_url + 'tinymce/',
 
 				/** Base directory from where the Livepress TinyMCE plugin loads. */
 					d = tinyMCE.baseURI.directory,
 
 				/** All configurable options. */
-					config = Livepress.Config.PostMetainfo,
+					config = LivepressConfig.PostMetainfo,
 
 				$eDoc,
 				$eHTML,
@@ -1337,7 +1344,7 @@ jQuery(function () {
 				if (!livePressChatStarted) {
 					livePressChatStarted = true;
 
-					$j('<link rel="stylesheet" type="text/css" href="' + Livepress.Config.lp_plugin_url + 'css/collaboration.css' + '?' + (+new Date()) + '" />').appendTo('head');
+					$j('<link rel="stylesheet" type="text/css" href="' + LivepressConfig.lp_plugin_url + 'css/collaboration.css' + '?' + (+new Date()) + '" />').appendTo('head');
 
 					// load custom version of jQuery.ui if it doesn't contain the dialogue plugin
 					if (!jQuery.fn.dialog) {
@@ -1392,7 +1399,7 @@ jQuery(function () {
 						$eDoc = $eHTML = $eHead = null;
 					}
 
-					if (Livepress.Config.debug !== undefined && Livepress.Config.debug) {
+					if (LivepressConfig.debug !== undefined && LivepressConfig.debug) {
 						$j(document).find('html:first').addClass('debug');
 						if ($eDoc !== null) {
 							$eDoc.find('html:first').addClass('debug');
@@ -1455,11 +1462,11 @@ jQuery(function () {
 				SELF.ajaxAction = function (action, content, callback, additional) {
 					return jQuery.ajax({
 						type:     "POST",
-						url:      Livepress.Config.site_url + '/wp-admin/admin-ajax.php',
+						url:      LivepressConfig.ajax_url,
 						data:     jQuery.extend({
 							action:  action,
 							content: content,
-							post_id: Livepress.Config.post_id
+							post_id: LivepressConfig.post_id
 						}, additional || {}),
 						dataType: "json",
 						success:  callback,
@@ -1495,11 +1502,8 @@ jQuery(function () {
 					jQuery('.peeklink span, .peekmessage').removeClass('hidden');
 					jQuery('.peek').addClass('live');
 					jQuery( window ).trigger( 'livepress.post_update' );
-					// Refresh embeds in case the new post is an embed, wait for
-					// the post to be loaded in the inside canvas to run the
-					// function and convert any non-embedded stuff:
-					window.setTimeout(update_embeds, 3000);
-					return SELF.ajaxAction('append_post_update', content, callback, args);
+					window.setTimeout( update_embeds, 3000 );
+					return SELF.ajaxAction('lp_append_post_update', content, callback, args);
 				};
 
 				/**
@@ -1512,7 +1516,7 @@ jQuery(function () {
 				 */
 				SELF.changePostUpdate = function (updateId, content, callback) {
 					var nonce = NONCES.data('change-nonce');
-					return SELF.ajaxAction('change_post_update', content, callback, {update_id: updateId, _ajax_nonce: nonce});
+					return SELF.ajaxAction('lp_change_post_update', content, callback, {update_id: updateId, _ajax_nonce: nonce});
 				};
 
 				/**
@@ -1524,7 +1528,7 @@ jQuery(function () {
 				 */
 				SELF.deletePostUpdate = function (updateId, callback) {
 					var nonce = NONCES.data('delete-nonce');
-					return SELF.ajaxAction('delete_post_update', "", callback, {update_id: updateId, _ajax_nonce: nonce});
+					return SELF.ajaxAction('lp_delete_post_update', "", callback, {update_id: updateId, _ajax_nonce: nonce});
 				};
 
 				/**
@@ -1581,7 +1585,7 @@ jQuery(function () {
 
 					d = new Date();
 					utc = d.getTime() + (d.getTimezoneOffset() * 60000); // Minutes to milisec
-					server_time = utc + (3600000 * Livepress.Config.blog_gmt_offset); // Hours to milisec
+					server_time = utc + (3600000 * LivepressConfig.blog_gmt_offset); // Hours to milisec
 					server_time = new Date(server_time);
 					if (config.timestamp_template) {
 						if (window.eeActive) {
@@ -2249,7 +2253,7 @@ jQuery(function () {
 						return false;
 					}
 					var $newPost = $j(data);
-					var action = (Livepress.Config.PostMetainfo.placement_of_updates === 'bottom' ? 'appendTo' : 'prependTo');
+					var action = (LivepressConfig.PostMetainfo.placement_of_updates === 'bottom' ? 'appendTo' : 'prependTo');
 
 					$newPost.hide()[action]($liveCanvas.find('div.inside:first')).animate(
 						{
@@ -2546,7 +2550,7 @@ jQuery(function () {
 							return startError("Error: " + textError + " : " + errorThrown);
 						}
 						if (regions.edit_uuid) {
-							Livepress.Config.post_edit_msg_id = regions.edit_uuid;
+							LivepressConfig.post_edit_msg_id = regions.edit_uuid;
 						}
 						// Start the livepress collaborative edit
 						if ("editStartup" in regions) {
@@ -2821,7 +2825,7 @@ jQuery(function () {
 	 * Once all the other code is loaded, we check to be sure the user is on the post edit screen and load the new Live
 	 * Blogging Tools palette if they are.
 	 */
-	if (Livepress.Config.current_screen !== undefined && Livepress.Config.current_screen[0] === 'post' && Livepress.Config.current_screen[1] === 'post') {
+	if (LivepressConfig.current_screen !== undefined && LivepressConfig.current_screen.base === 'post' && LivepressConfig.current_screen.id === 'post') {
 		var live_blogging_tools = new Livepress.Admin.Tools();
 		live_blogging_tools.render();
 	}

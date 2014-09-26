@@ -1,21 +1,21 @@
-/*! livepress -v1.1.3
+/*! livepress -v1.1.4
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
 (function () {
-	var path = Livepress.Config.lp_plugin_url + 'tinymce/',
-		config = Livepress.Config.PostMetainfo,
+	var path = LivepressConfig.lp_plugin_url + 'tinymce/',
+		config = LivepressConfig.PostMetainfo,
 		Helper;
 
 	Helper = (function () {
 		this.ajaxAction = function (action, content, callback, additional) {
 			return jQuery.ajax({
 				type:    "POST",
-				url:     Livepress.Config.site_url + '/wp-admin/admin-ajax.php',
+				url:     LivepressConfig.site_url + '/wp-admin/admin-ajax.php',
 				data:    jQuery.extend({
 					action: action,
 					content:content,
-					post_id:Livepress.Config.post_id
+					post_id:LivepressConfig.post_id
 				}, additional || {}),
 				dataType:"json",
 				success: callback,
@@ -86,7 +86,7 @@
 			var d, utc, server_time;
 			d = new Date();
 			utc = d.getTime() + (d.getTimezoneOffset() * 60000); // Minutes to milisec
-			server_time = utc + (3600000 * Livepress.Config.blog_gmt_offset); // Hours to milisec
+			server_time = utc + (3600000 * LivepressConfig.blog_gmt_offset); // Hours to milisec
 			server_time = new Date(server_time);
 			if (config.timestamp_template) {
 				if (window.eeActive) {

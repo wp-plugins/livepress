@@ -182,6 +182,17 @@ module.exports = function ( grunt ) {
 				expand: true
 			}
 		},
+		watch: {
+			files: [
+				'php/*',
+				'js/src/*',
+				'*.php'
+			],
+			tasks: 'default',
+			options: {
+				livereload: true
+			}
+		},
 		clean: [ "plugin-for-release" ],
 		copy: {
 			main: {
@@ -246,6 +257,7 @@ module.exports = function ( grunt ) {
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-pot');
 	grunt.loadNpmTasks('grunt-contrib-clean');
+	grunt.loadNpmTasks('grunt-contrib-watch');
 
 	// Default task.
 	grunt.registerTask( 'default',      ['jshint', 'concat', 'uglify', 'pot', 'copy:main'] );

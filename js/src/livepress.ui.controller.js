@@ -291,7 +291,7 @@ Livepress.Ui.Controller = function (config, hooks) {
 		$livepress.find('.lp-updated-counter').find('.livepress-timestamp').attr('title', dateString );
 		$livepress.find('.lp-bar .lp-status').removeClass('lp-off').addClass('lp-on');
 		jQuery("abbr.livepress-timestamp").timeago();
-		jQuery( document ).trigger( 'post_update' ); /*Trigger a post-update event so display can adjust*/
+		jQuery( document ).trigger( 'live_post_update' ); /*Trigger a post-update event so display can adjust*/
 	}
 
 	function new_post_update_box (post, topic, msg_id) {
