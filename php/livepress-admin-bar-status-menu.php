@@ -5,7 +5,7 @@
  * provides status information.
  */
 
-require_once 'livepress-config.php';
+require_once ( LP_PLUGIN_PATH . 'php/livepress-config.php' );
 
 class LivePress_Admin_Bar_Status_Menu {
 
@@ -19,11 +19,6 @@ class LivePress_Admin_Bar_Status_Menu {
 		add_action( 'admin_bar_menu',                   array( $this, 'admin_bar_menu' ), 100, 1 ); // priority influences position
 		add_action( 'admin_enqueue_scripts',            array( $this, 'enqueue' ) );
 		add_action( 'wp_enqueue_scripts',               array( $this, 'enqueue' ) );
-
-		add_action( 'wp_ajax_check_status',             array( $this, 'ajax_status' ) );
-
-		add_action( 'wp_ajax_livepress-disable-global', array( $this, 'disable' ) );
-		add_action( 'wp_ajax_livepress-enable-global',  array( $this, 'enable' ) );
 
 		$this->livepress_config = LivePress_Config::get_instance();
 		$this->options = get_option( LivePress_Administration::$options_name );
@@ -96,38 +91,26 @@ class LivePress_Admin_Bar_Status_Menu {
 
 		$status  = 'disconnected';
 
-		if ( ! class_exists( 'WP_Http' ) )
-			include_once( ABSPATH . WPINC. '/class-http.php' );
+			if ( ! class_exists( 'WP_Http' ) )
+				include_once( ABSPATH . WPINC. '/class-http.php' );
 
-		$post_vars = array(
-			'address' => get_bloginfo( 'url' ),
-			'api_key' => $api_key
-		);
+			$post_vars = array(
+				'address' => get_bloginfo( 'url' ),
+				'api_key' => $api_key
+			);
 
-		$response = wp_remote_post(
-			$this->livepress_config->livepress_service_host() . '/blog/get',
-			array( 'reject_unsafe_urls' => false, 'body' => $post_vars )
-		);
+			$response = wp_remote_post(
+				$this->livepress_config->livepress_service_host() . '/blog/get',
+				array( 'reject_unsafe_urls' => false, 'body' => $post_vars )
+			);
 
-		if ( ! is_wp_error( $response ) && $response['response']['code'] < 300 ) {
-			$status = 'connected';
+			if ( !  is_wp_error( $response ) && $response['response']['code'] < 300 ) {
+				$status = 'connected';
 		}
 
 		return $status;
 	}
 
-	/**
-	 * AJAX overload of get_status() for immediately returning the API's current status.
-	 *
-	 * Enables checking status via JS.
-	 *
-	 * @author Eric Mann
-	 */
-	public function ajax_status() {
-		echo esc_attr( $this->get_status() );
-
-		die();
-	}
 }
 
 $livepress_admin_bar_status_menu = new LivePress_Admin_Bar_Status_Menu();

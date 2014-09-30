@@ -5,7 +5,6 @@
  */
 
 class LivePress_Admin_Settings {
-
 	/**
 	 * @access public
 	 * @var array $settings Settings array.
@@ -51,7 +50,7 @@ class LivePress_Admin_Settings {
 				'timestamp'                    => get_option( 'time_format' ),
 				'include_avatar'               => false,
 				'update_author'                => true,
-				'author_display'               => ''
+				'author_display'               => '',
 			)
 		);
 	}
@@ -160,7 +159,7 @@ class LivePress_Admin_Settings {
 	}
 
 	/**
-	 * Dipslay a notice that everything is workring
+	 * Dipslay a notice that everything is working
 	 */
 	function connected_notice() {
 		?>
@@ -183,9 +182,10 @@ class LivePress_Admin_Settings {
 		echo '<input type="submit" class="button-secondary" id="api_key_submit" value="' . esc_html__( 'Check', 'livepress' ) . '" />';
 
 		$options = get_option( 'livepress', array() );
-		$authenticated = $options['api_key'] && !$options['error_api_key'];
+		$api_key = isset( $options['api_key'] ) ? $options['api_key'] : '';
+		$authenticated = $api_key && !$options['error_api_key'];
 
-		if ( $options['api_key'] && $options['error_api_key'] ) {
+		if ( $api_key && $options['error_api_key'] ) {
 			$api_key_status_class = 'invalid_api_key';
 			$api_key_status_text  = esc_html__( 'Key not valid', 'livepress' );
 		} elseif ( $authenticated ) {
@@ -209,13 +209,13 @@ class LivePress_Admin_Settings {
 		?>
 	<p>
 		<label>
-			<input type="radio" name="livepress[feed_order]" id="feed_order" value="top" <?php echo esc_attr( checked( 'top', $settings->feed_order, false ) ); ?> />
+			<input type="radio" name="livepress[feed_order]" id="feed_order" value="top" <?php echo checked( 'top', $settings->feed_order, false ); ?> />
 			<?php esc_html_e( 'Top (reverse chronological order, newest first)', 'livepress' ); ?>
 		</label>
 	</p>
     <p>
         <label>
-            <input type="radio" name="livepress[feed_order]" id="feed_order" value="bottom" <?php echo esc_attr( checked( 'bottom', $settings->feed_order, false ) ); ?> />
+            <input type="radio" name="livepress[feed_order]" id="feed_order" value="bottom" <?php echo checked( 'bottom', $settings->feed_order, false ); ?> />
 			<?php esc_html_e( 'Bottom (chronological order, oldest first)', 'livepress' ); ?>
         </label>
     </p>
@@ -295,6 +295,7 @@ class LivePress_Admin_Settings {
 	 * @return array Sanitized form input.
 	 */
 	function sanitize( $input ) {
+		$sanitized_input = array();
 
 		if ( isset( $input['api_key'] ) ) {
 			$api_key = sanitize_text_field( $input['api_key'] );
@@ -302,6 +303,7 @@ class LivePress_Admin_Settings {
 			if ( ! empty( $input['api_key'] ) ) {
 					$livepress_com = new LivePress_Communication($api_key);
 
+					// Note: site_url is the admin url on VIP
 					$validation = $livepress_com->validate_on_livepress( site_url() );
 					$sanitized_input['api_key'] = $api_key;
 					$sanitized_input['error_api_key'] = ($validation != 1);
@@ -309,8 +311,8 @@ class LivePress_Admin_Settings {
 						// We pass validation, update blog parameters from LP side
 						$blog = $livepress_com->get_blog();
 
-						$sanitized_input['blog_shortname'] = $blog->shortname;
-						$sanitized_input['post_from_twitter_username'] = $blog->twitter_username;
+						$sanitized_input['blog_shortname'] = isset( $blog->shortname ) ? $blog->shortname : '';
+						$sanitized_input['post_from_twitter_username'] = isset( $blog->twitter_username ) ? $blog->twitter_username : '';
 						$sanitized_input['api_key'] = $api_key;
 					} else {
 						add_settings_error('api_key', 'invalid', esc_html__( "Key is not valid", 'livepress' ) );

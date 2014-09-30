@@ -1,5 +1,5 @@
 /*jslint vars:true */
-/*global lp_strings, Dashboard, Livepress, tinyMCE, OORTLE, twttr */
+/*global LivepressConfig, lp_strings, Dashboard, Livepress, tinyMCE, OORTLE, twttr */
 Dashboard.Twitter = Livepress.ensureExists(Dashboard.Twitter);
 
 Dashboard.Twitter.terms = [];
@@ -517,11 +517,11 @@ if (Dashboard.Twitter.twitter === undefined) {
 				jQuery.post(
 					"admin-ajax.php",
 					{
-						_ajax_nonce:      Livepress.Config.ajax_twitter_search_nonce,
-						action:           'twitter_search_term',
+						_ajax_nonce:      LivepressConfig.ajax_twitter_search_nonce,
+						action:           'lp_twitter_search_term',
 						term:             term,
 						action_type:      action_type,
-						post_id:          Livepress.Config.post_id
+						post_id:          LivepressConfig.post_id
 					},
 					success
 				);
@@ -536,7 +536,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 
 			// Auto tweets
 			checkIfAutoTweetPossible: function () {
-				if (!Livepress.Config.remote_post) {
+				if (!LivepressConfig.remote_post) {
 					$paneHolder.find(".autotweet-container").hide();
 					jQuery("#autotweet-blocked .warning").show();
 				} else {
@@ -599,11 +599,11 @@ if (Dashboard.Twitter.twitter === undefined) {
 				jQuery.post(
 					"admin-ajax.php",
 					{
-						_ajax_nonce:      Livepress.Config.ajax_twitter_follow_nonce,
-						action:           'twitter_follow',
+						_ajax_nonce:      LivepressConfig.ajax_twitter_follow_nonce,
+						action:           'lp_twitter_follow',
 						username:         username,
 						action_type:      action_type,
-						post_id:          Livepress.Config.post_id
+						post_id:          LivepressConfig.post_id
 					},
 					success
 				);

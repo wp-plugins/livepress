@@ -1,4 +1,4 @@
-/*global lp_strings, Livepress, switchEditors, console, Collaboration */
+/*global LivepressConfig, lp_strings, Livepress, switchEditors, console, Collaboration */
 /*jslint vars:true */
 var Dashboard = Dashboard || {};
 
@@ -13,7 +13,7 @@ Dashboard.Controller = Dashboard.Controller || function () {
 	var init = function () {
 
 		if ( Dashboard.Comments !== undefined ) {
-			if ( Livepress.Config.disable_comments ) {
+			if ( LivepressConfig.disable_comments ) {
 				jQuery( "#bar-controls .comment-count" ).hide();
 				$paneHolder.find( 'div[data-pane-name="Comments"]' ).hide();
 				Dashboard.Comments.disable();
@@ -159,13 +159,13 @@ function DHelpers() {
 	}
 
 	SELF.saveEEState = function ( state ) {
-		var postId = Livepress.Config.post_id;
+		var postId = LivepressConfig.post_id;
 		Livepress.storage.set( 'post-' + postId + '-eeenabled', state );
 	};
 
 	SELF.getEEState = function () {
 		if ( jQuery.getUrlVar( 'action' ) === 'edit' ) {
-			var postId = Livepress.Config.post_id;
+			var postId = LivepressConfig.post_id;
 			if ( ! postId ) {
 				return false;
 			}

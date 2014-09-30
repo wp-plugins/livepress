@@ -38,10 +38,10 @@ class LivePress_Feed {
 		$feed_link  = LivePress_Updater::instance()->get_current_post_feed_link();
 
 		if ( count( $feed_link ) > 0 ) {
-			$tag  = '<link rel="alternate" type="' . feed_content_type( 'rss2' ) . '" ';
-			$tag .= 'title="' . get_bloginfo( 'name' ) . ' &raquo; ' . $post_title . '" ';
-			$tag .= 'href="' . $feed_link[0] . '" />' . "\n";
-			echo wp_kses_post( $tag );
+			$tag  = '<link rel="alternate" type="' . esc_attr( feed_content_type( 'rss2' ) ) . '" ';
+			$tag .= 'title="' . esc_attr( get_bloginfo( 'name' ) ) . ' &raquo; ' . esc_attr( $post_title ) . '" ';
+			$tag .= 'href="' . esc_url( $feed_link[0] ) . '" />' . "\n";
+			echo $tag;
 		}
 	}
 

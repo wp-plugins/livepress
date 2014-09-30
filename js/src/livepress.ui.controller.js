@@ -291,7 +291,7 @@ Livepress.Ui.Controller = function (config, hooks) {
 		$livepress.find('.lp-updated-counter').find('.livepress-timestamp').attr('title', dateString );
 		$livepress.find('.lp-bar .lp-status').removeClass('lp-off').addClass('lp-on');
 		jQuery("abbr.livepress-timestamp").timeago();
-		jQuery( document ).trigger( 'post_update' ); /*Trigger a post-update event so display can adjust*/
+		jQuery( document ).trigger( 'live_post_update' ); /*Trigger a post-update event so display can adjust*/
 	}
 
 	function new_post_update_box (post, topic, msg_id) {
@@ -300,12 +300,6 @@ Livepress.Ui.Controller = function (config, hooks) {
 		}
 
 		update_box.new_post(post.title, post.link, post.author, post.updated_at_gmt);
-		sounds.play("postUpdated");
-	}
-
-	function new_post_widget (post) {
-		trigger_action_on_view();
-		widget.post_alert(post.title, post.link, post.author, post.updated_at_gmt);
 		sounds.play("postUpdated");
 	}
 
@@ -350,6 +344,17 @@ Livepress.Ui.Controller = function (config, hooks) {
 		$window.blur(function () {
 			this.is_active = false;
 		});
+
+		var $livediv = jQuery( '#post_content_livepress' ),
+			liveTags = $livediv.data( 'livetags' );
+			console.log( liveTags );
+			if ( '' !== liveTags ) {
+				post_dom_manipulator.addLiveTagControlBar();
+				var allTags = liveTags.split( ',' );
+					allTags.map( function( tag ) {
+						post_dom_manipulator.addLiveTagToControls( tag );
+					});
+			}
 	}
 
 	window.is_active = true;
@@ -407,7 +412,6 @@ Livepress.Ui.Controller = function (config, hooks) {
 			comments_dom_manipulator = new Livepress.DOMManipulator('#post_comments_livepress', config.custom_background_color);
 
 			var opt = config.new_post_msg_id ? {last_id:config.new_post_msg_id} : {fetch_all:true};
-			comet.subscribe(new_post_topic, new_post_widget, opt);
 			if (!config.disable_comments && config.comment_live_updates_default) {
 				opt = config.comment_msg_id ? {last_id:config.comment_msg_id} : {fetch_all:true};
 				comet.subscribe(comment_update_topic, function () {

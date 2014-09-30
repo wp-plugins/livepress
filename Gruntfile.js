@@ -53,6 +53,7 @@ module.exports = function ( grunt ) {
 					'js/src/jquery.extensions.js',
 					'js/src/php-date.js',
 					'js/src/livepress.imintegration.js',
+					'js/vendor/select2/select2.js',
 					'js/src/livepress.admin.js'
 				],
 				dest: 'js/admin/livepress-admin.full.js'
@@ -89,7 +90,7 @@ module.exports = function ( grunt ) {
 				dest: 'js/livepress-release.full.js'
 			},
 			livepress_loader: {
-				src: ['js/src/livepress_loader.js'],
+				src: ['js/src/livepress.loader.js'],
 				dest: 'js/livepress_loader.full.js'
 			},
 			pointer: {
@@ -119,7 +120,7 @@ module.exports = function ( grunt ) {
 				'js/src/livepress.ui.controller.js',
 				'js/src/livepress.comment.js',
 				'js/src/livepress.ui-start.js',
-				'js/src/livepress_loader.js',
+				'js/src/livepress.loader.js',
 				'js/src/editor_plugin.js'
 			],
 			options: {
@@ -180,6 +181,18 @@ module.exports = function ( grunt ) {
 			files: {
 				src:  [ 'php/*.php' ],
 				expand: true
+			}
+		},
+		watch: {
+			files: [
+				'css/*',
+				'php/*',
+				'js/src/*',
+				'*.php'
+			],
+			tasks: 'default',
+			options: {
+				livereload: true
 			}
 		},
 		clean: [ "plugin-for-release" ],
@@ -246,6 +259,7 @@ module.exports = function ( grunt ) {
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-pot');
 	grunt.loadNpmTasks('grunt-contrib-clean');
+	grunt.loadNpmTasks('grunt-contrib-watch');
 
 	// Default task.
 	grunt.registerTask( 'default',      ['jshint', 'concat', 'uglify', 'pot', 'copy:main'] );

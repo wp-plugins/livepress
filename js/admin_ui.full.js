@@ -1,4 +1,4 @@
-/*! livepress -v1.1.3
+/*! livepress -v1.1.5
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -464,8 +464,9 @@ jQuery(function () {
 		jQuery.ajax({
 			url:      "./admin-ajax.php", //"<?php echo get_option("siteurl") ?>/wp-admin/admin-ajax.php",
 			data:     ({
-				api_key: document.getElementById("api_key").value,
-				action:  'api_key_validate'
+				api_key:     document.getElementById("api_key").value,
+				action:      'lp_api_key_validate',
+				_ajax_nonce: LivepressConfig.ajax_api_validate_nonce
 			}),
 			success:  function (msg) {
 				if (typeof msg === 'object') {
@@ -580,12 +581,12 @@ jQuery(function () {
 // Facebox
 jQuery(function () {
 	jQuery(".facebox").hide();
-	jQuery.facebox.settings.closeImage = Livepress.Config.lp_plugin_url + '/img/facebox/closelabel.gif';
-	jQuery.facebox.settings.loadingImage = Livepress.Config.lp_plugin_url + '/img/facebox/loading.gif';
+	jQuery.facebox.settings.closeImage = LivepressConfig.lp_plugin_url + '/img/facebox/closelabel.gif';
+	jQuery.facebox.settings.loadingImage = LivepressConfig.lp_plugin_url + '/img/facebox/loading.gif';
 
 	jQuery('a[rel*=facebox]').facebox({
-		loading_image: Livepress.Config.lp_plugin_url + '/img/facebox/loading.gif',
-		close_image:   Livepress.Config.lp_plugin_url + '/img/facebox/closelabel.gif'
+		loading_image: LivepressConfig.lp_plugin_url + '/img/facebox/loading.gif',
+		close_image:   LivepressConfig.lp_plugin_url + '/img/facebox/closelabel.gif'
 	});
 });
 

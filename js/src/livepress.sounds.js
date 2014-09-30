@@ -1,6 +1,8 @@
+/*jslint vars:true */
+/*global LivepressConfig, Livepress, soundManager, console */
 Livepress.sounds = (function () {
-	var soundsBasePath = Livepress.Config.lp_plugin_url + "sounds/";
-	var soundOn = true;
+	var soundsBasePath = LivepressConfig.lp_plugin_url + "sounds/";
+	var soundOn = ( 1 == LivepressConfig.sounds_default );
 	var sounds = {};
 
 	// Sound files
@@ -26,7 +28,7 @@ Livepress.sounds = (function () {
 	};
 
 	sounds.play = function(sound){
-		if (soundOn){
+		if ( soundOn ){
 			createjs.Sound.play(sound);
 		}
 	};

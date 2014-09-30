@@ -60,9 +60,8 @@ class LivePress_Post {
 		$content = stripslashes($this->content);
 		$dom = new DOMDocument();
 		$xml = $this->get_valid_xml($content);
-		@$parse_success = $dom->loadXML($xml);
+		$parse_success = $dom->loadXML( html_entity_decode( $xml ) );
 		if (!$parse_success) {
-			libxml_use_internal_errors( true ); // Hide any dom insertion errors from user
 			$dom->loadHTML( $content );
 		}
 		return $dom;

@@ -1,11 +1,13 @@
-/*! livepress -v1.1.3
+/*! livepress -v1.1.5
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
-/*global console, Livepress, jQuery, document, navigator */
+/*global LivepressConfig, console, jQuery, document, navigator */
+var Livepress = Livepress || {};
 
 (function () {
 	var loader = function () {
+		console.log( 'loader' );
 		var scripts = [],
 			styles = [],
 			agent = navigator.userAgent.toLowerCase(),
@@ -25,7 +27,9 @@
 		}
 
 		//DEBUG Lines are included only in debugging version. They are completely removed from release code
-		if (Livepress.Config.debug !== undefined && Livepress.Config.debug) { //DEBUG
+		if (LivepressConfig.debug !== undefined && LivepressConfig.debug) { //DEBUG
+	console.log( 'loader pass a' );
+
 			var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
 			scripts = scripts.concat([ //DEBUG
 				'static://oortle.full.js?rnd=' + Math.random(), //DEBUG
@@ -33,19 +37,19 @@
 			]); //DEBUG
 		} else //DEBUG
 		{
+	console.log( 'loader pass b' );
 			scripts = scripts.concat([
-				'static://oortle/' + Livepress.Config.oover[0] + '/oortle.min.js',
-				'static://' + Livepress.Config.oover[1] + '/cluster_settings.js?v=' + Livepress.Config.oover[2]
+				'static://oortle/' + LivepressConfig.oover[0] + '/oortle.min.js',
+				'static://' + LivepressConfig.oover[1] + '/cluster_settings.js?v=' + LivepressConfig.oover[2]
 			]);
 		}
+
 		var getPath = function (url) {
 			var m = url.match(/^([a-z]+):\/\/(.*)$/);
 
 			if (m.length) {
-				if (m[1] === 'http' || m[1] === 'https') {
-					url = url; // Do nothing for global URL
-				} else if ((m[1] + "_url") in Livepress.Config) { // Translate if url mapping defined for it
-					var prefix = Livepress.Config[m[1] + "_url"];
+				if (LivepressConfig[m[1] + '_url'] !== undefined) { // Translate if url mapping defined for it
+					var prefix = LivepressConfig[m[1] + "_url"];
 					if (prefix.substr(-1) !== "/") {
 						prefix += "/";
 					}
@@ -67,6 +71,7 @@
 			return true;
 		};
 		var loadScript = function (idx, only) {
+			console.log( 'loadScript' );
 			if (idx >= scripts.length) {
 				return false;
 			}

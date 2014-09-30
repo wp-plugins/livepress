@@ -1,4 +1,4 @@
-/*! livepress -v1.1.3
+/*! livepress -v1.1.5
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -791,7 +791,7 @@ Livepress.DOMManipulator.prototype = {
 			this.log('apply changes i=', i, ' changes.length = ', changes.length);
 			var change = changes[i];
 			this.log('change[i] = ', change[i]);
-			var parts, node, parent, container, childIndex, el, childRef, parent_path, content, x;
+			var parts, node, parent, container, childIndex, el, childRef, parent_path, content, x, inserted;
 			switch (change[0]) {
 
 				// ['add_class', 'element xpath', 'class name changed']
@@ -882,6 +882,7 @@ Livepress.DOMManipulator.prototype = {
 							this.log('push_node: parentNode = ', parentNode, ', node = ', node);
 
 							registers[change[2]] = parentNode.removeChild(node);
+							$( registers[change[2]] ).addClass( 'oortle-diff-inserted' );
 						}
 					} catch (epn) {
 						this.log('Exception on push_node: ', epn);
@@ -901,7 +902,8 @@ Livepress.DOMManipulator.prototype = {
 							childRef = parent.childNodes.length <= childIndex ? null : parent.childNodes[childIndex];
 
 							this.log("pop_node", el, 'from register', change[2], 'before element', childRef, 'on index ', childIndex, ' on parent ', parent);
-							parent.insertBefore(el, childRef);
+							inserted = parent.insertBefore(el, childRef);
+							$( inserted ).addClass( 'oortle-diff-inserted' );
 						}
 					} catch (epon) {
 						this.log('Exception on pop_node: ', epon);
@@ -926,7 +928,16 @@ Livepress.DOMManipulator.prototype = {
 							if(content.id==="" || document.getElementById(content.id)===null) {
                                 this.process_twitter( content, change[2] );
 								childRef = parent.childNodes.length <= childIndex ? null : parent.childNodes[childIndex];
-								parent.insertBefore(content, childRef);
+								inserted = parent.insertBefore(content, childRef);
+								var $inserted = $( inserted );
+								$inserted.addClass( 'oortle-diff-inserted' );
+								// If the update contains live tags, add the tag ids to the update data
+								var $livetags = $( content ).find( 'div.live-update-livetags' );
+								if ( ( "undefined" !== typeof $livetags )  && 0 !== $livetags.length ) {
+									this.addLiveTagsToUpdate( $inserted, $livetags );
+
+								}
+								this.filterUpdate( $inserted, $livetags );
 							}
 						}
 					} catch (ein1) {
@@ -935,7 +946,7 @@ Livepress.DOMManipulator.prototype = {
 					break;
 
                 // ['append_child', 'parent xpath', content]
-                // instead of "insertBefore", "appendChild" on found element called 
+                // instead of "insertBefore", "appendChild" on found element called
                 case 'append_child':
                     try {
                         // parent is passed path
@@ -948,7 +959,8 @@ Livepress.DOMManipulator.prototype = {
                             // Suppress duplicate append
 							if(content.id!=="" && document.getElementById(content.id)!==null) {
                                 this.process_twitter( content, change[2] );
-								parent.appendChild(content);
+								inserted = parent.appendChild(content);
+								$( inserted ).addClass( 'oortle-diff-inserted' );
 							}
 						}
                     } catch (ein1) {
@@ -964,6 +976,7 @@ Livepress.DOMManipulator.prototype = {
                         parent = node.parentNode;
 
 						el = document.createElement('span');
+
 						el.innerHTML = change[2];
 						content = el.childNodes[0];
 
@@ -974,6 +987,10 @@ Livepress.DOMManipulator.prototype = {
                         } else {
                             this.process_twitter( content, change[2] );
                             this.add_class(content, 'oortle-diff-changed');
+                            if ( $( node ).hasClass( 'pinned-first-live-update' ) ) {
+                              this.add_class( content, 'pinned-first-live-update' );
+                              setTimeout( this.scrollToPinnedHeader, 500 );
+                            }
                             parent.insertBefore(content, node);
 
                             // FIXME: call just del_node there
@@ -1030,6 +1047,131 @@ Livepress.DOMManipulator.prototype = {
 		this.log('end apply_changes.');
 	},
 
+	scrollToPinnedHeader: function() {
+		if ( Livepress.Scroll.shouldScroll() ) {
+			jQuery.scrollTo( '.pinned-first-live-update', 900, {axis: 'y', offset: -30 } );
+		}
+	},
+
+	/**
+	 * Filer the update - hide if live tag filtering is active and update not in tag(s)
+	 */
+	filterUpdate: function( $inserted, $livetags ) {
+		// If the livetags are not in the filtered tags, hide the update
+		var target,
+			theTags,
+			$tagcontrol = jQuery( '.live-update-tag-control' ),
+			$activelivetags = $tagcontrol.find( '.live-update-tagcontrol.active' );
+
+		if ( 0 !== $activelivetags.length && 0 === $livetags.length ) {
+			$inserted.hide().removeClass( 'oortle-diff-inserted' );
+			return;
+		}
+
+		// Any active tags
+		if ( 0 !== $activelivetags.length ){
+			var inFilteredList = false,
+				$insertedtags  = $livetags.find( '.live-update-livetag' );
+
+			jQuery.each( $insertedtags, function( index, tag ) {
+				console.log( tag );
+			});
+			// iterate thru the update tags, checking if any match any active tag
+			jQuery.each( $insertedtags, function( index, tag ) {
+				target = jQuery( tag ).attr( 'class' );
+				target = target.replace( /live-update-livetag live-update-livetag-/gi, '' );
+				target = 'live-update-livetag-' + target.toLowerCase().replace( / /g, '-' );
+				target = '.live-update-tagcontrol.active[data-tagclass="' + target + '"]';
+				theTags =  $tagcontrol.find( target );
+				if ( 0 !== theTags.length ) {
+					inFilteredList = true;
+				}
+			});
+			if ( ! inFilteredList ) {
+				$inserted.hide().removeClass( 'oortle-diff-inserted' );
+			}
+		}
+	},
+
+	/**
+	 * When the live update contains tags, add these to the tag control bar
+	 */
+	addLiveTagsToUpdate: function( $inserted, $livetags ) {
+		var SELF = this, tagSpan, tagclass, $classincontrol, $livepress = jQuery( '#livepress' ),
+			theTags = $livetags.find( '.live-update-livetag' ),
+			$lpliveupdates = $livetags.parent().parent(),
+			$livetagcontrol = $livepress.find( '.live-update-tag-control' );
+
+		// Add the live tag control bar if missing
+		if ( 0 === $livetagcontrol.length ) {
+			this.addLiveTagControlBar();
+		}
+
+		// Parse the tags in the update, adding to the live tag control bar
+		theTags.each( function() {
+			var livetag = jQuery( this ).attr( 'class' );
+
+			livetag = livetag.replace( /live-update-livetag live-update-livetag-/gi, '' );
+
+			tagclass = 'live-update-livetag-' + livetag.toLowerCase().replace( / /g, '-' );
+			$inserted.addClass( tagclass );
+			// Add the control class, if missing
+			SELF.addLiveTagToControls( livetag );
+		});
+	},
+
+	addLiveTagToControls: function( livetag ) {
+		var tagSpan, $livepress = jQuery( '#livepress' ),
+			$livetagcontrol = $livepress.find( '.live-update-tag-control' ),
+			$classincontrol = $livetagcontrol.find( '[data-tagclass="live-update-livetag-' + livetag.toLowerCase().replace(/ /g, '-') + '"]' );
+			if ( 0 === $classincontrol.length ){
+				tagSpan = '<span class="live-update-tagcontrol" data-tagclass="live-update-livetag-' + livetag.toLowerCase().replace(/ /g, '-') + '">' + livetag + '</span>';
+				$livetagcontrol.append( tagSpan );
+			}
+	},
+
+	addLiveTagControlBar: function() {
+		var $livepress = jQuery( '#livepress' ),
+			$livetagcontrol = $livepress.find( '.live-update-tag-control' );
+
+			$livepress.append( '<div class="live-update-tag-control"><span class="live-update-tag-title">' + lp_client_strings.filter_by_tag + '</span></div>' );
+			$livetagcontrol = $livepress.find( '.live-update-tag-control' );
+			// Activate handlers after inserting bar
+			this.addLiveTagHandlers( $livetagcontrol );
+	},
+
+	addLiveTagHandlers: function( $livetagcontrol ) {
+		var self = this,
+			$lpcontent = jQuery( '.livepress_content' );
+
+		$livetagcontrol.on( 'click', '.live-update-tagcontrol', function() {
+			var $this = jQuery( this );
+
+				$this.toggleClass( 'active' );
+				self.filterUpdateListbyLiveTag( $livetagcontrol, $lpcontent );
+		} );
+	},
+
+	filterUpdateListbyLiveTag: function( $livetagcontrol, $lpcontent ) {
+		var activeClass,
+			$activeLiveTags = $livetagcontrol.find( '.live-update-tagcontrol.active' );
+
+			// If no tags are selected, show all updates
+			if ( 0 === $activeLiveTags.length ) {
+				$lpcontent.find( '.livepress-update' ).show();
+				return;
+			}
+
+			// Hide all updates
+			$lpcontent.find( '.livepress-update' ).hide();
+
+			// Show updates matching active live tags
+			jQuery.each( $activeLiveTags, function( index, tag ) {
+				activeClass = '.' + jQuery( tag ).data( 'tagclass' );
+				$lpcontent.find( activeClass ).show();
+			});
+	},
+
 	colorForOperation: function (element) {
 		if (element.length === 0) {
 			return false;
@@ -1057,7 +1199,7 @@ Livepress.DOMManipulator.prototype = {
 		var $el = jQuery(el);
 
 		// if user is not on the page
-		if (!Livepress.Config.page_active) {
+		if (!LivepressConfig.page_active) {
 			$el.getBg();
 			$el.data("oldbg", $el.css('background-color'));
 			$el.addClass('unfocused-lp-update');
@@ -1319,7 +1461,7 @@ Dashboard.Controller = Dashboard.Controller || function () {
 	var init = function () {
 
 		if ( Dashboard.Comments !== undefined ) {
-			if ( Livepress.Config.disable_comments ) {
+			if ( LivepressConfig.disable_comments ) {
 				jQuery( "#bar-controls .comment-count" ).hide();
 				$paneHolder.find( 'div[data-pane-name="Comments"]' ).hide();
 				Dashboard.Comments.disable();
@@ -1465,13 +1607,13 @@ function DHelpers() {
 	}
 
 	SELF.saveEEState = function ( state ) {
-		var postId = Livepress.Config.post_id;
+		var postId = LivepressConfig.post_id;
 		Livepress.storage.set( 'post-' + postId + '-eeenabled', state );
 	};
 
 	SELF.getEEState = function () {
 		if ( jQuery.getUrlVar( 'action' ) === 'edit' ) {
-			var postId = Livepress.Config.post_id;
+			var postId = LivepressConfig.post_id;
 			if ( ! postId ) {
 				return false;
 			}
@@ -1574,7 +1716,7 @@ function DHelpers() {
 
 Dashboard.Helpers = Dashboard.Helpers || new DHelpers();
 
-/*global lp_strings, Livepress, Dashboard, console, OORTLE */
+/*global LivepressConfig, lp_strings, Livepress, Dashboard, console, OORTLE, LivepressConfig */
 var Collaboration = Livepress.ensureExists(Collaboration);
 Collaboration.chat_topic_id = function () {
 	var topic = Collaboration.post_topic() + "_chat";
@@ -1718,7 +1860,7 @@ jQuery.extend(Collaboration.Edit, {
 });
 
 Collaboration.post_topic = function () {
-	return "|livepress|" + Livepress.Config.site_url + "|post-" + Livepress.Config.post_id;
+	return "|livepress|" + LivepressConfig.site_url + "|post-" + LivepressConfig.post_id;
 };
 
 Collaboration.edit_post_topic = function () {
@@ -1728,7 +1870,7 @@ Collaboration.edit_post_topic = function () {
 
 jQuery.extend(Collaboration, {
 	Connected: false,
-	Author:    Livepress.Config.current_user,
+	Author:    LivepressConfig.current_user,
 
 	start: function (mode) {
 		if (mode.enabled) {
@@ -1784,7 +1926,7 @@ jQuery.extend(Collaboration.Edit, {
 		this.update_live_posts_number();
 
 		// Collaborative editing...
-		var opt = Livepress.Config.post_edit_msg_id ? {last_id: Livepress.Config.post_edit_msg_id} : {fetch_all: true};
+		var opt = LivepressConfig.post_edit_msg_id ? {last_id: LivepressConfig.post_edit_msg_id} : {fetch_all: true};
 		OORTLE.instance.subscribe(Collaboration.edit_post_topic(), this.editing_post_callback, opt);
 		// Readers online
 		OORTLE.instance.subscribe("|subcount" + Collaboration.post_topic(), this.readers_callback);
@@ -1844,14 +1986,14 @@ jQuery.extend(Collaboration.Edit, {
 
 		if (!args) {
 			params = {
-				action:           'collaboration_get_live_edition_data',
-				_ajax_nonce:      Livepress.Config.ajax_nonce,
-				post_id:          Livepress.Config.post_id
+				action:           'lp_collaboration_get_live_edition_data',
+				_ajax_nonce:      LivepressConfig.ajax_get_live_edition_data,
+				post_id:          LivepressConfig.post_id
 			};
 			jQuery.ajax({
 				type:     "GET",
 				dataType: "json",
-				url:      Livepress.Config.site_url + '/wp-admin/admin-ajax.php',
+				url:      LivepressConfig.site_url + '/wp-admin/admin-ajax.php',
 				data:     params,
 				success:  success,
 				error:    error
@@ -1952,7 +2094,7 @@ Collaboration.initialize = function () {
 	}
 };
 
-/*global lp_strings, Dashboard, console, Collaboration, OORTLE, Livepress, tinyMCE */
+/*global lp_strings, Dashboard, console, Collaboration, OORTLE, Livepress, tinyMCE, LivepressConfig */
 if (Dashboard.Comments === undefined) {
 	Dashboard.Comments = (function () {
 		var comments_on_hold = [];
@@ -2083,10 +2225,11 @@ if (Dashboard.Comments === undefined) {
 					return;
 				}
 				var params = {};
-				params.action = 'collaboration_comments_number';
-				params.post_id = Livepress.Config.post_id;
+				params.action = 'lp_collaboration_comments_number';
+				params._ajax_nonce = LivepressConfig.ajax_lp_collaboration_comments;
+				params.post_id = LivepressConfig.post_id;
 				jQuery.ajax({
-					url:      Livepress.Config.site_url + '/wp-admin/admin-ajax.php',
+					url:      LivepressConfig.site_url + '/wp-admin/admin-ajax.php',
 					type:     'post',
 					dataType: 'json',
 					data:     params,
@@ -2173,7 +2316,7 @@ if (Dashboard.Comments.Builder === undefined) {
 				nonces = jQuery('#blogging-tool-nonces');
 			var linkForSpamAndTrash = href.substring(0, href.lastIndexOf('/')) + "/edit-comments.php";
 			var defaultAjaxData = {
-				_ajax_nonce:      Livepress.Config.ajax_comment_nonce,
+				_ajax_nonce:      LivepressConfig.ajax_comment_nonce,
 				id:               commentId
 			};
 
@@ -2181,7 +2324,7 @@ if (Dashboard.Comments.Builder === undefined) {
 				return jQuery("<a></a>").attr("href", href).text(text).attr('title', title);
 			};
 
-			var postAndCommentIds = "&p=" + Livepress.Config.post_id + "&c=" + commentId + "&_wpnonce=" + nonces.data( 'live-comments' );
+			var postAndCommentIds = "&p=" + LivepressConfig.post_id + "&c=" + commentId + "&_wpnonce=" + nonces.data( 'live-comments' );
 			var linkAction = function (action) {
 				return "comment.php?action=" + action + postAndCommentIds;
 			};
@@ -2215,11 +2358,19 @@ if (Dashboard.Comments.Builder === undefined) {
 
 					jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
 						'new':    'approved',
-						action:   'lp-dim-comment',
+						action:   'lp_dim_comment',
 						dimClass: 'unapproved'
 					}),
-						function () {
-							jQuery("#lp-comment-" + commentId).removeClass("unapproved").addClass("approved");
+						function( returnnonce ) {
+							jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
+								'new':       'approved',
+								action:      'dim-comment',
+								dimClass:    'unapproved',
+								_ajax_nonce: returnnonce.data.approve_comment_nonce
+							}),
+							function () {
+								jQuery("#lp-comment-" + commentId).removeClass("unapproved").addClass("approved");
+							} );
 						}
 					);
 				});
@@ -2231,11 +2382,19 @@ if (Dashboard.Comments.Builder === undefined) {
 					e.stopPropagation();
 					jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
 						'new':    'unapproved',
-						action:   'lp-dim-comment',
+						action:   'lp_dim_comment',
 						dimClass: 'unapproved'
 					}),
-						function () {
-							jQuery("#lp-comment-" + commentId).removeClass("approved").addClass("unapproved");
+						function( returnnonce ) {
+							jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
+								'new':       'unapproved',
+								action:      'dim-comment',
+								dimClass:    'unapproved',
+								_ajax_nonce: returnnonce.data.approve_comment_nonce
+							}),
+							function () {
+								jQuery("#lp-comment-" + commentId).removeClass("approved").addClass("unapproved");
+							} );
 						}
 					);
 				});
@@ -2248,29 +2407,48 @@ if (Dashboard.Comments.Builder === undefined) {
 				e.preventDefault();
 				e.stopPropagation();
 
-				jQuery.post("admin-ajax.php",
-					jQuery.extend({}, defaultAjaxData,
-						{
-							action: 'delete-comment',
-							spam:   1,
-							_url:   linkForSpamAndTrash
-						}),
-					removeComment
-				);
+				jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
+						'new':    'unapproved',
+						action:   'lp_dim_comment',
+						dimClass: 'unapproved'
+					} ),
+					function( returnnonce ) {
+						jQuery.post("admin-ajax.php",
+							jQuery.extend({}, defaultAjaxData,
+								{
+									action: 'delete-comment',
+									spam:   1,
+									comment_status: 'all',
+									_url:   linkForSpamAndTrash,
+									_ajax_nonce: returnnonce.data.delete_comment_nonce
+								}),
+							removeComment
+						);
+					});
 			});
 
 			trashLink.click(function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				jQuery.post("admin-ajax.php",
-					jQuery.extend({}, defaultAjaxData,
-						{
-							action: 'delete-comment',
-							trash:  1,
-							_url:   linkForSpamAndTrash
-						}),
-					removeComment
-				);
+
+				jQuery.post("admin-ajax.php", jQuery.extend({}, defaultAjaxData, {
+						'new':    'unapproved',
+						action:   'lp_dim_comment',
+						dimClass: 'unapproved'
+					}),
+					function( returnnonce ) {
+						jQuery.post("admin-ajax.php",
+							jQuery.extend({}, defaultAjaxData,
+								{
+									action: 'delete-comment',
+									trash:  1,
+									comment_status: 'all',
+									_url:   linkForSpamAndTrash,
+									_ajax_nonce: returnnonce.data.delete_comment_nonce
+								}),
+							removeComment
+						);
+					});
 			});
 
 			postLink.bind('click', function (e) {
@@ -3575,7 +3753,7 @@ if (typeof twttr === "undefined" || twttr === null) {
 	}
 
 }());
-/*global lp_strings, Dashboard, Livepress, tinyMCE, OORTLE, twttr */
+/*global LivepressConfig, lp_strings, Dashboard, Livepress, tinyMCE, OORTLE, twttr */
 Dashboard.Twitter = Livepress.ensureExists(Dashboard.Twitter);
 
 Dashboard.Twitter.terms = [];
@@ -4093,11 +4271,11 @@ if (Dashboard.Twitter.twitter === undefined) {
 				jQuery.post(
 					"admin-ajax.php",
 					{
-						_ajax_nonce:      Livepress.Config.ajax_twitter_search_nonce,
-						action:           'twitter_search_term',
+						_ajax_nonce:      LivepressConfig.ajax_twitter_search_nonce,
+						action:           'lp_twitter_search_term',
 						term:             term,
 						action_type:      action_type,
-						post_id:          Livepress.Config.post_id
+						post_id:          LivepressConfig.post_id
 					},
 					success
 				);
@@ -4112,7 +4290,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 
 			// Auto tweets
 			checkIfAutoTweetPossible: function () {
-				if (!Livepress.Config.remote_post) {
+				if (!LivepressConfig.remote_post) {
 					$paneHolder.find(".autotweet-container").hide();
 					jQuery("#autotweet-blocked .warning").show();
 				} else {
@@ -4175,11 +4353,11 @@ if (Dashboard.Twitter.twitter === undefined) {
 				jQuery.post(
 					"admin-ajax.php",
 					{
-						_ajax_nonce:      Livepress.Config.ajax_twitter_follow_nonce,
-						action:           'twitter_follow',
+						_ajax_nonce:      LivepressConfig.ajax_twitter_follow_nonce,
+						action:           'lp_twitter_follow',
 						username:         username,
 						action_type:      action_type,
-						post_id:          Livepress.Config.post_id
+						post_id:          LivepressConfig.post_id
 					},
 					success
 				);
@@ -4203,9 +4381,12 @@ if (Dashboard.Twitter.twitter === undefined) {
 	}()));
 }
 
-/*global Livepress*/
+/*global LivepressConfig, console, jQuery, document, navigator */
+var Livepress = Livepress || {};
+
 (function () {
 	var loader = function () {
+		console.log( 'loader' );
 		var scripts = [],
 			styles = [],
 			agent = navigator.userAgent.toLowerCase(),
@@ -4224,28 +4405,30 @@ if (Dashboard.Twitter.twitter === undefined) {
 			styles = styles.concat(Livepress.CSSQueue);
 		}
 
-		if ( Livepress.Config.current_screen !== undefined && Livepress.Config.current_screen[0] === 'post' && Livepress.Config.current_screen[1] === 'post' ) {
-			//DEBUG Lines are included only in debugging version. They are completely removed from release code
-			if (Livepress.Config.debug !== undefined && Livepress.Config.debug) { //DEBUG
-				var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
-				scripts = scripts.concat([ //DEBUG
-					'static://oortle.full.js?rnd=' + Math.random(), //DEBUG
-					'static://oortle_dynamic.js?run=' + run + '&rnd=' + Math.random() //DEBUG
-				]); //DEBUG
-			} else //DEBUG
-			{
-				scripts = scripts.concat([
-					'static://oortle/' + Livepress.Config.oover[0] + '/oortle.min.js',
-					'static://' + Livepress.Config.oover[1] + '/cluster_settings.js?v=' + Livepress.Config.oover[2]
-				]);
-			}
+		//DEBUG Lines are included only in debugging version. They are completely removed from release code
+		if (LivepressConfig.debug !== undefined && LivepressConfig.debug) { //DEBUG
+	console.log( 'loader pass a' );
+
+			var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
+			scripts = scripts.concat([ //DEBUG
+				'static://oortle.full.js?rnd=' + Math.random(), //DEBUG
+				'static://oortle_dynamic.js?run=' + run + '&rnd=' + Math.random() //DEBUG
+			]); //DEBUG
+		} else //DEBUG
+		{
+	console.log( 'loader pass b' );
+			scripts = scripts.concat([
+				'static://oortle/' + LivepressConfig.oover[0] + '/oortle.min.js',
+				'static://' + LivepressConfig.oover[1] + '/cluster_settings.js?v=' + LivepressConfig.oover[2]
+			]);
 		}
+
 		var getPath = function (url) {
 			var m = url.match(/^([a-z]+):\/\/(.*)$/);
 
 			if (m.length) {
-				if (Livepress.Config[m[1] + '_url'] !== undefined) { // Translate if url mapping defined for it
-					var prefix = Livepress.Config[m[1] + "_url"];
+				if (LivepressConfig[m[1] + '_url'] !== undefined) { // Translate if url mapping defined for it
+					var prefix = LivepressConfig[m[1] + "_url"];
 					if (prefix.substr(-1) !== "/") {
 						prefix += "/";
 					}
@@ -4267,6 +4450,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 			return true;
 		};
 		var loadScript = function (idx, only) {
+			console.log( 'loadScript' );
 			if (idx >= scripts.length) {
 				return false;
 			}
@@ -4317,6 +4501,7 @@ if (Dashboard.Twitter.twitter === undefined) {
 		jQuery(loader);
 	} // Otherwise, we called as loader for only external part
 }());
+
 //
 // Copyright (c) 2008, 2009 Paul Duncan (paul@pablotron.org)
 //

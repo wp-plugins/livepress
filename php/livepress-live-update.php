@@ -154,7 +154,7 @@ class LivePress_Live_Update {
 				$new_shortcode .= $current_time_attr;
 			}
 		}
-		$new_shortcode   .= ' timestamp="'. date( 'c', current_time('timestamp') ) .'"';
+		$new_shortcode   .= ' timestamp="'. date( 'c', current_time('timestamp', 1) ) .'"';
 
 		if ($options["include_avatar"]) {
 			$new_shortcode .= ' has_avatar="1"';
@@ -235,7 +235,7 @@ class LivePress_Live_Update {
 	 * @return string HTML img tag.
 	 */
 	public static function avatar_img_tag( $url ) {
-		return "<img src='{$url}' class='avatar avatar-30 photo avatar-default' height='30' width='30' />";
+		return "<img src='" . esc_url( $url ) ."' class='avatar avatar-30 photo avatar-default' height='30' width='30' />";
 	}
 
 	/**

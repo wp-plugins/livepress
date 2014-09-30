@@ -1,5 +1,5 @@
 /*jslint vars:true */
-/*global lp_client_strings, Livepress, console */
+/*global lp_client_strings, LivepressConfig, Livepress, console */
 Livepress.Ui = {};
 
 Livepress.Ui.View = function (disable_comments) {
@@ -175,26 +175,6 @@ Livepress.Ui.View = function (disable_comments) {
 		});
 	};
 
-	this.post_alert = function (title, link, author, date) {
-		console.log('Post alert', {title:title, link:link, author:author, date:date});
-
-		if (title === undefined && author === undefined && date === undefined) {
-			return;
-		}
-
-		var container = jQuery("<div>"),
-			dateEl = jQuery("<abbr>").attr("class", "timeago").attr("title", date).text(date.replace(/Z/, " UTC"));
-		container.append(dateEl).append(" by " + author);
-		jQuery.gritter.add({
-			title:     '<a href="' + link + '">' + title + '</a>',
-			date:      'New Post - ' + container.html(),
-			class_name:'new-post',
-			time:      7000
-		});
-		update_gritter_settings_click();
-		jQuery("abbr.livepress-timestamp").timeago();
-	};
-
 	this.comment_alert = function (options, date) {
 		console.log('Comment alert', options);
 		var container = jQuery("<div>");
@@ -260,7 +240,7 @@ Livepress.Ui.UpdateBoxView = function (homepage_mode) {
 		$balloon.fadeOut();
 	});
 
-	$closeButton.attr('src', Livepress.Config.lp_plugin_url + '/img/lp-settings-close.png');
+	$closeButton.attr('src', LivepressConfig.lp_plugin_url + '/img/lp-settings-close.png');
 
 	function add_to_update_list (li_content) {
 		var item = [

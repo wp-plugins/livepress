@@ -144,8 +144,54 @@ body#tinymce .livepress-meta img {
 	margin-right: 5px;
 }
 
+div.livepress-live-tags {
+	width: 50%;
+	float: left;
+	text-align: left;
+}
+
+.live-update-livetags {
+	margin: 0;
+	float: right;
+}
+
+.live-update-livetag,
+.live-update-tagcontrol {
+	margin-right: 6px;
+	border: 1px solid #000;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-left: 10px;
+	padding-right: 10px;
+	background-color: #eee;
+	cursor: pointer;
+	font-size: .7em;
+}
+
+.live-update-tag-control {
+	background-color: #f5f5f5;
+	border: 1px solid #dedede;
+	margin-bottom: 15px;
+	width: 100%;
+	padding: 0;
+}
+
+.live-update-tagcontrol.active {
+	background-color: #9CCA95;
+}
+
+.live-update-tag-title {
+	font-size: 12px;
+	font-weight: bold;
+	margin-right: 10px;
+	margin-left: 5px;
+	width: 90px;
+	float: left;
+}
+
 /* live updates main pages (fixes floating issue) */
-.livepress-update {
+.livepress-update,
+.livepress-old-update {
 	display: block;
 	clear: both;
 	position: relative;
@@ -157,11 +203,13 @@ body#tinymce .livepress-meta img {
 	z-index: 10;
 }
 
-.livepress-update.lp-hl-on-hover:hover {
+.livepress-update.lp-hl-on-hover:hover,
+.livepress-old-update.lp-hl-on-hover:hover {
 	background: #f9f9c3;
 }
 
-.livepress-update.livepress-has-avatar {
+.livepress-update.livepress-has-avatar,
+.livepress-old-update.livepress-has-avatar  {
 	min-height: 40px;
 }
 
@@ -174,7 +222,7 @@ body#tinymce .livepress-meta img {
 }
 
 /* Images shouldn't be on the same line as meta header */
-.livepress-old-update, .livepress-update img{
+.livepress-old-update img, .livepress-update img{
 	clear: both;
 	display: block;
 }
