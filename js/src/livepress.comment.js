@@ -32,7 +32,6 @@ jQuery(function () {
 
 				var $btn = jQuery('#submit');
 				var btn_text = $btn.attr("value");
-
 				$btn.attr("value", lp_client_strings.sending + '...' );
 				$btn.attr("disabled", true);
 				jQuery("textarea#comment").attr("disabled", true);
@@ -45,6 +44,7 @@ jQuery(function () {
 					params.comment_parent = form.comment_parent.value;
 				}
 				params.comment = form.comment.value;
+				form.comment.value = '';
 				// FIXME: this won't work when accepting comments without email and name fields
 				// sent author is same as comment then. Ex. author:	test!@ comment:	test!@
 				params.author = form.elements[0].value;

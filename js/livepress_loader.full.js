@@ -1,4 +1,4 @@
-/*! livepress -v1.1.4
+/*! livepress -v1.1.5
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -7,6 +7,7 @@ var Livepress = Livepress || {};
 
 (function () {
 	var loader = function () {
+		console.log( 'loader' );
 		var scripts = [],
 			styles = [],
 			agent = navigator.userAgent.toLowerCase(),
@@ -27,6 +28,8 @@ var Livepress = Livepress || {};
 
 		//DEBUG Lines are included only in debugging version. They are completely removed from release code
 		if (LivepressConfig.debug !== undefined && LivepressConfig.debug) { //DEBUG
+	console.log( 'loader pass a' );
+
 			var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
 			scripts = scripts.concat([ //DEBUG
 				'static://oortle.full.js?rnd=' + Math.random(), //DEBUG
@@ -34,18 +37,18 @@ var Livepress = Livepress || {};
 			]); //DEBUG
 		} else //DEBUG
 		{
+	console.log( 'loader pass b' );
 			scripts = scripts.concat([
 				'static://oortle/' + LivepressConfig.oover[0] + '/oortle.min.js',
 				'static://' + LivepressConfig.oover[1] + '/cluster_settings.js?v=' + LivepressConfig.oover[2]
 			]);
 		}
+
 		var getPath = function (url) {
 			var m = url.match(/^([a-z]+):\/\/(.*)$/);
 
 			if (m.length) {
-				if (m[1] === 'http' || m[1] === 'https') {
-					url = url; // Do nothing for global URL
-				} else if ((m[1] + "_url") in LivepressConfig) { // Translate if url mapping defined for it
+				if (LivepressConfig[m[1] + '_url'] !== undefined) { // Translate if url mapping defined for it
 					var prefix = LivepressConfig[m[1] + "_url"];
 					if (prefix.substr(-1) !== "/") {
 						prefix += "/";
@@ -68,6 +71,7 @@ var Livepress = Livepress || {};
 			return true;
 		};
 		var loadScript = function (idx, only) {
+			console.log( 'loadScript' );
 			if (idx >= scripts.length) {
 				return false;
 			}

@@ -1,8 +1,10 @@
-/*jslint vars:true, regexp:true */
-/*global LivepressConfig*/
+/*jslint plusplus:true, vars:true */
+/*global LivepressConfig, console, jQuery, document, navigator */
 var Livepress = Livepress || {};
+
 (function () {
 	var loader = function () {
+		console.log( 'loader' );
 		var scripts = [],
 			styles = [],
 			agent = navigator.userAgent.toLowerCase(),
@@ -21,22 +23,24 @@ var Livepress = Livepress || {};
 			styles = styles.concat(Livepress.CSSQueue);
 		}
 
-		if ( LivepressConfig.current_screen !== undefined && LivepressConfig.current_screen.base === 'post' && LivepressConfig.current_screen.id === 'post' ) {
-			//DEBUG Lines are included only in debugging version. They are completely removed from release code
-			if (LivepressConfig.debug !== undefined && LivepressConfig.debug) { //DEBUG
-				var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
-				scripts = scripts.concat([ //DEBUG
-					'static://oortle.full.js?rnd=' + Math.random(), //DEBUG
-					'static://oortle_dynamic.js?run=' + run + '&rnd=' + Math.random() //DEBUG
-				]); //DEBUG
-			} else //DEBUG
-			{
-				scripts = scripts.concat([
-					'static://oortle/' + LivepressConfig.oover[0] + '/oortle.min.js',
-					'static://' + LivepressConfig.oover[1] + '/cluster_settings.js?v=' + LivepressConfig.oover[2]
-				]);
-			}
+		//DEBUG Lines are included only in debugging version. They are completely removed from release code
+		if (LivepressConfig.debug !== undefined && LivepressConfig.debug) { //DEBUG
+	console.log( 'loader pass a' );
+
+			var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
+			scripts = scripts.concat([ //DEBUG
+				'static://oortle.full.js?rnd=' + Math.random(), //DEBUG
+				'static://oortle_dynamic.js?run=' + run + '&rnd=' + Math.random() //DEBUG
+			]); //DEBUG
+		} else //DEBUG
+		{
+	console.log( 'loader pass b' );
+			scripts = scripts.concat([
+				'static://oortle/' + LivepressConfig.oover[0] + '/oortle.min.js',
+				'static://' + LivepressConfig.oover[1] + '/cluster_settings.js?v=' + LivepressConfig.oover[2]
+			]);
 		}
+
 		var getPath = function (url) {
 			var m = url.match(/^([a-z]+):\/\/(.*)$/);
 
@@ -64,6 +68,7 @@ var Livepress = Livepress || {};
 			return true;
 		};
 		var loadScript = function (idx, only) {
+			console.log( 'loadScript' );
 			if (idx >= scripts.length) {
 				return false;
 			}

@@ -77,7 +77,7 @@ add_action( 'manage_posts_custom_column' , array( $blogging_tools, 'display_post
  * @return array Filtered array of columns.
  */
 function add_livepress_status_column( $columns, $post_type ) {
-	if ( 'post' == $post_type ) {
+	if ( in_array( $post_type, apply_filters( 'livepress_post_types', array( 'post' ) ) ) ) {
 		$columns = array_merge( $columns, array( 'livepress_status' => esc_html__( 'LivePress Status', 'livepress' ) ) );
 	}
 	return $columns;
@@ -120,8 +120,10 @@ function add_content_css( $init ) {
  */
 function livepress_render_dashboard() {
 	global $post_type;
-	if($post_type != 'post') return;
-
+	if( ! in_array( $post_type, apply_filters( 'livepress_post_types', array( 'post' ) ) ) ) {
+		return;
+	}
+	error_log('add meta box');
 	add_meta_box(
 		'lp-dashboard',
 		esc_html__( 'LivePress Real-time Tools', 'livepress' ),

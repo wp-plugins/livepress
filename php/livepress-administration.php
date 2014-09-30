@@ -417,15 +417,15 @@ class LivePress_Administration {
 		// Add domain mapping primary domain
 		if ( function_exists( 'domain_mapping_siteurl' ) ) {
 			$domain_mapping_siteurl = domain_mapping_siteurl();
-			$domains[ 'alias' ] = $domain_mapping_siteurl;
+			$domains[ 'alias[]' ] = $domain_mapping_siteurl;
 		} else {
 			$home_url = get_home_url(); // Mapped domain on VIP
-			$domains[ 'alias' ] = $home_url;
+			$domains[ 'alias[]' ] = $home_url;
 		}
 
 		//@todo Add all domain aliased to the domains?
 		// Ensure unique list of domains
-		// $domains[ 'alias' ] = array_unique( $domains[ 'alias' ] );
+		// $domains[ 'alias[]' ] = array_unique( $domains[ 'alias[]' ] );
 		// String any http/https headers
 		// $domains = preg_replace( '/^https?:\/\/(.*)/i', '$1', $domains );
 

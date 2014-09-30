@@ -31,7 +31,10 @@ final class LivePress_Blogging_Tools {
 	public function __construct() {
 		add_action( 'add_meta_boxes',                                 array( $this, 'livepress_status' ) );
 		add_action( 'admin_enqueue_scripts',                          array( $this, 'feature_pointer' ) );
-		add_filter( 'postbox_classes_post_livepress_status_meta_box', array( $this, 'add_livepress_status_metabox_classes' ) );
+		foreach ( apply_filters( 'livepress_post_types', array( 'post' ) ) as $posttype ) {
+			$filtername = 'postbox_classes_' . esc_attr( $posttype ) . '_livepress_status_meta_box';
+			add_filter( $filtername, array( $this, 'add_livepress_status_metabox_classes' ) );
+		}
 		add_filter( 'mce_buttons',                                    array( $this, 'lp_filter_mce_buttons' ) );
 		add_filter( 'admin_body_class',                               array( $this, 'lp_admin_body_class' ) );
 		add_action( 'wp', array( $this, 'opengraph_request' ) );
@@ -44,7 +47,7 @@ final class LivePress_Blogging_Tools {
    * http://host/permalink?lpup=[livepress_update_id]
    */
 	function opengraph_request(){
-		if ( isset( $_GET['lpup'] ) && ( 1 === preg_match( '/facebookexternalhit(\/[0-9]\.[0-9])?|Facebot/i', $_SERVER['HTTP_USER_AGENT'] ) ) ) {
+		if ( isset( $_GET['lpup'] ) && ( 1 === preg_match( '/facebookexternalhit(\/[0-9]\.[0-9])?|Facebot|Slackbot-LinkExpanding/i', $_SERVER['HTTP_USER_AGENT'] ) ) ) {
 
 			$id = absint( $_GET['lpup'] );
 			$lp_updates = LivePress_PF_Updates::get_instance();
@@ -55,7 +58,6 @@ final class LivePress_Blogging_Tools {
 				'no_found_rows'   => true,
 				'post_status'     => 'inherit',
 				'suppress_filters'=> true,
-				'post_type'       => 'post',
 				'post_name'       => 'livepress_update__' . $id
 			);
 			$results = new WP_Query( $args );
@@ -173,7 +175,7 @@ function lp_admin_body_class( $classes ) {
 	global $post;
 	$screen = get_current_screen();
 	if ( is_admin() &&                               /* in admin? */
-		 'post' === $screen->id &&                   /* on edit post page? */
+		in_array( $screen->id, apply_filters( 'livepress_post_types', array( 'post' ) ) ) &&                   /* on edit post page? */
 		 $this->get_post_live_status( $post->ID ) && /* is this post live */
 		 ! strstr( $classes, ' livepress-live')) {   /* only add once at most */
 
@@ -409,7 +411,7 @@ function lp_admin_body_class( $classes ) {
 		global $post;
 
 		// Only show on post_type == 'post'
-		if( 'post' != $post->post_type ) {
+		if(  ! in_array( $post->post_type, apply_filters( 'livepress_post_types', array( 'post' ) ) ) ) {
 			return;
 		}
 		if ( LP_LIVE_REQUIRES_ADMIN ) {
@@ -425,7 +427,7 @@ function lp_admin_body_class( $classes ) {
 			'livepress_status_meta_box',
 			esc_html__( 'LivePress Status', 'livepress' ),
 			array( $this, 'livepress_status_meta_box' ),
-			'post',
+			'',
 			'side',
 			'high'
 		);

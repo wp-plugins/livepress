@@ -175,26 +175,6 @@ Livepress.Ui.View = function (disable_comments) {
 		});
 	};
 
-	this.post_alert = function (title, link, author, date) {
-		console.log('Post alert', {title:title, link:link, author:author, date:date});
-
-		if (title === undefined && author === undefined && date === undefined) {
-			return;
-		}
-
-		var container = jQuery("<div>"),
-			dateEl = jQuery("<abbr>").attr("class", "timeago").attr("title", date).text(date.replace(/Z/, " UTC"));
-		container.append(dateEl).append(" by " + author);
-		jQuery.gritter.add({
-			title:     '<a href="' + link + '">' + title + '</a>',
-			date:      'New Post - ' + container.html(),
-			class_name:'new-post',
-			time:      7000
-		});
-		update_gritter_settings_click();
-		jQuery("abbr.livepress-timestamp").timeago();
-	};
-
 	this.comment_alert = function (options, date) {
 		console.log('Comment alert', options);
 		var container = jQuery("<div>");

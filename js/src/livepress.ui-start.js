@@ -24,24 +24,26 @@ Livepress.Ready = function () {
 	jQuery( "abbr.livepress-timestamp" ).timeago();
 
 	if ( jQuery( '.lp-status' ).hasClass( 'livepress-pinned-header' ) ) {
+
+		jQuery( '.livepress_content' ).find( '.livepress-update:first' ).addClass( 'pinned-first-live-update' );
 		// Adjust the positioning of the first post to pin it to the top
 		var adjustTopPostPositioning = function() {
-			setTimeout( function() {
-				window.console.log( 'adjust top' );
-				$lpcontent    = jQuery( '.livepress_content' );
-				$firstUpdate  = $lpcontent.find( '.livepress-update#livepress-update-0' );
-				$firstUpdateContainer = $lpcontent.parent();
-				$firstUpdate.css( 'marginTop', 0 );
-				diff = $firstUpdate.offset().top - $firstUpdateContainer.offset().top;
-				$livepressBar = jQuery( '#livepress' );
-				$heightOfFirstUpdate = ( $firstUpdate.outerHeight() + 20 );
-				$firstUpdate.css( {
-					'margin-top': '-' + ( diff + 50 ) + 'px',
-					'position': 'absolute',
-					'width' : ( $livepressBar.outerWidth() ) + 'px'
-				} );
-				$livepressBar.css( { 'margin-top': $heightOfFirstUpdate + 'px' } );
-			}, 1500 );
+
+			window.console.log( 'adjust top' );
+			$lpcontent    = jQuery( '.livepress_content' );
+			$firstUpdate  = $lpcontent.find( '.pinned-first-live-update' );
+			$firstUpdateContainer = $lpcontent.parent();
+			$firstUpdate.css( 'marginTop', 0 );
+			$livepressBar = jQuery( '#livepress' );
+			$livepressBar.css( 'marginTop', 0 );
+			diff = $firstUpdate.offset().top - $firstUpdateContainer.offset().top;
+			$heightOfFirstUpdate = ( $firstUpdate.outerHeight() + 20 );
+			$firstUpdate.css( {
+				'margin-top': '-' + ( diff + $heightOfFirstUpdate ) + 'px',
+				'position': 'absolute',
+				'width' : ( $livepressBar.outerWidth() ) + 'px'
+			} );
+			$livepressBar.css( { 'margin-top': $heightOfFirstUpdate + 'px' } );
 		};
 
 		adjustTopPostPositioning();
@@ -49,6 +51,8 @@ Livepress.Ready = function () {
 		// Adjust the top position whenever the post is updated so it fits properly
 		jQuery( document ).on( 'live_post_update', function(){
 			adjustTopPostPositioning();
+			// Rerun in 2 seconds to account fo resized embeds
+			setTimeout( adjustTopPostPositioning, 2000 );
 		});
 	}
 	return new Livepress.Ui.Controller(LivepressConfig, hooks);

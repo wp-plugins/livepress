@@ -1,4 +1,4 @@
-/*! livepress -v1.1.4
+/*! livepress -v1.1.5
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -929,7 +929,15 @@ Livepress.DOMManipulator.prototype = {
                                 this.process_twitter( content, change[2] );
 								childRef = parent.childNodes.length <= childIndex ? null : parent.childNodes[childIndex];
 								inserted = parent.insertBefore(content, childRef);
-								$( inserted ).addClass( 'oortle-diff-inserted' );
+								var $inserted = $( inserted );
+								$inserted.addClass( 'oortle-diff-inserted' );
+								// If the update contains live tags, add the tag ids to the update data
+								var $livetags = $( content ).find( 'div.live-update-livetags' );
+								if ( ( "undefined" !== typeof $livetags )  && 0 !== $livetags.length ) {
+									this.addLiveTagsToUpdate( $inserted, $livetags );
+
+								}
+								this.filterUpdate( $inserted, $livetags );
 							}
 						}
 					} catch (ein1) {
@@ -968,6 +976,7 @@ Livepress.DOMManipulator.prototype = {
                         parent = node.parentNode;
 
 						el = document.createElement('span');
+
 						el.innerHTML = change[2];
 						content = el.childNodes[0];
 
@@ -978,6 +987,10 @@ Livepress.DOMManipulator.prototype = {
                         } else {
                             this.process_twitter( content, change[2] );
                             this.add_class(content, 'oortle-diff-changed');
+                            if ( $( node ).hasClass( 'pinned-first-live-update' ) ) {
+                              this.add_class( content, 'pinned-first-live-update' );
+                              setTimeout( this.scrollToPinnedHeader, 500 );
+                            }
                             parent.insertBefore(content, node);
 
                             // FIXME: call just del_node there
@@ -1032,6 +1045,131 @@ Livepress.DOMManipulator.prototype = {
 		}
 
 		this.log('end apply_changes.');
+	},
+
+	scrollToPinnedHeader: function() {
+		if ( Livepress.Scroll.shouldScroll() ) {
+			jQuery.scrollTo( '.pinned-first-live-update', 900, {axis: 'y', offset: -30 } );
+		}
+	},
+
+	/**
+	 * Filer the update - hide if live tag filtering is active and update not in tag(s)
+	 */
+	filterUpdate: function( $inserted, $livetags ) {
+		// If the livetags are not in the filtered tags, hide the update
+		var target,
+			theTags,
+			$tagcontrol = jQuery( '.live-update-tag-control' ),
+			$activelivetags = $tagcontrol.find( '.live-update-tagcontrol.active' );
+
+		if ( 0 !== $activelivetags.length && 0 === $livetags.length ) {
+			$inserted.hide().removeClass( 'oortle-diff-inserted' );
+			return;
+		}
+
+		// Any active tags
+		if ( 0 !== $activelivetags.length ){
+			var inFilteredList = false,
+				$insertedtags  = $livetags.find( '.live-update-livetag' );
+
+			jQuery.each( $insertedtags, function( index, tag ) {
+				console.log( tag );
+			});
+			// iterate thru the update tags, checking if any match any active tag
+			jQuery.each( $insertedtags, function( index, tag ) {
+				target = jQuery( tag ).attr( 'class' );
+				target = target.replace( /live-update-livetag live-update-livetag-/gi, '' );
+				target = 'live-update-livetag-' + target.toLowerCase().replace( / /g, '-' );
+				target = '.live-update-tagcontrol.active[data-tagclass="' + target + '"]';
+				theTags =  $tagcontrol.find( target );
+				if ( 0 !== theTags.length ) {
+					inFilteredList = true;
+				}
+			});
+			if ( ! inFilteredList ) {
+				$inserted.hide().removeClass( 'oortle-diff-inserted' );
+			}
+		}
+	},
+
+	/**
+	 * When the live update contains tags, add these to the tag control bar
+	 */
+	addLiveTagsToUpdate: function( $inserted, $livetags ) {
+		var SELF = this, tagSpan, tagclass, $classincontrol, $livepress = jQuery( '#livepress' ),
+			theTags = $livetags.find( '.live-update-livetag' ),
+			$lpliveupdates = $livetags.parent().parent(),
+			$livetagcontrol = $livepress.find( '.live-update-tag-control' );
+
+		// Add the live tag control bar if missing
+		if ( 0 === $livetagcontrol.length ) {
+			this.addLiveTagControlBar();
+		}
+
+		// Parse the tags in the update, adding to the live tag control bar
+		theTags.each( function() {
+			var livetag = jQuery( this ).attr( 'class' );
+
+			livetag = livetag.replace( /live-update-livetag live-update-livetag-/gi, '' );
+
+			tagclass = 'live-update-livetag-' + livetag.toLowerCase().replace( / /g, '-' );
+			$inserted.addClass( tagclass );
+			// Add the control class, if missing
+			SELF.addLiveTagToControls( livetag );
+		});
+	},
+
+	addLiveTagToControls: function( livetag ) {
+		var tagSpan, $livepress = jQuery( '#livepress' ),
+			$livetagcontrol = $livepress.find( '.live-update-tag-control' ),
+			$classincontrol = $livetagcontrol.find( '[data-tagclass="live-update-livetag-' + livetag.toLowerCase().replace(/ /g, '-') + '"]' );
+			if ( 0 === $classincontrol.length ){
+				tagSpan = '<span class="live-update-tagcontrol" data-tagclass="live-update-livetag-' + livetag.toLowerCase().replace(/ /g, '-') + '">' + livetag + '</span>';
+				$livetagcontrol.append( tagSpan );
+			}
+	},
+
+	addLiveTagControlBar: function() {
+		var $livepress = jQuery( '#livepress' ),
+			$livetagcontrol = $livepress.find( '.live-update-tag-control' );
+
+			$livepress.append( '<div class="live-update-tag-control"><span class="live-update-tag-title">' + lp_client_strings.filter_by_tag + '</span></div>' );
+			$livetagcontrol = $livepress.find( '.live-update-tag-control' );
+			// Activate handlers after inserting bar
+			this.addLiveTagHandlers( $livetagcontrol );
+	},
+
+	addLiveTagHandlers: function( $livetagcontrol ) {
+		var self = this,
+			$lpcontent = jQuery( '.livepress_content' );
+
+		$livetagcontrol.on( 'click', '.live-update-tagcontrol', function() {
+			var $this = jQuery( this );
+
+				$this.toggleClass( 'active' );
+				self.filterUpdateListbyLiveTag( $livetagcontrol, $lpcontent );
+		} );
+	},
+
+	filterUpdateListbyLiveTag: function( $livetagcontrol, $lpcontent ) {
+		var activeClass,
+			$activeLiveTags = $livetagcontrol.find( '.live-update-tagcontrol.active' );
+
+			// If no tags are selected, show all updates
+			if ( 0 === $activeLiveTags.length ) {
+				$lpcontent.find( '.livepress-update' ).show();
+				return;
+			}
+
+			// Hide all updates
+			$lpcontent.find( '.livepress-update' ).hide();
+
+			// Show updates matching active live tags
+			jQuery.each( $activeLiveTags, function( index, tag ) {
+				activeClass = '.' + jQuery( tag ).data( 'tagclass' );
+				$lpcontent.find( activeClass ).show();
+			});
 	},
 
 	colorForOperation: function (element) {
@@ -4243,10 +4381,12 @@ if (Dashboard.Twitter.twitter === undefined) {
 	}()));
 }
 
-/*global LivepressConfig*/
+/*global LivepressConfig, console, jQuery, document, navigator */
 var Livepress = Livepress || {};
+
 (function () {
 	var loader = function () {
+		console.log( 'loader' );
 		var scripts = [],
 			styles = [],
 			agent = navigator.userAgent.toLowerCase(),
@@ -4265,22 +4405,24 @@ var Livepress = Livepress || {};
 			styles = styles.concat(Livepress.CSSQueue);
 		}
 
-		if ( LivepressConfig.current_screen !== undefined && LivepressConfig.current_screen.base === 'post' && LivepressConfig.current_screen.id === 'post' ) {
-			//DEBUG Lines are included only in debugging version. They are completely removed from release code
-			if (LivepressConfig.debug !== undefined && LivepressConfig.debug) { //DEBUG
-				var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
-				scripts = scripts.concat([ //DEBUG
-					'static://oortle.full.js?rnd=' + Math.random(), //DEBUG
-					'static://oortle_dynamic.js?run=' + run + '&rnd=' + Math.random() //DEBUG
-				]); //DEBUG
-			} else //DEBUG
-			{
-				scripts = scripts.concat([
-					'static://oortle/' + LivepressConfig.oover[0] + '/oortle.min.js',
-					'static://' + LivepressConfig.oover[1] + '/cluster_settings.js?v=' + LivepressConfig.oover[2]
-				]);
-			}
+		//DEBUG Lines are included only in debugging version. They are completely removed from release code
+		if (LivepressConfig.debug !== undefined && LivepressConfig.debug) { //DEBUG
+	console.log( 'loader pass a' );
+
+			var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
+			scripts = scripts.concat([ //DEBUG
+				'static://oortle.full.js?rnd=' + Math.random(), //DEBUG
+				'static://oortle_dynamic.js?run=' + run + '&rnd=' + Math.random() //DEBUG
+			]); //DEBUG
+		} else //DEBUG
+		{
+	console.log( 'loader pass b' );
+			scripts = scripts.concat([
+				'static://oortle/' + LivepressConfig.oover[0] + '/oortle.min.js',
+				'static://' + LivepressConfig.oover[1] + '/cluster_settings.js?v=' + LivepressConfig.oover[2]
+			]);
 		}
+
 		var getPath = function (url) {
 			var m = url.match(/^([a-z]+):\/\/(.*)$/);
 
@@ -4308,6 +4450,7 @@ var Livepress = Livepress || {};
 			return true;
 		};
 		var loadScript = function (idx, only) {
+			console.log( 'loadScript' );
 			if (idx >= scripts.length) {
 				return false;
 			}
@@ -4358,6 +4501,7 @@ var Livepress = Livepress || {};
 		jQuery(loader);
 	} // Otherwise, we called as loader for only external part
 }());
+
 //
 // Copyright (c) 2008, 2009 Paul Duncan (paul@pablotron.org)
 //

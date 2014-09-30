@@ -135,7 +135,7 @@ Livepress.Admin.PostStatus = function () {
 		var nonces = jQuery('#blogging-tool-nonces');
 		add_spin();
 		jQuery.ajax({
-			url:     'admin-ajax.php',
+			url:     LivepressConfig.ajax_url,
 			data:    {
 				livepress_action: true,
 				_ajax_nonce:      LivepressConfig.ajax_status_nonce,
@@ -585,7 +585,7 @@ Livepress.Admin.Tools = function () {
 
 		//tools_link.innerText = 'Live Blogging Tools';
 		$tools_link_wrap.append( tools_link );
-		jQuery( tools_link ).html( '<span class="icon-livepress-logo"></span> Live Blogging Tools' );
+		jQuery( tools_link ).html( '<span class="icon-livepress-logo"></span> ' + lp_strings.tools_link_text );
 		$tools_link_wrap.insertAfter('#screen-options-link-wrap');
 
 		$tools_wrap.insertAfter('#screen-options-wrap');
@@ -1042,13 +1042,14 @@ jQuery(function () {
 				 */
 				SELF.appendPostUpdate = function (content, callback, title) {
 					var args = (title === undefined) ? {} : {title: title};
+					args.liveTags    = this.getCurrentLiveTags();
 					args._ajax_nonce = NONCES.data('append-nonce');
 
 					jQuery('.peeklink span, .peekmessage').removeClass('hidden');
 					jQuery('.peek').addClass('live');
 					jQuery( window ).trigger( 'livepress.post_update' );
 					window.setTimeout( update_embeds, 3000 );
-					return SELF.ajaxAction('lp_append_post_update', content, callback, args);
+					return SELF.ajaxAction( 'lp_append_post_update', content, callback, args);
 				};
 
 				/**
@@ -1107,7 +1108,75 @@ jQuery(function () {
 						processed = SELF.newMetainfoShortcode(true) + processed;
 					}
 
+					// Add tags if present
+					var $livetagField = jQuery( '.livepress-update-form' ).find( '.livepress-live-tag' );
+					var liveTags = SELF.getCurrentLiveTags();
+
+					if ( 0 !== liveTags.length ) {
+						processed = SELF.getLiveTagsHTML( liveTags ) + processed;
+					}
+
+					// Save any new tags back to the taxonomy via ajax
+					var newTags = jQuery( liveTags ).not( LivepressConfig.live_update_tags ).get();
+
+					// Save the existing tags back to the select2 field
+					if ( 0 !== newTags.length ) {
+						LivepressConfig.live_update_tags = LivepressConfig.live_update_tags.concat( newTags );
+						$livetagField.select2( { tags: LivepressConfig.live_update_tags } );
+						jQuery.ajax({
+							method: 'post',
+							url:     LivepressConfig.ajax_url,
+							data:    {
+								action:           'lp_add_live_update_tags',
+								_ajax_nonce:      LivepressConfig.lp_add_live_update_tags_nonce,
+								new_tags:         JSON.stringify( newTags ),
+								post_id:          LivepressConfig.post_id
+							},
+							success: function() {
+								console.log( 'Added new tags to taxonomy' );
+							}
+						});
+					}
+
 					return processed;
+				};
+
+				/**
+				 * Get the list of live tags added on this update
+				 */
+				SELF.getCurrentLiveTags = function() {
+					var $livetagField = jQuery( '.livepress-update-form' ).find( '.livepress-live-tag' );
+					return $livetagField.select2( 'val' );
+				};
+
+				/**
+				 * Get the html for the live update tags.
+				 *
+				 * @param  Array An array of tags
+				 *
+				 * @return The HTML to append to the live update.
+				 *
+				 */
+				SELF.getLiveTagsHTML = function( liveTags ) {
+					var toReturn = '';
+
+					if ( 0 === liveTags ) {
+						return '';
+					}
+					// Start the tags div
+					toReturn += '<div class="live-update-livetags">';
+
+					// add each of the tags as a span
+					jQuery.each( liveTags, function(){
+						toReturn += '<span class="live-update-livetag live-update-livetag-' +
+						this + '">' +
+						this + '</span>';
+					} );
+
+					// Close the divs tag
+					toReturn += '</div>';
+
+					return toReturn;
 				};
 
 				/**
@@ -1254,6 +1323,7 @@ jQuery(function () {
 					// running it this way is required since we don't have Function.bind
 					.on( 'submit', function () {
 						SELF.onSave();
+						SELF.resetFormFieldStates( SELF );
 						return false;
 					} );
 				SELF.$form.attr('id', SELF.originalUpdateId);
@@ -1273,10 +1343,19 @@ jQuery(function () {
 				} else {
 					SELF.$form.find('.primary.button-primary').remove();
 					SELF.$form.find('.livepress-author-info').remove();
+					SELF.$form.find('.livepress-live-tags').remove();
 					if (mode === 'deleting') {
 						SELF.$form.addClass(namespace + '-delform');
 					}
 				}
+				// Add tag support to the form
+				SELF.$form
+					.find( 'input.livepress-live-tag' )
+					.select2( {
+						placeholder:     lp_strings.live_tags_select_placeholder,
+						tokenSeparators: [','],
+						tags:            LivepressConfig.live_update_tags
+					});
 				return this;
 			}
 
@@ -1297,6 +1376,9 @@ jQuery(function () {
 					'</div>',
 					'<div class="editorcontainerend"></div>',
 					'<div class="livepress-form-actions">',
+					'<div class="livepress-live-tags">' +
+						'<input type="hidden" style="width:95%" class="livepress-live-tag" />' +
+					'</div>',
 					'<div class="livepress-author-info"><input type="checkbox" checked="checked" /> ' + lp_strings.include_timestamp + '</div>',
 					'<a href="#" class="livepress-delete" data-action="delete">' + lp_strings.delete_perm + '</a>',
 					'<span class="quick-publish">' + lp_strings.ctrl_enter + '</span>',
@@ -1308,6 +1390,19 @@ jQuery(function () {
 					'<div class="clear"></div>',
 					'</form>'
 				].join(''),
+
+				/**
+				 * Reset all the form buttons and fields to their default status,
+				 * called when pushing a live update.
+				 */
+				resetFormFieldStates: function( SELF ) {
+					SELF.$form.find( 'input.button-primary' ).attr( 'disabled', 'disabled' );
+					SELF.$form.find( '.livepress-live-tag' ).select2( 'val', '' ).select2( {
+						placeholder:     lp_strings.live_tags_select_placeholder,
+						tokenSeparators: [','],
+						tags:            LivepressConfig.live_update_tags
+					});
+				},
 
 				/*
 				 * function: enableTiny
@@ -1351,9 +1446,10 @@ jQuery(function () {
 								ed.undoManager.undo();
 
 								selection.onSave();
+								SELF.resetFormFieldStates( SELF );
 							}
 						} );
-						te.onKeyUp.add( function (ed, e) {
+						te.onChange.add( function (ed, e) {
 							if ( '' !== ed.getContent().trim() ) {
 								pushBtn.removeAttr( 'disabled' );
 							} else {
@@ -1365,6 +1461,7 @@ jQuery(function () {
 							if (e.ctrlKey && e.keyCode === 13) {
 								e.preventDefault();
 								selection.onSave();
+								SELF.resetFormFieldStates( SELF );
 							}
 						} );
 						te.on( 'KeyUp', function ( args ) {
@@ -2370,7 +2467,7 @@ jQuery(function () {
 	 * Once all the other code is loaded, we check to be sure the user is on the post edit screen and load the new Live
 	 * Blogging Tools palette if they are.
 	 */
-	if (LivepressConfig.current_screen !== undefined && LivepressConfig.current_screen.base === 'post' && LivepressConfig.current_screen.id === 'post') {
+	if (LivepressConfig.current_screen !== undefined && LivepressConfig.current_screen.base === 'post' ) {
 		var live_blogging_tools = new Livepress.Admin.Tools();
 		live_blogging_tools.render();
 	}

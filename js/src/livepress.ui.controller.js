@@ -303,12 +303,6 @@ Livepress.Ui.Controller = function (config, hooks) {
 		sounds.play("postUpdated");
 	}
 
-	function new_post_widget (post) {
-		trigger_action_on_view();
-		widget.post_alert(post.title, post.link, post.author, post.updated_at_gmt);
-		sounds.play("postUpdated");
-	}
-
 	var imSubscribing = false;
 	function imSubscribeCallback (userName, imType) {
 
@@ -350,6 +344,17 @@ Livepress.Ui.Controller = function (config, hooks) {
 		$window.blur(function () {
 			this.is_active = false;
 		});
+
+		var $livediv = jQuery( '#post_content_livepress' ),
+			liveTags = $livediv.data( 'livetags' );
+			console.log( liveTags );
+			if ( '' !== liveTags ) {
+				post_dom_manipulator.addLiveTagControlBar();
+				var allTags = liveTags.split( ',' );
+					allTags.map( function( tag ) {
+						post_dom_manipulator.addLiveTagToControls( tag );
+					});
+			}
 	}
 
 	window.is_active = true;
@@ -407,7 +412,6 @@ Livepress.Ui.Controller = function (config, hooks) {
 			comments_dom_manipulator = new Livepress.DOMManipulator('#post_comments_livepress', config.custom_background_color);
 
 			var opt = config.new_post_msg_id ? {last_id:config.new_post_msg_id} : {fetch_all:true};
-			comet.subscribe(new_post_topic, new_post_widget, opt);
 			if (!config.disable_comments && config.comment_live_updates_default) {
 				opt = config.comment_msg_id ? {last_id:config.comment_msg_id} : {fetch_all:true};
 				comet.subscribe(comment_update_topic, function () {

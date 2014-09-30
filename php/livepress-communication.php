@@ -584,14 +584,14 @@ class LivePress_Communication {
 		foreach ($get_vars as $key => $value) {
 			$url .= $key;
 			$url .= '=';
-			$url .= $value;
+			$url .= urlencode($value);
 			$url .= '&';
 		}
 		$url .= 'address=';
-		$url .= $this->address;
+		$url .= urlencode($this->address);
 		$url .= '&';
 		$url .= 'api_key=';
-		$url .= $this->api_key;
+		$url .= urlencode($this->api_key);
 
 		if ( function_exists( 'vip_safe_wp_remote_get' ) ) {
 			return vip_safe_wp_remote_get(

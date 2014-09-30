@@ -41,6 +41,7 @@ class LivePress_Updater {
 		$this->options['ajax_nonce'] = wp_create_nonce(self::LIVEPRESS_ONCE);
 		$this->options['ajax_comment_nonce'] = wp_create_nonce( 'post_comment' );
 		$this->options['ajax_status_nonce'] = wp_create_nonce( 'lp_status' );
+		$this->options['lp_add_live_update_tags_nonce'] = wp_create_nonce( 'lp_add_live_update_tags_nonce' );
 		$this->options['ajax_twitter_search_nonce'] = wp_create_nonce( 'twitter_search_term' );
 		$this->options['ajax_twitter_follow_nonce'] = wp_create_nonce( 'twitter_follow' );
 		$this->options['ajax_lp_post_to_twitter'] = wp_create_nonce( 'lp_post_to_twitter_nonce' );
@@ -59,14 +60,13 @@ class LivePress_Updater {
 		$this->user_options = get_user_option(LivePress_Administration::$options_name, $current_user->ID, false);
 		$this->lp_comment = new LivePress_Comment($this->options);
 
-		add_action( 'before_delete_post',     array( $this, 'remove_related_post_data' ) );
-
-		add_action( 'transition_post_status', array( $this, 'send_to_livepress_new_post' ), 10, 3 );
-		add_action( 'private_to_publish',     array( $this, 'livepress_publish_post' ) );
-
-		add_action( 'wp_ajax_lp_twitter_search_term', array( $this, 'twitter_search_callback' ) );
-		add_action( 'wp_ajax_lp_twitter_follow',      array( $this, 'twitter_follow_callback' ) );
-		add_action( 'wp_ajax_lp_status',              array( $this, 'lp_status' ) );
+		add_action( 'before_delete_post',              array( $this, 'remove_related_post_data' ) );
+		add_action( 'transition_post_status',          array( $this, 'send_to_livepress_new_post' ), 10, 3 );
+		add_action( 'private_to_publish',              array( $this, 'livepress_publish_post' ) );
+		add_action( 'wp_ajax_lp_twitter_search_term',  array( $this, 'twitter_search_callback' ) );
+		add_action( 'wp_ajax_lp_twitter_follow',       array( $this, 'twitter_follow_callback' ) );
+		add_action( 'wp_ajax_lp_status',               array( $this, 'lp_status' ) );
+		add_action( 'wp_ajax_lp_add_live_update_tags', array( $this, 'lp_add_live_update_tags' ) );
 
 		// Filter post meta to disable post locking for live posts
 		add_filter( 'update_post_metadata', array( $this, 'livepress_filter_post_locks' ), 10, 5 );
@@ -110,6 +110,39 @@ class LivePress_Updater {
 				'wordpress default' => '#FFFFFF',
 			);
 
+		// Add the Livepress Tags custom taxonomy
+		register_taxonomy(
+			'livetags',
+			apply_filters( 'livepress_post_types', array( 'post' ) ),
+			array(
+				'label'   => __( 'Live Update Tags' ),
+				'public'  => false,
+				'show_ui' => true,
+			)
+		);
+
+	}
+
+	/**
+	 * Ajax callback to add new live update tags to the livetags taxonomy
+	 */
+	public function lp_add_live_update_tags() {
+		// Nonce check
+		check_ajax_referer( 'lp_add_live_update_tags_nonce' );
+		// Capabilities check
+		$post_id = isset( $_POST['post_id'] ) ? $_POST['post_id'] : null;
+		if ( !current_user_can( 'edit_post', $post_id ) ) {
+			die;
+		}
+
+		// Grab the new tags
+		$new_tags =  json_decode( stripslashes( $_POST['new_tags'] ) );
+
+		// Add them to the taxonomy
+		foreach ( $new_tags as $a_new_tag ) {
+			wp_insert_term( $a_new_tag, 'livetags' );
+		}
+		wp_send_json_success();
 	}
 
 	/**
@@ -352,6 +385,7 @@ class LivePress_Updater {
 				'sending'              => esc_html__( 'Sending', 'livepress' ),
 				'unknown_error'        => esc_html__( 'Unknown error.', 'livepress' ),
 				'comment_status'       => esc_html__( 'Comment Status', 'livepress' ),
+				'filter_by_tag'        => esc_html__( 'Filter by Tag:', 'livepress' ),
 				));
 
 			wp_enqueue_style( 'livepress_ui' );
@@ -369,6 +403,9 @@ class LivePress_Updater {
 
 		} elseif ( is_admin() ) {
 
+			// Add select2 for live tags
+			wp_enqueue_style( 'select2', LP_PLUGIN_URL . 'js/vendor/select2/select2.css', array(), LP_PLUGIN_VERSION );
+
 			wp_register_style( 'lp_admin', LP_PLUGIN_URL . 'css/post_edit.css' );
 			wp_enqueue_style( 'lp_admin' );
 
@@ -376,108 +413,108 @@ class LivePress_Updater {
 
 			wp_enqueue_script( 'lp-admin', LP_PLUGIN_URL . 'js/admin/livepress-admin.' . $mode . '.js', array( 'jquery' ), LP_PLUGIN_VERSION );
 
-
 			$lp_strings = array(
-				'unexpected'           => esc_html__( 'Unexpected result from the LivePress server.  Please contact LivePress support at support@livepress.com for help.', 'livepress' ),
-				'connection_problem'   => esc_html__( 'Connection problem... Try Again...', 'livepress' ),
-				'authenticated'        => esc_html__( 'Authenticated', 'livepress' ),
-				'sending'              => esc_html__( 'Sending', 'livepress' ),
-				'check'                => esc_html__( 'Check', 'livepress' ),
-				'remove'               => esc_html__( 'Remove', 'livepress' ),
-				'key_not_valid'        => esc_html__( 'Key not valid', 'livepress' ),
-				'sending_twitter'      => esc_html__( 'Sending out alerts on Twitter account', 'livepress' ),
-				'failed_to_check'      => esc_html__( 'Failed to check status.', 'livepress' ),
-				'checking_auth'        => esc_html__( 'Checking authorization status', 'livepress' ),
-				'status_not_avail'     => esc_html__( 'Status isn\'t available yet.', 'livepress' ),
-				'internal_error'       => esc_html__( 'Internal server error.', 'livepress' ),
-				'noconnect_twitter'    => esc_html__( 'Can\'t connect to Twitter.', 'livepress' ),
-				'noconnect_livepress'  => esc_html__( 'Can\'t connect to livepress service.', 'livepress' ),
-				'failed_unknown'       => esc_html__( 'Failed for an unknown reason.', 'livepress' ),
-				'return_code'          => esc_html__( 'return code', 'livepress' ),
-				'new_twitter_window'   => esc_html__( 'A new window should be open to Twitter.com awaiting your login.', 'livepress' ),
-				'twitter_unauthorized' => esc_html__( 'Twitter access unauthorized.', 'livepress' ),
-				'start_live'           => esc_html__( 'Start live blogging', 'livepress' ),
-				'stop_live'            => esc_html__( 'Stop live blogging', 'livepress' ),
-				'readers_online'       => esc_html__( 'readers online', 'livepress' ),
-				'lp_updates_posted'    => esc_html__( 'live updates posted', 'livepress' ),
-				'comments'             => esc_html__( 'comments', 'livepress' ),
-				'click_to_toggle'      => esc_html__( 'Click to toggle', 'livepress' ),
-				'real_time_editor'     => esc_html__( 'Live Blogging Real-Time Editor', 'livepress' ),
-				'off'                  => esc_html__( 'off', 'livepress' ),
-				'on'                   => esc_html__( 'on', 'livepress' ),
-				'private_chat'         => esc_html__( 'Private chat', 'livepress' ),
-				'persons_online'       => esc_html__( 'Person Online', 'livepress' ),
-				'people_online'        => esc_html__( 'People Online', 'livepress' ),
-				'comment'              => esc_html__( 'Comment', 'livepress' ),
-				'comments'             => esc_html__( 'Comments', 'livepress' ),
-				'include_timestamp'    => esc_html__( 'include timestamp and author information', 'livepress' ),
-				'delete_perm'          => esc_html__( 'Delete Permanently', 'livepress' ),
-				'ctrl_enter'           => esc_html__( 'Ctrl+Enter', 'livepress' ),
-				'cancel'               => esc_html__( 'Cancel', 'livepress' ),
-				'save'                 => esc_html__( 'Save', 'livepress' ),
-				'push_update'          => esc_html__( 'Push Update', 'livepress' ),
-				'add_update'           => esc_html__( 'Add update', 'livepress' ),
-				'confirm_cancel'       => esc_html__( 'Are you sure you want to cancel your changes? This action cannot be undone.', 'livepress' ),
-				'confirm_delete'       => esc_html__( 'Are you sure you want to delete this update? This action cannot be undone.', 'livepress' ),
-				'updates'              => esc_html__( 'Updates', 'livepress' ),
-				'discard_unsaved'      => esc_html__( 'You have unsaved editors open. Discard them?', 'livepress' ),
-				'loading_content'      => esc_html__( 'Loading content', 'livepress' ),
-				'double_added'         => esc_html__( 'Double added updates. Not supported now.', 'livepress' ),
-				'confirm_switch'       => esc_html__( 'Are you sure you want to switch to Not Live?', 'livepress' ),
-				'scroll'               => esc_html__( 'Scroll to Comment', 'livepress' ),
-				'update_published'     => esc_html__( 'Update was published live to users.', 'livepress' ),
-				'published_not_live'   => esc_html__( 'Update was published NOT live.', 'livepress' ),
-				'cant_get_update'      => esc_html__( 'Can\'t get update status from LivePress.', 'livepress' ),
-				'wrong_ajax_nonce'     => esc_html__( 'Wrong AJAX nonce.', 'livepress' ),
-				'cant_get_blog_update' => esc_html__( 'Can\'t get upate status from blog server.', 'livepress' ),
-				'checking_auth'        => esc_html__( 'Checking authorization status...', 'livepress' ),
-				'sending_alerts'       => esc_html__( 'Sending out alerts on Twitter account:', 'livepress' ),
-				'tools_link_text'      => esc_html__( 'Live Blogging Tools', 'livepress' ),
-				'submit'               => esc_html__( 'submit', 'livepress' ),
-				'live_press'           => esc_html__( 'Live Press', 'livepress' ),
-				'live_chat'            => esc_html__( 'Live Chat', 'livepress' ),
-				'warning'              => esc_html__( 'Warning', 'livepress' ),
-				'connection_lost'      => esc_html__( 'Will try to reconnect in some time.', 'livepress' ),
-				'connect_again'        => esc_html__( 'Please try to reconnect later.', 'livepress' ),
-				'connection_just_lost' => esc_html__( 'The connection to the server has been lost.', 'livepress' ),
-				'sync_lost'            => esc_html__( 'Syncronization of live editor seems to be lost. Try to enable/disable live editor or reload page.', 'livepress' ),
-				'collabst_sync_lost'   => esc_html__( 'Collaboration state may be out of sync. Try to reload page.', 'livepress' ),
-				'collab_sync_lost'     => esc_html__( 'Collaboration may be out of sync. Try to reload page.', 'livepress' ),
-				'post_link'            => esc_html__( 'Copy the commenter name and full text into the post text box', 'livepress' ),
-				'send_to_editor'       => esc_html__( 'Send to editor', 'livepress' ),
-				'approve_comment'      => esc_html__( 'Approve this comment', 'livepress' ),
-				'approve'              => esc_html__( 'Approve', 'livepress' ),
-				'unapprove_comment'    => esc_html__( 'Unapprove this comment', 'livepress' ),
-				'unapprove'            => esc_html__( 'Unapprove', 'livepress' ),
-				'mark_as_spam'         => esc_html__( 'Mark this comment as spam', 'livepress' ),
-				'spam'                 => esc_html__( 'Spam', 'livepress' ),
-				'move_comment_trash'   => esc_html__( 'Move this comment to the trash', 'livepress' ),
-				'trash'                => esc_html__( 'Trash', 'livepress' ),
-				'save_and_refresh'     => esc_html__( 'Save and Refresh', 'livepress' ),
-				'publish_and_refresh'  => esc_html__( 'Publish and Refresh', 'livepress' ),
-				'click_pause_tweets'   => esc_html__( 'Click to pause the tweets so you can decide when to display them', 'livepress' ),
-				'click_copy_tweets'    => esc_html__( 'Click to copy tweets into the post editor.', 'livepress' ),
-				'copy_tweets'          => esc_html__( 'Copy the tweet into the post editing area', 'livepress' ),
-				'remove_term'          => esc_html__( 'Remove this term', 'livepress' ),
-				'remove_account'       => esc_html__( 'Remove this account', 'livepress' ),
-				'remove_lower'         => esc_html__( 'remove', 'livepress' ),
-				'remove_author'        => esc_html__( 'Remote Author', 'livepress' ),
-				'remove_authors'       => esc_html__( 'Remote Authors', 'livepress' ),
-				'account_not_found'    => esc_html__( 'Account not found', 'livepress' ),
-				'connecting'           => esc_html__( 'Connecting', 'livepress' ),
-				'offline'              => esc_html__( 'offline', 'livepress' ),
-				'connected'            => esc_html__( 'connected', 'livepress' ),
-				'user_pass_invalid'    => esc_html__( 'username/password invalid', 'livepress' ),
-				'wrong_account_name'   => esc_html__( 'Wrong account name supplied', 'livepress' ),
-				'problem_connecting'   => esc_html__( 'Problem connecting to the blog server.', 'livepress' ),
-				'test_msg_sent'        => esc_html__( 'Test message sent', 'livepress' ),
-				'test_msg_failure'     => esc_html__( 'Failure sending test message', 'livepress' ),
-				'send_again'           => esc_html__( 'Send test message again', 'livepress' ),
-				'live_post_header'     => esc_html__( 'Pinned Live Post Header', 'livepress' ),
+				'unexpected'                   => esc_html__( 'Unexpected result from the LivePress server.  Please contact LivePress support at support@livepress.com for help.', 'livepress' ),
+				'connection_problem'           => esc_html__( 'Connection problem... Try Again...', 'livepress' ),
+				'authenticated'                => esc_html__( 'Authenticated', 'livepress' ),
+				'sending'                      => esc_html__( 'Sending', 'livepress' ),
+				'check'                        => esc_html__( 'Check', 'livepress' ),
+				'remove'                       => esc_html__( 'Remove', 'livepress' ),
+				'key_not_valid'                => esc_html__( 'Key not valid', 'livepress' ),
+				'sending_twitter'              => esc_html__( 'Sending out alerts on Twitter account', 'livepress' ),
+				'failed_to_check'              => esc_html__( 'Failed to check status.', 'livepress' ),
+				'checking_auth'                => esc_html__( 'Checking authorization status', 'livepress' ),
+				'status_not_avail'             => esc_html__( 'Status isn\'t available yet.', 'livepress' ),
+				'internal_error'               => esc_html__( 'Internal server error.', 'livepress' ),
+				'noconnect_twitter'            => esc_html__( 'Can\'t connect to Twitter.', 'livepress' ),
+				'noconnect_livepress'          => esc_html__( 'Can\'t connect to livepress service.', 'livepress' ),
+				'failed_unknown'               => esc_html__( 'Failed for an unknown reason.', 'livepress' ),
+				'return_code'                  => esc_html__( 'return code', 'livepress' ),
+				'new_twitter_window'           => esc_html__( 'A new window should be open to Twitter.com awaiting your login.', 'livepress' ),
+				'twitter_unauthorized'         => esc_html__( 'Twitter access unauthorized.', 'livepress' ),
+				'start_live'                   => esc_html__( 'Start live blogging', 'livepress' ),
+				'stop_live'                    => esc_html__( 'Stop live blogging', 'livepress' ),
+				'readers_online'               => esc_html__( 'readers online', 'livepress' ),
+				'lp_updates_posted'            => esc_html__( 'live updates posted', 'livepress' ),
+				'comments'                     => esc_html__( 'comments', 'livepress' ),
+				'click_to_toggle'              => esc_html__( 'Click to toggle', 'livepress' ),
+				'real_time_editor'             => esc_html__( 'Live Blogging Real-Time Editor', 'livepress' ),
+				'off'                          => esc_html__( 'off', 'livepress' ),
+				'on'                           => esc_html__( 'on', 'livepress' ),
+				'private_chat'                 => esc_html__( 'Private chat', 'livepress' ),
+				'persons_online'               => esc_html__( 'Person Online', 'livepress' ),
+				'people_online'                => esc_html__( 'People Online', 'livepress' ),
+				'comment'                      => esc_html__( 'Comment', 'livepress' ),
+				'comments'                     => esc_html__( 'Comments', 'livepress' ),
+				'include_timestamp'            => esc_html__( 'include timestamp', 'livepress' ),
+				'live_update_tags'             => esc_html__( 'Live tags:', 'livepress' ),
+				'live_tags_select_placeholder' => esc_html__( 'Select or enter update tags', 'livepress' ),
+				'delete_perm'                  => esc_html__( 'Delete Permanently', 'livepress' ),
+				'ctrl_enter'                   => esc_html__( 'Ctrl+Enter', 'livepress' ),
+				'cancel'                       => esc_html__( 'Cancel', 'livepress' ),
+				'save'                         => esc_html__( 'Save', 'livepress' ),
+				'push_update'                  => esc_html__( 'Push Update', 'livepress' ),
+				'add_update'                   => esc_html__( 'Add update', 'livepress' ),
+				'confirm_cancel'               => esc_html__( 'Are you sure you want to cancel your changes? This action cannot be undone.', 'livepress' ),
+				'confirm_delete'               => esc_html__( 'Are you sure you want to delete this update? This action cannot be undone.', 'livepress' ),
+				'updates'                      => esc_html__( 'Updates', 'livepress' ),
+				'discard_unsaved'              => esc_html__( 'You have unsaved editors open. Discard them?', 'livepress' ),
+				'loading_content'              => esc_html__( 'Loading content', 'livepress' ),
+				'double_added'                 => esc_html__( 'Double added updates. Not supported now.', 'livepress' ),
+				'confirm_switch'               => esc_html__( 'Are you sure you want to switch to Not Live?', 'livepress' ),
+				'scroll'                       => esc_html__( 'Scroll to Comment', 'livepress' ),
+				'update_published'             => esc_html__( 'Update was published live to users.', 'livepress' ),
+				'published_not_live'           => esc_html__( 'Update was published NOT live.', 'livepress' ),
+				'cant_get_update'              => esc_html__( 'Can\'t get update status from LivePress.', 'livepress' ),
+				'wrong_ajax_nonce'             => esc_html__( 'Wrong AJAX nonce.', 'livepress' ),
+				'cant_get_blog_update'         => esc_html__( 'Can\'t get upate status from blog server.', 'livepress' ),
+				'checking_auth'                => esc_html__( 'Checking authorization status...', 'livepress' ),
+				'sending_alerts'               => esc_html__( 'Sending out alerts on Twitter account:', 'livepress' ),
+				'tools_link_text'              => esc_html__( 'Live Blogging Tools', 'livepress' ),
+				'submit'                       => esc_html__( 'submit', 'livepress' ),
+				'live_press'                   => esc_html__( 'Live Press', 'livepress' ),
+				'live_chat'                    => esc_html__( 'Live Chat', 'livepress' ),
+				'warning'                      => esc_html__( 'Warning', 'livepress' ),
+				'connection_lost'              => esc_html__( 'Will try to reconnect in some time.', 'livepress' ),
+				'connect_again'                => esc_html__( 'Please try to reconnect later.', 'livepress' ),
+				'connection_just_lost'         => esc_html__( 'The connection to the server has been lost.', 'livepress' ),
+				'sync_lost'                    => esc_html__( 'Syncronization of live editor seems to be lost. Try to enable/disable live editor or reload page.', 'livepress' ),
+				'collabst_sync_lost'           => esc_html__( 'Collaboration state may be out of sync. Try to reload page.', 'livepress' ),
+				'collab_sync_lost'             => esc_html__( 'Collaboration may be out of sync. Try to reload page.', 'livepress' ),
+				'post_link'                    => esc_html__( 'Copy the commenter name and full text into the post text box', 'livepress' ),
+				'send_to_editor'               => esc_html__( 'Send to editor', 'livepress' ),
+				'approve_comment'              => esc_html__( 'Approve this comment', 'livepress' ),
+				'approve'                      => esc_html__( 'Approve', 'livepress' ),
+				'unapprove_comment'            => esc_html__( 'Unapprove this comment', 'livepress' ),
+				'unapprove'                    => esc_html__( 'Unapprove', 'livepress' ),
+				'mark_as_spam'                 => esc_html__( 'Mark this comment as spam', 'livepress' ),
+				'spam'                         => esc_html__( 'Spam', 'livepress' ),
+				'move_comment_trash'           => esc_html__( 'Move this comment to the trash', 'livepress' ),
+				'trash'                        => esc_html__( 'Trash', 'livepress' ),
+				'save_and_refresh'             => esc_html__( 'Save and Refresh', 'livepress' ),
+				'publish_and_refresh'          => esc_html__( 'Publish and Refresh', 'livepress' ),
+				'click_pause_tweets'           => esc_html__( 'Click to pause the tweets so you can decide when to display them', 'livepress' ),
+				'click_copy_tweets'            => esc_html__( 'Click to copy tweets into the post editor.', 'livepress' ),
+				'copy_tweets'                  => esc_html__( 'Copy the tweet into the post editing area', 'livepress' ),
+				'remove_term'                  => esc_html__( 'Remove this term', 'livepress' ),
+				'remove_account'               => esc_html__( 'Remove this account', 'livepress' ),
+				'remove_lower'                 => esc_html__( 'remove', 'livepress' ),
+				'remove_author'                => esc_html__( 'Remote Author', 'livepress' ),
+				'remove_authors'               => esc_html__( 'Remote Authors', 'livepress' ),
+				'account_not_found'            => esc_html__( 'Account not found', 'livepress' ),
+				'connecting'                   => esc_html__( 'Connecting', 'livepress' ),
+				'offline'                      => esc_html__( 'offline', 'livepress' ),
+				'connected'                    => esc_html__( 'connected', 'livepress' ),
+				'user_pass_invalid'            => esc_html__( 'username/password invalid', 'livepress' ),
+				'wrong_account_name'           => esc_html__( 'Wrong account name supplied', 'livepress' ),
+				'problem_connecting'           => esc_html__( 'Problem connecting to the blog server.', 'livepress' ),
+				'test_msg_sent'                => esc_html__( 'Test message sent', 'livepress' ),
+				'test_msg_failure'             => esc_html__( 'Failure sending test message', 'livepress' ),
+				'send_again'                   => esc_html__( 'Send test message again', 'livepress' ),
+				'live_post_header'             => esc_html__( 'Pinned Live Post Header', 'livepress' ),
 			);
 
 			wp_localize_script( 'lp-admin', 'lp_strings', $lp_strings );
-
 
 			wp_enqueue_script( 'dashboard-dyn', LP_PLUGIN_URL . 'js/dashboard-dyn.' . $mode . '.js', array( 'jquery', 'lp-admin' ), LP_PLUGIN_VERSION );
 		}
@@ -573,6 +610,7 @@ class LivePress_Updater {
 		$ljsc->new_value( 'ajax_nonce', $this->options['ajax_nonce']);
 		$ljsc->new_value( 'ajax_comment_nonce', $this->options['ajax_comment_nonce']);
 		$ljsc->new_value( 'ajax_status_nonce', $this->options['ajax_status_nonce']);
+		$ljsc->new_value( 'lp_add_live_update_tags_nonce', $this->options['lp_add_live_update_tags_nonce']);
 		$ljsc->new_value( 'ajax_twitter_search_nonce', $this->options['ajax_twitter_search_nonce']);
 		$ljsc->new_value( 'ajax_twitter_follow_nonce', $this->options['ajax_twitter_follow_nonce']);
 		$ljsc->new_value( 'ajax_api_validate_nonce', $this->options['ajax_api_validate_nonce']);
@@ -755,6 +793,20 @@ class LivePress_Updater {
 
 		// Localize `LivepressConfig` in admin and on front end live posts
 		if ( is_admin() ) {
+			// Add existing livetags
+			$live_update_tags = get_terms(
+				array( 'livetags' ),
+				array(
+					'hide_empty' => false,
+				)
+			);
+			if ( ! empty( $live_update_tags ) && ! is_wp_error( $live_update_tags ) ) {
+				$update_tags = wp_list_pluck( $live_update_tags, 'name' );
+			} else {
+				$update_tags = '';
+			}
+			$ljsc->new_value( 'live_update_tags', $update_tags );
+			$ljsc->new_value( 'current_screen', get_current_screen() );
 			wp_localize_script( 'lp-admin', 'LivepressConfig', $ljsc->get_values() );
 		} else {
 			wp_localize_script( 'livepress-plugin-loader', 'LivepressConfig', $ljsc->get_values() );
@@ -819,7 +871,7 @@ class LivePress_Updater {
 	 * @param string $content           Content.
 	 * @param mixed  $post_modified_gmt Post modified GMT.
 	 */
-	function add_global_post_content_tag( $content, $post_modified_gmt = null ) {
+	function add_global_post_content_tag( $content, $post_modified_gmt = null, $livetags = array() ) {
 		global $post;
 		$div_id = null;
 		if ( is_page() || is_single() ) {
@@ -830,9 +882,19 @@ class LivePress_Updater {
 			$div_id = 'post_content_livepress_' . $post->ID;
 		}
 
-		if ( $div_id ) {
-			$content = '<div id="' . esc_attr( $div_id  ) . '" class="livepress_content">'.$content.'</div>';
+		// Add the live tag data to the div
+		$live_tag_data = '';
+		if ( ! empty( $livetags ) ) {
+			foreach( $livetags as $a_tag ) {
+				$live_tag_data .=  $a_tag . ',';
+			}
 		}
+
+		if ( $div_id ) {
+			$content = '<div id="' . esc_attr( $div_id  ) . '" class="livepress_content"  data-livetags="' . trim( $live_tag_data, ',' ) . '">'.$content.'</div>';
+		}
+
+
 
 		if ( $this->inject ) {
 			if($post_modified_gmt===null) {
@@ -915,7 +977,7 @@ class LivePress_Updater {
 	 * @param WP_Post $post WP_Post object.
 	 */
 	public function send_to_livepress_new_post( $new_status, $old_status, $post ) {
-		if ( 'publish' !== $new_status || 'post' !== $post->post_type || 0 !== $post->post_parent ) {
+		if ( 'publish' !== $new_status || ! in_array( $post->post_type, apply_filters( 'livepress_post_types', array( 'post' ) ) ) || 0 !== $post->post_parent ) {
 			return;
 		}
 

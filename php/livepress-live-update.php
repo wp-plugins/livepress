@@ -154,7 +154,7 @@ class LivePress_Live_Update {
 				$new_shortcode .= $current_time_attr;
 			}
 		}
-		$new_shortcode   .= ' timestamp="'. date( 'c', current_time('timestamp') ) .'"';
+		$new_shortcode   .= ' timestamp="'. date( 'c', current_time('timestamp', 1) ) .'"';
 
 		if ($options["include_avatar"]) {
 			$new_shortcode .= ' has_avatar="1"';
