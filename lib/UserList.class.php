@@ -60,9 +60,23 @@ class UserList {
 	var $show_biography = false;
 
 	/**
+	 * Maximum number of words in bio
+	 */
+	var $bio_length = 100;
+
+	/**
+	 * Flag whether to show a user's biography
+	 */
+	var $show_last_post = false;
+	/**
 	 * Flag whether to show a user's email
 	 */
 	var $show_email = false;
+
+	/**
+	 * Size of avatars.
+	 */
+	var $display_extra = array();
 
 	/**
 	 * Size of avatars.
@@ -285,6 +299,8 @@ class UserList {
 			'show_postcount'          => $this->show_postcount,
 			'show_bbpress_post_count' => $this->show_bbpress_post_count,
 			'show_biography'          => $this->show_biography,
+			'bio_length'			  => $this->bio_length,
+			'show_last_post'          => $this->show_last_post,
 			'show_email'              => $this->show_email,
 			'avatar_size'             => $this->avatar_size,
 			'limit'                   => $this->limit,
@@ -405,7 +421,7 @@ class UserList {
 
 				$title .= ' (' . sprintf( _n( "%d post", "%d posts", $postcount, 'author-avatars' ), $postcount ) . ')';
 			}
-			$name .= sprintf( ' (%d)', $postcount );
+			$name .= sprintf( apply_filters( 'aa_post_count', ' (%d)', $postcount ), $postcount );
 		}
 
 		if ( $this->show_bbpress_post_count && AA_is_bbpress() ) {
@@ -425,10 +441,27 @@ class UserList {
 			} else {
 				$biography = ( isset( $user->description ) ) ? $user->description : '';
 			}
-			$divcss[] = 'with-biography';
+			$biography = apply_filters( 'aa_user_biography_filter', $biography );
+
+			// trim $biography to bio_length
+			$biography = wp_trim_words( $biography , apply_filters( 'aa_user_bio_length', $this->bio_length ) );
+
+			$divcss[] = 'with-biography bio-length-'.$this->bio_length;
 			$name     = '<strong>' . $name . '</strong>';
 			if ( empty( $biography ) ) {
 				$divcss[] = 'biography-missing';
+			}
+		}
+
+		$show_last_post = false;
+
+		if ( $this->show_last_post ) {
+			$show_last_post = $this->aa_get_last_post( $user->user_id );
+			$show_last_post = apply_filters( 'aa_user_show_last_post_filter', $show_last_post );
+			$divcss[] = 'with-last-post';
+
+			if ( empty( $show_last_post ) ) {
+				$divcss[] = 'last-post-missing';
 			}
 		}
 
@@ -495,6 +528,14 @@ class UserList {
 
 		if ( $biography ) {
 			$html .= sprintf( apply_filters( 'aa_user_biography_template', '<div class="biography">%s</div>', $biography ), $biography );
+		}
+
+		if ( $show_last_post ) {
+			$html .= sprintf( apply_filters( 'aa_user_last_post_template', '<div class="show_last_post">%s</div>', $show_last_post ), $show_last_post );
+		}
+
+		if ( ! empty ( $this->display_extra ) ) {
+			$html .= apply_filters( 'aa_user_display_extra', $this->display_extra, $user );
 		}
 
 		$tpl_vars['{class}'] = implode( $divcss, ' ' );
@@ -623,6 +664,36 @@ class UserList {
 		}
 
 		return $users;
+	}
+
+	/**
+	 * @param $user_id
+	 *
+	 * @return null|string
+	 */
+	function aa_get_last_post( $user_id ){
+		$args=array(
+			'author' => $user_id ,
+			'post_type' => 'post',
+			'post_status' => 'publish',
+			'posts_per_page' => 1,
+			'ignore_sticky_posts'=> 1
+		);
+		$my_query = null;
+		$out = null;
+		$my_query = new WP_Query($args);
+		if( $my_query->have_posts() ) {
+			while ($my_query->have_posts()) : $my_query->the_post();
+				$id = $my_query->posts[0]->ID;
+				$out .= sprintf('<a href="%s" rel="bookmark" title="Permanent Link to %s">%s</a>',
+					get_the_permalink( $id ),
+					the_title_attribute( array( 'echo'=>false, 'post'=>$id ) ),
+					get_the_title( $id )
+				);
+			endwhile;
+		}
+		wp_reset_query();  // Restore global post data stomped by the_post().
+		return $out;
 	}
 
 	/**
