@@ -1,4 +1,4 @@
-/*! livepress -v1.1.5
+/*! livepress -v1.2.2
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -19,6 +19,55 @@ Livepress.ensureExists = function (object) {
 
 // Prevent extra calls to console.log from throwing errors when the console is closed.
 var console = console || { log: function () { } };
+
+// Get the permalink for a given update
+// The url is used for sharing with an anchor link to the update and
+// works for Open Graph and Twitter Cards:
+Livepress.getUpdatePermalink = function (update_id) {
+	var re = /livepress-update-([0-9]+)/,
+		id = re.exec(update_id)[1],
+		lpup = '',
+		post_link = jQuery(location).attr('protocol') + '//' + jQuery(location).attr('host') + jQuery(location).attr('pathname'),
+		query = jQuery(location).attr('search'),
+		pid;
+
+	// Check url depending on permalink (default / nice urls)
+	if ( null !== ( pid = query.match(/\?p=[0-9]+/) ) ){
+		post_link += pid + "&";
+	} else {
+		post_link += "?";
+	}
+
+	lpup += "lpup=";
+	return post_link + lpup + id + "#" + update_id;
+};
+Livepress.updateShortlinksCache = window.LivepressConfig.shortlink || {};
+Livepress.getUpdateShortlink = function (upd) {
+	var re = /livepress-update-([0-9]+)/,
+	update_id = re.exec(upd)[1];
+	if( !( update_id in Livepress.updateShortlinksCache ) ) {
+
+		return jQuery.ajax({
+			url: window.LivepressConfig.ajax_url,
+			xhrFields: {
+				withCredentials: true
+			},
+			type: 'post',
+			async: false,
+			dataType: 'json',
+			data: {
+				'action': 'lp_update_shortlink',
+				'post_id': window.LivepressConfig.post_id,
+				'_ajax_nonce': LivepressConfig.lp_update_shortlink_nonce,
+				'update_id': update_id
+			}
+		}).promise();
+
+
+	} else {
+		return Livepress.updateShortlinksCache[update_id];
+	}
+};
 
 /*
  * Parse strings date representations into a real timestamp.
@@ -762,22 +811,31 @@ Livepress.DOMManipulator.prototype = {
 		this.selector('.oortle-diff-removed-block').remove();
 	},
 
-    process_twitter: function(el, html) {
-        if ( html.match( /<blockquote[^>]*twitter-tweet/i )) {
-            if ( 'twttr' in window ) {
-                try { window.twttr.widgets.load(el); } catch ( e ) {}
-            } else {
-                try {
-                    if(!document.getElementById('twitter-wjs')) {
-                        var wg = document.createElement('script');
-                        wg.src = "https://platform.twitter.com/widgets.js";
-                        wg.id = "twitter-wjs";
-                        document.getElementsByTagName('head')[0].appendChild(wg);
-                    }
-                } catch(e) {}
-            }
-        }
-    },
+	process_twitter: function(el, html) {
+		if ( html.match( /<blockquote[^>]*twitter-tweet/i )) {
+			if ( 'twttr' in window ) {
+				try {
+					window.twttr.events.bind(
+						'loaded',
+						function (event) {
+							jQuery( document ).trigger( 'live_post_update' );
+						}
+					);
+					console.log('loading twitter');
+					window.twttr.widgets.load(el);
+				} catch ( e ) {}
+			} else {
+				try {
+					if(!document.getElementById('twitter-wjs')) {
+						var wg = document.createElement('script');
+						wg.src = "https://platform.twitter.com/widgets.js";
+						wg.id = "twitter-wjs";
+						document.getElementsByTagName('head')[0].appendChild(wg);
+					}
+				} catch(e) {}
+			}
+		}
+	},
 
 	apply_changes: function (changes, options) {
 		var $ = jQuery;
@@ -1177,11 +1235,11 @@ Livepress.DOMManipulator.prototype = {
 			return false;
 		}
 		var colors = {
-			'oortle-diff-inserted':       "#55C64D",
-			'oortle-diff-changed':        "#55C64D",
-			'oortle-diff-inserted-block': "#ffff66",
-			'oortle-diff-removed-block':  "#C63F32",
-			'oortle-diff-removed':        "#C63F32"
+			'oortle-diff-inserted':       LivepressConfig.oortle_diff_inserted,
+			'oortle-diff-changed':        LivepressConfig.oortle_diff_changed,
+			'oortle-diff-inserted-block': LivepressConfig.oortle_diff_inserted_block,
+			'oortle-diff-removed-block':  LivepressConfig.oortle_diff_removed_block,
+			'oortle-diff-removed':        LivepressConfig.oortle_diff_removed
 		};
 
 		var color_hex = "#fff";
@@ -1199,7 +1257,7 @@ Livepress.DOMManipulator.prototype = {
 		var $el = jQuery(el);
 
 		// if user is not on the page
-		if (!LivepressConfig.page_active) {
+		if (!LivepressConfig.page_active && LivepressConfig.effects ) {
 			$el.getBg();
 			$el.data("oldbg", $el.css('background-color'));
 			$el.addClass('unfocused-lp-update');
@@ -1495,7 +1553,7 @@ Dashboard.Controller = Dashboard.Controller || function () {
 		} );
 
 		// Add the new page tab
-		var tab_markup = '<a id="content-livepress" class="hide-if-no-js wp-switch-editor switch-livepress"><span class="icon-livepress-logo"></span> Real-Time</a>';
+		var tab_markup = '<a id="content-livepress-html" class="hide-if-no-js wp-switch-editor switch-livepress-html"><span class="icon-livepress-logo"></span> Real-Time Text</a><a id="content-livepress" class="hide-if-no-js wp-switch-editor switch-livepress active"><span class="icon-livepress-logo"></span> Real-Time</a>';
 		jQuery( tab_markup ).insertAfter( '#content-tmce' );
 	};
 
@@ -1544,7 +1602,7 @@ Dashboard.Controller = Dashboard.Controller || function () {
 		Dashboard.Comments.conditionallyEnable();
 		currPane.find( 'span.count-update' ).hide();
 	};
-
+	// switches the tab on the live in the live blogging tools
 	jQuery( '.blogging-tools-tabs ul li' ).on( 'click', function() {
 		var $this = jQuery( this );
 		if ( $this.is( '.active' ) === false ) {
@@ -4386,7 +4444,6 @@ var Livepress = Livepress || {};
 
 (function () {
 	var loader = function () {
-		console.log( 'loader' );
 		var scripts = [],
 			styles = [],
 			agent = navigator.userAgent.toLowerCase(),
@@ -4407,7 +4464,6 @@ var Livepress = Livepress || {};
 
 		//DEBUG Lines are included only in debugging version. They are completely removed from release code
 		if (LivepressConfig.debug !== undefined && LivepressConfig.debug) { //DEBUG
-	console.log( 'loader pass a' );
 
 			var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
 			scripts = scripts.concat([ //DEBUG
@@ -4416,7 +4472,6 @@ var Livepress = Livepress || {};
 			]); //DEBUG
 		} else //DEBUG
 		{
-	console.log( 'loader pass b' );
 			scripts = scripts.concat([
 				'static://oortle/' + LivepressConfig.oover[0] + '/oortle.min.js',
 				'static://' + LivepressConfig.oover[1] + '/cluster_settings.js?v=' + LivepressConfig.oover[2]

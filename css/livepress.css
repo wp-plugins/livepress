@@ -89,20 +89,43 @@
 .count-update {
 	display: block;
 	position: absolute;
-	top: .3em;
-	right: 30px;
-	font-size: .8em;
-	height: 2em;
-	width: 2em;
-	line-height: 2em;
-	background: #D54E17;
+	top: 0;
 	text-align: center;
+	width: 2em;
+	background-color: #d54e21;
 	color: #fff;
+	font-size: 9px;
+	font-weight: 600;
+	margin: 6px 0 0 2px;
+	vertical-align: top;
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+	z-index: 26;
 
-	-moz-border-radius: 50%;
-	border-radius: 50%;
-	-webkit-border-radius: 50%;
 	}
+
+.admin-color-light .count-update{
+	background-color: #d64e07;
+}
+.admin-color-blue .count-update{
+	background-color: #d54e21;
+}
+.admin-color-coffee .count-update{
+	background-color: #9ea476;
+}
+.admin-color-ectoplasm .count-update{
+	background-color: #d46f15;
+}
+.admin-color-midnight .count-update{
+	 background-color: #69a8bb;
+ }
+.admin-color-ocean .count-update{
+	background-color: #aa9d88;
+}
+.admin-color-sunrise .count-update{
+	background-color: #ccaf0b;
+}
+
 
 .blogging-tools-tabs li {
 	position: relative;
@@ -129,8 +152,23 @@
 }
 
 .livepress-meta {
-	font-weight: bold;
 	margin-right: 10px;
+	margin-bottom: 15px;
+	width: 100%;
+	padding: 0;
+	padding-left: 5px;
+}
+.livepress-update-format-newstyle .livepress-meta{
+	background-color: #f5f5f5;
+	border: 1px solid #dedede;
+}
+
+
+.livepress-update.pinned-first-live-update .livepress-meta,
+.livepress-update.pinned-first-live-update .livepress-meta,
+.livepress-update.pinned-first-live-update .live-update-livetags,
+.livepress-update.pinned-first-live-update .live-update-authors {
+	display: none;
 }
 
 /* Needs #post_content_livepress to be more specialized than #content img */
@@ -144,10 +182,74 @@ body#tinymce .livepress-meta img {
 	margin-right: 5px;
 }
 
-div.livepress-live-tags {
-	width: 50%;
+.livepress-update-header,
+.livepress-byline,
+.livepress-timestamp-option,
+.livepress-live-tags,
+.lp-authorID {
+	display: none;
+
+}
+
+.livepress-update-show-header .livepress-update-header{
+	display: inline;
+}
+.livepress-update-show-author .livepress-byline,
+.livepress-update-show-time .livepress-timestamp-option,
+.livepress-update-show-tags .livepress-live-tags{
+	display: block;
+}
+
+.live-author-gravatar img {
+	width: 48px;
+	height: 48px;
+	padding: 4px;
+	clear: both;
+}
+
+.livepress-meta .livepress-update-header {
+	font-weight: bold;
+	margin-left: 5px;
+}
+
+.live-update-authors {
+	width: 75px;
+	font-weight: bold;
+	font-style: italic;
+	float:left;
+}
+
+div.livepress-update-inner-wrapper.lp_avatar_shown{
+	margin-left: 80px;
+}
+
+div.livepress-update-header > input,
+div.livepress-byline > input {
+	padding: 5px;
+	margin: 1px 0px 1px 0px;
+	border: 1px solid #aaa;
+	font-family: sans-serif;
+	line-height: 18px;
+}
+
+div.livepress-live-tags,
+div.livepress-byline {
 	float: left;
 	text-align: left;
+}
+
+div.livepress-byline {
+	width: 50%;
+	text-align: right;
+	margin-bottom: 5px;
+}
+
+div.livepress-live-tags {
+	width: 50%;
+}
+
+div.livepress-update-header > input {
+	width: 100%;
 }
 
 .live-update-livetags {
@@ -166,6 +268,12 @@ div.livepress-live-tags {
 	background-color: #eee;
 	cursor: pointer;
 	font-size: .7em;
+}
+
+.livepress-meta .livepress-timestamp {
+	background-color: #fff;
+	border: 1px solid #dedede;
+	padding: 1px 5px;
 }
 
 .live-update-tag-control {
@@ -201,11 +309,11 @@ div.livepress-live-tags {
 	border-top: 1px solid transparent;
 	border-bottom: 1px solid transparent;
 	z-index: 10;
+	margin-bottom: 20px;
 }
 
-.livepress-update.lp-hl-on-hover:hover,
-.livepress-old-update.lp-hl-on-hover:hover {
-	background: #f9f9c3;
+.lp-bar br {
+	display: none;
 }
 
 .livepress-update.livepress-has-avatar,
@@ -1015,20 +1123,6 @@ a.lp-term-clean-button:hover{
 	display: none;
 }
 
-/* Enhanced Editor Button */
-.wp-switch-editor.switch-livepress .icon-livepress-logo:before {
-	font-size: 1.3em;
-}
-
-.livepress-active .switch-livepress,
-.livepress-active .switch-livepress:hover {
-    border-color: #dfdfdf #dfdfdf #f5f5f5;
-    background-color: #f5f5f5;
-	/* Colors for the Blue-style UI */
-	/*border-color: #CCC #CCC #EAF2FA;
-	background-color: #EAF2FA;*/
-    color: #333;
-}
 
 /* @group Browser-specific fixes */
 
@@ -1143,6 +1237,7 @@ a.lp-term-clean-button:hover{
 	display: none;
 }
 
+
 /* @end */
 
 /* Plugin specific CSS Fixes */
@@ -1155,6 +1250,14 @@ a.lp-term-clean-button:hover{
 
 .livepress-live #postdivrich {
 	display: none;
+}
+
+/* Limit embed widths */
+embed,
+iframe,
+object,
+video {
+	max-width: 100%;
 }
 
 /**
@@ -1181,3 +1284,4 @@ a.lp-term-clean-button:hover{
 	position: relative;
 	top: .1em;
 }
+

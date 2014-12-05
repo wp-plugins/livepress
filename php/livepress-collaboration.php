@@ -5,7 +5,7 @@
  * @todo Remove/deprecate where necessary.
  */
 
-require_once 'livepress-config.php';
+require_once ( LP_PLUGIN_PATH . 'php/livepress-config.php' );
 
 class Collaboration {
 	static function tablename() {

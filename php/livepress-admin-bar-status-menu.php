@@ -57,6 +57,10 @@ class LivePress_Admin_Bar_Status_Menu {
 	 */
 	function admin_bar_menu( $wp_admin_bar ) {
 
+		if ( ! current_user_can( 'manage_options' ) || ! is_admin() ) {
+			return;
+		}
+
 		$class = 'livepress-status-menu';
 
 		$status = self::get_status();
@@ -87,9 +91,12 @@ class LivePress_Admin_Bar_Status_Menu {
 	 * @return string Current API status. connected|disconnected|disabled
 	 */
 	private function get_status() {
-		$api_key = $this->options['api_key'];
 
 		$status  = 'disconnected';
+		if( false == $this->options ){
+			return $status;
+		}
+		$api_key = $this->options['api_key'];
 
 			if ( ! class_exists( 'WP_Http' ) )
 				include_once( ABSPATH . WPINC. '/class-http.php' );

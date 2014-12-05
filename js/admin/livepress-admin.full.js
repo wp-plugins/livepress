@@ -1,4 +1,4 @@
-/*! livepress -v1.1.5
+/*! livepress -v1.2.2
  * http://livepress.com/
  * Copyright (c) 2014 LivePress, Inc.
  */
@@ -19,6 +19,55 @@ Livepress.ensureExists = function (object) {
 
 // Prevent extra calls to console.log from throwing errors when the console is closed.
 var console = console || { log: function () { } };
+
+// Get the permalink for a given update
+// The url is used for sharing with an anchor link to the update and
+// works for Open Graph and Twitter Cards:
+Livepress.getUpdatePermalink = function (update_id) {
+	var re = /livepress-update-([0-9]+)/,
+		id = re.exec(update_id)[1],
+		lpup = '',
+		post_link = jQuery(location).attr('protocol') + '//' + jQuery(location).attr('host') + jQuery(location).attr('pathname'),
+		query = jQuery(location).attr('search'),
+		pid;
+
+	// Check url depending on permalink (default / nice urls)
+	if ( null !== ( pid = query.match(/\?p=[0-9]+/) ) ){
+		post_link += pid + "&";
+	} else {
+		post_link += "?";
+	}
+
+	lpup += "lpup=";
+	return post_link + lpup + id + "#" + update_id;
+};
+Livepress.updateShortlinksCache = window.LivepressConfig.shortlink || {};
+Livepress.getUpdateShortlink = function (upd) {
+	var re = /livepress-update-([0-9]+)/,
+	update_id = re.exec(upd)[1];
+	if( !( update_id in Livepress.updateShortlinksCache ) ) {
+
+		return jQuery.ajax({
+			url: window.LivepressConfig.ajax_url,
+			xhrFields: {
+				withCredentials: true
+			},
+			type: 'post',
+			async: false,
+			dataType: 'json',
+			data: {
+				'action': 'lp_update_shortlink',
+				'post_id': window.LivepressConfig.post_id,
+				'_ajax_nonce': LivepressConfig.lp_update_shortlink_nonce,
+				'update_id': update_id
+			}
+		}).promise();
+
+
+	} else {
+		return Livepress.updateShortlinksCache[update_id];
+	}
+};
 
 /*
  * Parse strings date representations into a real timestamp.
@@ -4019,7 +4068,7 @@ Livepress.Admin.PostStatus = function () {
 	function message (msg, kind) {
 		kind = kind || "lp-notice";
 		var $el = jQuery('<p/>').text(msg),
-			$container = jQuery('<div class="lp-message ' + kind + '"></div>');
+			$container = jQuery('<div class="updated ' + kind + '"></div>');
 		$container.append($el);
 		jQuery("#post").before($container);
 		setTimeout(function () {
@@ -4432,12 +4481,15 @@ Livepress.Admin.Tools = function () {
 			SELF   = this,
 			promises;
 
+		// Save and refresh when clicking the first update sticky toggle
+		jQuery( '#pinfirst' ).on( 'click', function() {
+			jQuery( 'form#post' ).submit();
+		});
+
 		jQuery('#tab-panel-live-notes').on('click', 'input[type="submit"]', function (e) {
 			var submit = jQuery( this ),
 				status = jQuery( '.live-notes-status' );
 			e.preventDefault();
-
-			submit.attr('disabled', 'disabled');
 
 			jQuery.ajax({
 				url:     LivepressConfig.ajax_url,
@@ -4449,7 +4501,6 @@ Livepress.Admin.Tools = function () {
 				},
 				type:    'post',
 				success: function (data) {
-					submit.removeAttr('disabled');
 					status.show();
 
 					setTimeout( function() {
@@ -4486,7 +4537,7 @@ Livepress.Admin.Tools = function () {
 				promises = toggleLiveStatus();
 				jQuery.when( promises ).done( function() {
 					setTimeout( function(){
-						jQuery( '#publish' ).removeAttr('disabled').click();
+						jQuery( '#publish' ).click();
 					}, 50);
 				});
 			}
@@ -4577,6 +4628,7 @@ function update_embeds(){
   if ( typeof(FB) !== 'undefined'){
     FB.XFBML.parse();
   }
+	jQuery('abbr.livepress-timestamp').timeago().attr( 'title', '' );
 }
 
 
@@ -4921,12 +4973,24 @@ jQuery(function () {
 				$j(document.body).add($eHTML).addClass(namespace + '-active');
 			};
 
+			var toggleTabs = function( $buttonDiv ) {
+				$buttonDiv.first().find( 'a' ).each( function () {
+					jQuery( this ).toggleClass( 'active' );
+				});
+			};
+
 			jQuery(window).on('start.livepress', function () {
 				window.eeActive = true;
+				window.eeTextActive = false;
 				// switch to visual mode if in html mode
 				if (!tinyMCE.editors.content) {
 					switchEditors.go('content', 'tmce');
 				}
+
+				addEditorTabControlListeners( jQuery( '.wp-editor-tabs' ), 'content', '.wp-editor-tabs' );
+
+				// remove the old visual editor
+				jQuery( '.wp-editor-tabs > a.switch-tmce' ).remove();
 
 				// A timeout is used to give TinyMCE a time to invoke itself and refresh the DOM.
 				setTimeout(livepress_init, 5);
@@ -4943,6 +5007,42 @@ jQuery(function () {
 			});
 
 			/**
+			 * Add listeners for the text/html Real-time tabs
+			 */
+			function addEditorTabControlListeners( $buttonDiv, editorID, toggleFinder, editor ) {
+
+				$buttonDiv.find( 'a.switch-livepress' ).off( 'click' ).on( 'click', function( e ) {
+					if ( jQuery( this ).hasClass( 'active' ) ){
+						return;
+					}
+					var currentEditorId = jQuery( this).attr('data-editor');
+					if ( 'undefined' === typeof editor ) {
+						switchEditors.go( 'content', 'toggle');
+					} else {
+						e = tinymce.get( currentEditorId ) ;
+						e.show();
+					}
+					window.eeTextActive = false;
+					var parent_div = jQuery( this ).parent('.livepress-inline-editor-tabs');
+					toggleTabs( ( ( 'undefined' === typeof( toggleFinder ) || '' === toggleFinder ) ? parent_div : jQuery( toggleFinder ) ) );
+					return false;
+				});
+
+				$buttonDiv.find( 'a.switch-livepress-html' ).off( 'click' ).on( 'click', function( e ) {
+					if ( jQuery( this ).hasClass( 'active' ) ){
+						return;
+					}
+					var currentEditorId = jQuery( this).attr('data-editor');
+					switchEditors.go( currentEditorId, 'html');
+
+					window.eeTextActive = true;
+					var parent_div = jQuery( this ).parent('.livepress-inline-editor-tabs');
+					toggleTabs( ( ( 'undefined' === typeof( toggleFinder ) || '' === toggleFinder ) ? parent_div : jQuery( toggleFinder ) ) );
+					return false;
+				});
+			}
+
+			/**
 			 * Generic helper object for the real-time editor.
 			 *
 			 * @returns {Object}
@@ -4955,6 +5055,28 @@ jQuery(function () {
 					NONCES = jQuery( '#livepress-nonces' ),
 					hasRegex = new RegExp("\\[livepress_metainfo[^\\]]*]"),
 					onlyRegex = new RegExp("^\\s*\\[livepress_metainfo[^\\]]*]\\s*$");
+
+				SELF.getGravatars = function() {
+					// Set up the gravatar array
+					var gravatars = [];
+					for ( var i = 0, len = lp_strings.lp_gravatars.length; i < len; i++ ) {
+						gravatars[ lp_strings.lp_gravatars[ i ].id ] = lp_strings.lp_gravatars[ i ].avatar;
+					}
+					return gravatars;
+				};
+
+				SELF.getGravatarLinks = function() {
+					// Set up the gravatar array
+					var links = [];
+					for ( var i = 0, len = lp_strings.lp_avatar_links.length; i < len; i++ ) {
+						links[ lp_strings.lp_avatar_links[ i ].id ] = lp_strings.lp_avatar_links[ i ].link;
+					}
+					return links;
+				};
+
+
+				SELF.gravatars   = SELF.getGravatars();
+				SELF.avatarLinks = SELF.getGravatarLinks();
 
 				/**
 				 * Dispatch a specific action to the server asynchronously.
@@ -5049,6 +5171,11 @@ jQuery(function () {
 						return;
 					}
 
+					// Switch to the rich editor before saving
+					if ( window.eeTextActive ){
+						switchEditors.go('content', 'tmce');
+					}
+
 					var originalContent = editor.getContent();
 					originalContent = originalContent.replace( '<p><br data-mce-bogus="1"></p>', '' );
 					// Remove the toolbar/dashicons present on images/galleries since WordPress 3.9 and embeds since 4.0
@@ -5064,21 +5191,31 @@ jQuery(function () {
 						}
 					}
 
-					var processed = switchEditors.pre_wpautop(originalContent);
-					if (jQuery('.livepress-author-info input[type="checkbox"]').is(':checked') && jQuery(editor.formElement.outerHTML).hasClass('livepress-newform')) {
-						processed = SELF.newMetainfoShortcode(true) + processed;
-					}
+					/**
+					 * Add the live update header bar with timestamp (if option checked)
+					 * and update header (if header entered).
+					 */
+					var editorID    = editor.editorContainer.id,
+						$activeForm  = jQuery( '#' + editorID ).closest( '.livepress-update-form' );
 
-					// Add tags if present
-					var $livetagField = jQuery( '.livepress-update-form' ).find( '.livepress-live-tag' );
-					var liveTags = SELF.getCurrentLiveTags();
+					/**
+					 * Update header
+					 */
+					var liveUpdateHeader = $activeForm.find( '.liveupdate-header' ),
+						processed = switchEditors.pre_wpautop(originalContent),
 
-					if ( 0 !== liveTags.length ) {
-						processed = SELF.getLiveTagsHTML( liveTags ) + processed;
-					}
+						/**
+						 * Live Tags Support
+						 */
+						// Add tags if present
+						$livetagField = $activeForm.find( '.livepress-live-tag' ),
+						liveTags = SELF.getCurrentLiveTags( $activeForm ),
+						authors  = SELF.getCurrentAuthors( $activeForm ),
 
-					// Save any new tags back to the taxonomy via ajax
-					var newTags = jQuery( liveTags ).not( LivepressConfig.live_update_tags ).get();
+						// Save any new tags back to the taxonomy via ajax
+						newTags = jQuery( liveTags ).not( LivepressConfig.live_update_tags ).get(),
+						$timestampCheckbox = jQuery('.livepress-timestamp-option input[type="checkbox"]'),
+						includeTimestamp = ( 0 === $timestampCheckbox.length ) || $timestampCheckbox.is(':checked');
 
 					// Save the existing tags back to the select2 field
 					if ( 0 !== newTags.length ) {
@@ -5098,6 +5235,31 @@ jQuery(function () {
 							}
 						});
 					}
+					var avater_class = ( -1 !== jQuery.inArray( 'AVATAR', LivepressConfig.show ) && 0 !== authors.length )?'lp_avatar_shown':'lp_avatar_hidden';
+					// Wrap the inner update
+					if ( -1 === processed.search( 'livepress-update-inner-wrapper' ) ){ /* don't double add */
+						if( 'default' !== LivepressConfig.update_format )  {
+							console.log(processed);
+							processed = '<div class="livepress-update-inner-wrapper ' + avater_class + '">\n\n' + processed + '\n\n</div>';
+							if ( -1 !== jQuery.inArray( 'AVATAR', LivepressConfig.show ) ) {
+								processed = ( ( 0 !== authors.length ) ? SELF.getAuthorsHTML( authors ) : '' ) + processed;
+							}
+							processed = SELF.newMetainfoShortcode( includeTimestamp, liveUpdateHeader, processed ) +
+							( ( 0 !== liveTags.length ) ? SELF.getLiveTagsHTML( liveTags ) : '' ) + processed;
+							console.log(processed);
+						}else{
+
+							processed = SELF.newMetainfoShortcode( includeTimestamp, liveUpdateHeader, processed ) +
+							( ( 0 !== liveTags.length ) ? SELF.getLiveTagsHTML( liveTags ) : '' );
+
+							if ( -1 !== jQuery.inArray( 'AVATAR', LivepressConfig.show ) ) {
+								processed = ( ( 0 !== authors.length ) ? SELF.getAuthorsHTML( authors ) : '' ) + processed;
+							}
+
+							processed = '<div class="livepress-update-outer-wrapper ' + avater_class + '">' + processed + '</div>';
+						}
+					}
+
 
 					return processed;
 				};
@@ -5105,9 +5267,63 @@ jQuery(function () {
 				/**
 				 * Get the list of live tags added on this update
 				 */
-				SELF.getCurrentLiveTags = function() {
-					var $livetagField = jQuery( '.livepress-update-form' ).find( '.livepress-live-tag' );
-					return $livetagField.select2( 'val' );
+				SELF.getCurrentLiveTags = function( $activeForm ) {
+					if ( 'undefined' === typeof $activeForm ) {
+						$activeForm  = jQuery( '.livepress-update-form' );
+					}
+					return $activeForm.find( '.livepress-live-tag' ).select2( 'val' );
+				};
+
+				/**
+				 * Get the list of authors added on this update
+				 */
+				SELF.getCurrentAuthors = function( $activeForm ) {
+					return $activeForm.find( '.liveupdate-byline' ).select2( 'data' );
+				};
+
+				/**
+				 * Wrap the avatar image or name in a link
+				 */
+				SELF.linkToAvatar = function( html, userid ) {
+					if ( 'undefined' !== typeof SELF.avatarLinks[ userid ] && '' !== SELF.avatarLinks[ userid ] ) {
+						return '<a href="' + SELF.avatarLinks[ userid ] + '" target="_blank">' + html + '</a>';
+					}
+				};
+
+				/**
+				 * Get the html for displaying the authors for this live update.
+				 *
+				 * @param  Array  Authors array of authors for this update.
+				 *
+				 * @return String HTML to display the authors.
+				 *
+				 */
+				SELF.getAuthorsHTML = function( authors ){
+					var toReturn = '';
+
+					if ( 0 === authors ) {
+						return '';
+					}
+					// Start the tags div
+					toReturn += '\n<div class="live-update-authors">';
+
+					// add each of the authors as a span
+					jQuery.each( authors, function(){
+						toReturn += '<span class="live-update-author live-update-author-' +
+						this.text.replace(/\s/g, '-').toLowerCase() + '">';
+						toReturn += '<span class="lp-authorID">' + this.id + '</span>';
+						if ( 'undefined' !== typeof SELF.gravatars[ this.id ] && '' !== SELF.gravatars[ this.id ] ) {
+							toReturn += '<span class="live-author-gravatar">' + SELF.linkToAvatar( SELF.gravatars[ this.id ], this.id ) +  '</span>';
+						}
+
+						toReturn += '<span class="live-author-name">' + SELF.linkToAvatar( this.text, this.id ) + '</span></span>';
+					} );
+
+					// Close the divs tag
+					toReturn += '</div>';
+
+					return toReturn;
+
 				};
 
 				/**
@@ -5143,42 +5359,64 @@ jQuery(function () {
 				/**
 				 * Gets the metainfo shortcode.
 				 *
-				 * @param {Boolean} omitNewline Flag to omit adding \n to the end of the shortcode.
+				 * @param {Boolean} showTimstamp Flag to determine whether to show the timestamp.
 				 * @returns {String} Metainfo shortcode.
 				 */
-				SELF.newMetainfoShortcode = function (omitNewline) {
+				SELF.newMetainfoShortcode = function ( showTimstamp, $liveUpdateHeader, content ) {
 					var metainfo = "[livepress_metainfo",
 						d,
 						utc,
 						server_time;
 
-					omitNewline = omitNewline || false;
+					// Used stored meta information when editing an existing update
+					var show_timestmp =  $liveUpdateHeader.data( 'show_timestmp' );
+				//		console.log( 'show_timestmp - ' + show_timestmp );
 
-					if (config.author_display_name) {
-						metainfo += ' author="' + config.author_display_name + '"';
-					}
+					if ( '1' === show_timestmp ) {
+						var time      = $liveUpdateHeader.data( 'time' ),
+							timestamp = $liveUpdateHeader.data( 'timestamp' );
 
-					d = new Date();
-					utc = d.getTime() + (d.getTimezoneOffset() * 60000); // Minutes to milisec
-					server_time = utc + (3600000 * LivepressConfig.blog_gmt_offset); // Hours to milisec
-					server_time = new Date(server_time);
-					if (config.timestamp_template) {
-						if (window.eeActive) {
-							metainfo += ' time="' + server_time.format(config.timestamp_template) + '"';
-							metainfo += ' timestamp="' + d.toISOString() + '"';
-						} else {
-							metainfo += ' POSTTIME ';
+						metainfo += ' show_timestmp="1"';
+
+						if ( 'undefined' !== typeof time ) {
+							metainfo += ' time="' + time + '"';
+						}
+
+						if ( 'undefined' !== typeof timestamp ) {
+							metainfo += ' timestamp="' + timestamp + '"';
+						}
+					} else {
+						if( showTimstamp ) {
+							metainfo += ' show_timestmp="1"';
+							d = new Date();
+							utc = d.getTime() + (d.getTimezoneOffset() * 60000); // Minutes to milisec
+							server_time = utc + (3600000 * LivepressConfig.blog_gmt_offset); // Hours to milisec
+							server_time = new Date(server_time);
+							if (LivepressConfig.timestamp_template) {
+								if (window.eeActive) {
+									metainfo += ' time="' + server_time.format( LivepressConfig.timestamp_template ) + '"';
+									metainfo += ' timestamp="' + d.toISOString() + '"';
+								} else {
+									metainfo += ' POSTTIME ';
+								}
+							}
 						}
 					}
 
-					if (config.has_avatar) {
+					if ( LivepressConfig.has_avatar ) {
 						metainfo += ' has_avatar="1"';
 					}
 
-					metainfo += "]";
+					if ( 0 <= jQuery.inArray( 'AVATAR', LivepressConfig.show ) ) {
+						metainfo += ' avatar_block="shown"';
+					}
 
-					if (!omitNewline) {
-						metainfo += "\n";
+					if ( 'undefined' !== typeof $liveUpdateHeader.val() && '' !== $liveUpdateHeader.val() ) {
+						metainfo += ' update_header="' + encodeURI( decodeURI( $liveUpdateHeader.val() ) ) + '"';
+					}
+					metainfo += "]";
+					if( 'default' === LivepressConfig.update_format ){
+						metainfo += content + '[/livepress_metainfo]';
 					}
 
 					return metainfo;
@@ -5249,9 +5487,10 @@ jQuery(function () {
 								if ((ed !== SELF) && (tinyMCE.editors.hasOwnProperty(SELF.handle))) {
 									try {
 										tinyMCE.execCommand('mceFocus', false, SELF.handle);
-										tinyMCE.focus();
+										tinyMCE.editors[SELF.handle].focus();
 									} catch (err) {
 										console.log("mceFocus error", err);
+										console.log( SELF.handle );
 									}
 								}
 								return true;
@@ -5283,6 +5522,7 @@ jQuery(function () {
 					.end()
 					// running it this way is required since we don't have Function.bind
 					.on( 'submit', function () {
+						SELF.te.show();
 						SELF.onSave();
 						SELF.resetFormFieldStates( SELF );
 						return false;
@@ -5294,7 +5534,6 @@ jQuery(function () {
 					SELF.$form.find('input.button:not(.primary)').remove();
 					SELF.$form.find('a.livepress-delete').remove();
 					SELF.$form.addClass(namespace + '-newform');
-					SELF.$form.find( 'input.button-primary' ).attr( 'disabled', 'disabled' );
 					if ($j('#post input[name=original_post_status]').val() !== 'publish') {
 						SELF.$form.find('input.published').remove();
 						SELF.$form.find('.quick-publish').remove();
@@ -5303,8 +5542,7 @@ jQuery(function () {
 					}
 				} else {
 					SELF.$form.find('.primary.button-primary').remove();
-					SELF.$form.find('.livepress-author-info').remove();
-					SELF.$form.find('.livepress-live-tags').remove();
+					SELF.$form.find('.livepress-timestamp-option').remove();
 					if (mode === 'deleting') {
 						SELF.$form.addClass(namespace + '-delform');
 					}
@@ -5317,6 +5555,19 @@ jQuery(function () {
 						tokenSeparators: [','],
 						tags:            LivepressConfig.live_update_tags
 					});
+
+				// Add byline support to the form
+				SELF.$form
+					.find( 'input.liveupdate-byline' )
+					.select2( {
+						tokenSeparators: [','],
+						tags: lp_strings.lp_authors,
+						initSelection: function ( element, callback ) {
+							var data = { id: element.data( 'id' ), text: element.data( 'name' ) };
+							callback( data );
+						}
+					});
+
 				return this;
 			}
 
@@ -5332,16 +5583,18 @@ jQuery(function () {
 				 */
 				formLayout:  [
 					'<form>',
+					'<div class="livepress-update-header"><input type="text" placeholder="' + lp_strings.live_update_header + '"value="" autocomplete="off" class="liveupdate-header" name="liveupdate-header" id="liveupdate-header" /></div>',
 					'<div class="editorcontainer">',
-					'<textarea id="{handle}">{content}</textarea>',
+					'<textarea id="{handle}" class="wp-editor-area">{content}</textarea>',
 					'</div>',
 					'<div class="editorcontainerend"></div>',
 					'<div class="livepress-form-actions">',
 					'<div class="livepress-live-tags">' +
-						'<input type="hidden" style="width:95%" class="livepress-live-tag" />' +
+						'<input type="hidden" style="width:95%;" class="livepress-live-tag" />' +
 					'</div>',
-					'<div class="livepress-author-info"><input type="checkbox" checked="checked" /> ' + lp_strings.include_timestamp + '</div>',
-					'<a href="#" class="livepress-delete" data-action="delete">' + lp_strings.delete_perm + '</a>',
+					'<div class="livepress-byline">' + lp_strings.live_update_byline + ' <input type="text" data-name="' + LivepressConfig.author_display_name + '" data-id="' + LivepressConfig.author_id + '" autocomplete="off" style="width: 70%; float: right; margin-left: 5px;" class="liveupdate-byline" name="liveupdate-byline" id="liveupdate-byline" /></div>',
+					'<div class="livepress-timestamp-option"><input type="checkbox" checked="checked" /> ' + lp_strings.include_timestamp + '</div>',
+					'<br /><a href="#" class="livepress-delete" data-action="delete">' + lp_strings.delete_perm + '</a>',
 					'<span class="quick-publish">' + lp_strings.ctrl_enter + '</span>',
 					'<input class="livepress-cancel button button-secondary" type="button" value="' + lp_strings.cancel + '" data-action="cancel" />',
 					'<input class="livepress-update button button-primary" type="submit" value="' + lp_strings.save + '" data-action="update" />',
@@ -5357,12 +5610,17 @@ jQuery(function () {
 				 * called when pushing a live update.
 				 */
 				resetFormFieldStates: function( SELF ) {
-					SELF.$form.find( 'input.button-primary' ).attr( 'disabled', 'disabled' );
 					SELF.$form.find( '.livepress-live-tag' ).select2( 'val', '' ).select2( {
 						placeholder:     lp_strings.live_tags_select_placeholder,
 						tokenSeparators: [','],
 						tags:            LivepressConfig.live_update_tags
 					});
+					SELF.$form.find( '.liveupdate-header' ).val( '' );
+					if ( "true" !== LivepressConfig.use_default_author ) {
+						// removed as we wish to keep the author
+				//		SELF.$form.find( '.liveupdate-byline' ).select2( 'val', '' );
+					}
+
 				},
 
 				/*
@@ -5375,11 +5633,12 @@ jQuery(function () {
 						/** As of WordPress 3.9, TinyMCE is upgraded to version 4 and the
 						/*  old action methods are deprecated. This check ensures compatibility.
 						**/
-						mceAddCommand = ( '3' === tinymce.majorVersion ) ? 'mceAddControl' : 'mceAddEditor',
-						pushBtn = jQuery('.livepress-newform' ).find('input.button-primary');
+						mceAddCommand = ( '3' === tinymce.majorVersion ) ? 'mceAddControl' : 'mceAddEditor';
+
 					// initialize default editor at required selector
 					tinyMCE.execCommand( mceAddCommand, false, this.handle );
 					te = tinyMCE.editors[this.handle];
+
 					if (!te) {
 						console.log("Unable to get editor for " + this.handle);
 						return;
@@ -5395,45 +5654,198 @@ jQuery(function () {
 						te.dom.addClass(te.dom.getRoot(), 'livepress-has-avatar');
 					}
 
+					/**
+					 * Pull out existing header, authors and tags when editing
+					 * an existing update
+					 */
+					var $domcontent = jQuery( te.dom.getRoot() ),
+						editor      = te.editorContainer.id,
+						$activeForm = jQuery( '#' + editor ).closest( '.livepress-update-form' ),
+						content     = $domcontent.html();
+
+					/**
+					 * Handle the livepress_metainfo shortcode if present, including headline and timestamp
+					 */
+					if ( Helper.hasMetainfoShortcode( content ) ) {
+
+						/**
+						 * Remove the meta information from the content
+						 */
+						var	contentParts = content.split( '[livepress_metainfo' );
+
+						if ( 'undefined' !== typeof contentParts[1] ) {
+							content = contentParts[0] + contentParts[1].split(']')[1];
+						}
+						var metaInfo = contentParts[1].split(']')[0];
+
+						// Extract the header from the metainfo shortcode
+						var headerChunks = metaInfo.split( 'update_header="' ),
+							$formHeader = $activeForm.find( '.liveupdate-header' );
+
+						// If a header was found, add it to the editor
+						if ( 'undefined' !== typeof headerChunks[1] ) {
+							var header = headerChunks[1].split( '"' )[0];
+							$formHeader.val( decodeURI( header ) );
+						}
+
+						// Extract the show_timestmp setting
+						headerChunks = metaInfo.split( 'show_timestmp="' );
+						if ( 'undefined' !== typeof headerChunks[1] ) {
+							var show_timestmp = headerChunks[1].split( '"' )[0];
+							$formHeader.data( 'show_timestmp', show_timestmp );
+						} else {
+							// default is on
+							$formHeader.data( 'show_timestmp', '1' );
+						}
+
+						// Extract the time setting
+						headerChunks = metaInfo.split( 'time="' );
+						if ( 'undefined' !== typeof headerChunks[1] ) {
+							var time = headerChunks[1].split( '"' )[0];
+							$formHeader.data( 'time', time );
+						}
+
+						// Extract the timestamp setting
+						headerChunks = metaInfo.split( 'timestamp="' );
+						if ( 'undefined' !== typeof headerChunks[1] ) {
+							var timestamp = headerChunks[1].split( '"' )[0];
+							console.log( 'storing timestamp ' + timestamp );
+							$formHeader.data( 'timestamp', "" + timestamp );
+						}
+
+					}
+
+					/**
+					 * Authors
+					 */
+					var theAuthors = [],
+						authors = jQuery( content ).find( '.live-update-author' );
+
+					// If no authors, use whats in the main author field
+					if ( 0 === authors.length ) {
+						var $a = SELF.$form.find( 'input.liveupdate-byline' );
+						if ( '' !== $a.data( 'name' )  ) {
+							theAuthors = [{
+								'id':   $a.data( 'id' ),
+								'text': $a.data( 'name' )
+							}];
+						}
+					} else {
+						jQuery( authors ).each( function( i, a ) {
+							var $a = jQuery( a ),
+							theAuthor = {
+								'id':   $a.find( '.lp-authorID' ).text(),
+								'text': $a.find( '.live-author-name' ).text()
+							};
+							theAuthors.push( theAuthor );
+						});
+					}
+					$activeForm.find( '.liveupdate-byline' ).select2( 'data', theAuthors );
+
+					var $content = jQuery( jQuery.parseHTML( content ) );
+
+					/**
+					 * Livetags
+					 */
+					var theTags = [],
+						tags = $content.find( '.live-update-livetag' );
+
+					jQuery( tags ).each( function( i, a ) {
+						theTags.push( jQuery( a ).text() );
+					});
+
+					$activeForm.find( '.livepress-live-tag' ).select2( 'val', theTags );
+
+					// Clear the tags and authors from the content
+					// if we have content in the short code get otherwise look for the div
+					if( 0 < content.indexOf( '[/livepress_metainfo' ) ){
+						var bits = content.split('[/');
+						content = bits[0].replace('<p>','');
+					}else{
+						content = $domcontent.find( '.livepress-update-inner-wrapper' ).html();
+					}
+
+					// Reset the editor with the cleaned content
+					$domcontent.html( content );
+					/**
+					 * Add onchange and ctrl-click event handlers for the editor
+					 */
+					SELF.setupEditorEventHandlers( te, selection );
+					SELF.te = te;
+					//SELF.setupEditorTabs( te, $activeForm, mceAddCommand );
+					return te;
+				},
+
+				/**
+				 * Set up the editor tab interactions
+				 */
+				setupEditorTabs: function( te, $activeForm, mceAddCommand ) {
+
+					var $editorTabs = $activeForm.find( '.wp-editor-tabs' );
+					$editorTabs.find( 'a.switch-livepress' ).off( 'click' ).on( 'click', function( e ) {
+						if ( jQuery( this ).hasClass( 'active' ) ){
+							return;
+						}
+						switchEditors.go( te.id, 'toggle');
+						window.eeTextActive = false;
+						$editorTabs.find( 'a' ).toggleClass( 'active' );
+						return false;
+					});
+
+					$editorTabs.find( 'a.switch-livepress-html' ).off( 'click' ).on( 'click', function( e ) {
+						if ( jQuery( this ).hasClass( 'active' ) ){
+							return;
+						}
+
+						switchEditors.go( te.id, 'toggle');
+						window.eeTextActive = true;
+
+						$editorTabs.find( 'a' ).toggleClass( 'active' );
+						return false;
+					});
+
+
+				},
+
+
+				/**
+				 * Handle key events, save on ctrl-enter
+				 */
+				handleKeyEvent: function( selection, te, e, ed ) {
+					var SELF = this;
+
+					if (e.ctrlKey && e.keyCode === 13) {
+						e.preventDefault();
+						if ( '3' === tinymce.majorVersion ){
+							ed.undoManager.undo();
+						}
+						te.show();
+						selection.onSave();
+						SELF.resetFormFieldStates( SELF );
+					}
+
+				},
+
+				/**
+				 * Set up the event handlers for an editor
+				 */
+				setupEditorEventHandlers: function( te, selection ) {
+					var SELF = this;
 					/** As of WordPress 3.9, TinyMCE is upgraded to version 4 and the
 					/*  old action methods are deprecated. This check ensures compatibility.
 					**/
 					if ( '3' === tinymce.majorVersion ){
 						te.onKeyDown.add( function (ed, e) {
-							if (e.ctrlKey && e.keyCode === 13) {
-								e.preventDefault();
-
-								// TinyMCE doesn't hit this event until *after* the line return was added. So remove it manually.
-								ed.undoManager.undo();
-
-								selection.onSave();
-								SELF.resetFormFieldStates( SELF );
-							}
-						} );
-						te.onChange.add( function (ed, e) {
-							if ( '' !== ed.getContent().trim() ) {
-								pushBtn.removeAttr( 'disabled' );
-							} else {
-								pushBtn.attr( 'disabled', 'disabled' );
-							}
+							SELF.handleKeyEvent( selection, te, e, ed );
 						} );
 					} else {
 						te.on( 'KeyDown', function ( e ) {
-							if (e.ctrlKey && e.keyCode === 13) {
-								e.preventDefault();
-								selection.onSave();
-								SELF.resetFormFieldStates( SELF );
-							}
+							SELF.handleKeyEvent( selection, te, e );
 						} );
-						te.on( 'KeyUp', function ( args ) {
-						if ( '' !== this.getContent().trim() ) {
-							pushBtn.removeAttr( 'disabled' );
-						} else {
-							pushBtn.attr( 'disabled', 'disabled' );
-						}
-					} );
-
 					}
+					jQuery( '.livepress-update-form' ).on( 'keydown', 'textarea', function( e ) {
+						SELF.handleKeyEvent( selection, te, e );
+					} );
 				},
 
 				/*
@@ -5655,6 +6067,7 @@ jQuery(function () {
 					el.remove();
 					this.addListeners($newPost);
 					$liveCanvas.data('mode', '');
+					jQuery("abbr.livepress-timestamp").timeago().attr( 'title', '' );
 					return false;
 				},
 
@@ -5735,6 +6148,16 @@ jQuery(function () {
 						}
 					}
 
+					if ( 'new' !== this.mode ){
+						tinyMCE.remove( tinyMCE.editors[this.handle] );
+					}
+
+					// Switch back to the text editor if set
+					if ( window.eeTextActive ){
+						switchEditors.go( 'content', 'html' );
+					}
+
+
 					return false;
 				},
 
@@ -5747,12 +6170,12 @@ jQuery(function () {
 					var newContent = Helper.getProcessedContent(tinyMCE.editors[this.handle]);
 					var check = true;
 					if (this.mode !== 'deleting' && newContent !== this.originalContent) {
-						console.log([newContent, this.originalContent]);
 						check = confirm( lp_strings.confirm_cancel );
 					}
 					if (check) {
 						tinyMCE.execCommand('mceRemoveControl', false, this.handle);
 						this.displayContent(this.$form);
+						tinyMCE.remove( tinyMCE.editors[this.handle] );
 					}
 					return false;
 				},
@@ -5765,6 +6188,7 @@ jQuery(function () {
 					var check = confirm( lp_strings.confirm_delete );
 					if (check) {
 						tinyMCE.execCommand('mceRemoveControl', false, this.handle);
+						tinyMCE.remove( tinyMCE.editors[this.handle] );
 						var $spinner = $j("<div class='lp-spinner'></div>");
 						$spinner.insertAfter(this.$form);
 						this.$form.remove();
@@ -5974,11 +6398,14 @@ jQuery(function () {
 					spin_p.innerText = lp_strings.loading_content + '...';
 					spinner.appendChild( spin_p );
 
-					var titlediv = document.getElementById( 'titlediv' );
-					if ( titlediv.nextSibling ) {
-						titlediv.parentNode.insertBefore( spinner, titlediv.nextSibling );
+					var container = document.getElementById( 'titlediv' );
+					if ( null === container ){
+						container = document.getElementById( 'post-body' );
+					}
+					if ( container.nextSibling ) {
+						container.parentNode.insertBefore( spinner, container.nextSibling );
 					} else {
-						titlediv.parentNode.appendChild( spinner );
+						container.parentNode.appendChild( spinner );
 					}
 
 					// get content from existing "old" tinymce editor
@@ -6221,13 +6648,19 @@ jQuery(function () {
 
 						$spinner.remove();
 						if (!inittedOnce) {
-							$liveCanvas.insertAfter('#titlediv');
+							if( 1 === jQuery('#titlediv').length ){
+								$liveCanvas.insertAfter('#titlediv');
+							} else {
+								$liveCanvas.insertBefore('#postdivrich');
+							}
 
 							var canvas = document.getElementById( 'livepress-canvas' ),
                                 $canvas = $j( canvas );
 
 							// live listeners, bound to canvas (since childs are recreated/added/removed dynamically)
+							// @todo ensure only one editor open at opnce, disable click when one editor active
 							$canvas.on( 'click',  'div.livepress-update', function (ev) {
+
 								var $target = $j(ev.target);
 								if ($target.is("a,input,button,textarea") || $target.parents("a,input,button,textarea").length > 0) {
 									return true; // do not handle click event from children links (needed to fix live)
@@ -6237,7 +6670,22 @@ jQuery(function () {
 
 									var Sel = new Selection( 'del' === style ? 'deleting' : 'editing', this);
 									Sel.$form.insertAfter( this );
-									Sel.enableTiny( style );
+
+									var editor = Sel.enableTiny( style );
+									editor.show();
+
+									var tab_markup = '<div class="livepress-inline-editor-tabs wp-editor-tabs '+editor.id+'"><a id="content-livepress-html" data-editor="'+editor.id+'" class="hide-if-no-js wp-switch-editor switch-livepress-html"><span class="icon-livepress-logo"></span> Real-Time Text</a><a id="content-livepress"  data-editor="'+editor.id+'" class="hide-if-no-js wp-switch-editor switch-livepress active"><span class="icon-livepress-logo"></span> Real-Time</a></div>';
+									jQuery( tab_markup ).prependTo( Sel.$form );
+									// Clone the media button
+									jQuery( '.wp-media-buttons' )
+										.first()
+										.clone( true )
+										.prependTo( Sel.$form )
+										.css( 'margin-left', '10px' )
+										.find( 'a' )
+										.attr( 'data-editor', editor.id );
+
+									addEditorTabControlListeners( Sel.$form.parent().find( '.livepress-inline-editor-tabs' ), editor.id, '', editor );
 									jQuery( this ).remove();
 								}
 							});
@@ -6253,10 +6701,14 @@ jQuery(function () {
 
 						var $sec = $j('.secondary-editor-tools');
 						if (!$sec.length) {
+							var insert_div = "#poststuff";
+							if ( 1 === jQuery("#titlediv").length ){
+								insert_div = "#titlediv";
+              }
 							//copy media buttons from orig tinymce
 							jQuery('#wp-content-editor-tools')
 								.clone(true)
-								.insertAfter('#titlediv')
+								.insertAfter(insert_div)
 								.addClass('secondary-editor-tools')
 								// This next line undoes WP 4.0 editor-expand (sticky toolbar/media button)
 								.css( { position: "relative", top: "auto", width: "auto" } )

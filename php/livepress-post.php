@@ -3,7 +3,7 @@
  * LivePress Post
  */
 
-require_once( 'livepress-config.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-config.php' );
 
 class LivePress_Post {
 	/**
@@ -23,12 +23,13 @@ class LivePress_Post {
 	/** Class of the tag used to mark live updates */
 	private static $chunks_class = 'livepress-update';
 	private static $add_to_chunks_class_when_avatar = 'livepress-has-avatar';
+
 	/** Class of the tag used to mark a stubs live update
 	 *  that's used to enable the user to add update using the normal editor */
 	private static $stub_chunks_class = 'livepress-update-stub';
 	/** ID of the tag used to mark live updates,
 	 *  text enclose in [] will be exchanged */
-	private static $chunks_id = 'livepress-update-[ID]';
+	private $chunks_id = 'livepress-update-[ID]';
 
 	private static $global_tag = 'all';
 
@@ -47,6 +48,7 @@ class LivePress_Post {
 		$this->options = get_option( LivePress_Administration::$options_name );
 		global $current_user;
 		$this->user_options = get_user_option( LivePress_Administration::$options_name, $current_user->ID, false );
+		$this->format_class = $this->options['update_format'];
 	}
 
 	/**
@@ -60,7 +62,12 @@ class LivePress_Post {
 		$content = stripslashes($this->content);
 		$dom = new DOMDocument();
 		$xml = $this->get_valid_xml($content);
+		// Suppress XML parse warnings
+		$previous_libxml_use_internal_errors_value = libxml_use_internal_errors( TRUE );
 		$parse_success = $dom->loadXML( html_entity_decode( $xml ) );
+		libxml_clear_errors();
+		// Restore previous error handling setting
+		libxml_use_internal_errors( $previous_libxml_use_internal_errors_value );
 		if (!$parse_success) {
 			$dom->loadHTML( $content );
 		}
@@ -310,6 +317,8 @@ class LivePress_Post {
 		$stub .=   self::$chunks_class;
 		$stub .=   ' ';
 		$stub .=   self::$stub_chunks_class;
+		$stub .=   ' ';
+		$stub .=   self::format_class;
 		$stub .= '">';
 		$stub .= "\n\n";
 		$stub .= '</'.self::$chunks_tag.'>';
