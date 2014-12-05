@@ -1,5 +1,0 @@
-/config
-.DS_Store
-.idea/
-/node_modules/
-sftp-config.json

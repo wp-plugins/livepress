@@ -1,8 +1,0 @@
-<?php $options = array(
-'STATIC_HOST' => "http://localhost:4567",
-'LIVEPRESS_SERVICE_HOST' => "http://localhost:3000",
-'DEBUG' => TRUE,
-'SCRIPT_DEBUG' => TRUE,
-// if plugin is linked to your wordpress/wp-content/plugins/ using a symlink and you see strange paths in firebug, set PLUGIN_SYMLINK to TRUE
-'PLUGIN_SYMLINK' => TRUE,
-);
