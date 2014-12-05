@@ -97,7 +97,7 @@
 				metainfo += ' has_avatar="1"';
 			}
 
-			return metainfo + "]\n";
+			return metainfo + "]";
 		};
 
 		/*
@@ -117,16 +117,4 @@
 		return this;
 	}.call({}));
 
-	/*tinymce.create('tinymce.plugins.livepress', {
-		init:function (ed, url) {
-			ed.addButton('livepress', {
-				title:  'Add LivePress meta info',
-				image:  path + '/../../img/icon.png',
-				onclick:function () {
-					ed.selection.setContent(Helper.newMetainfoShortcode());
-				}
-			});
-		}
-	});
-	tinymce.PluginManager.add('livepress', tinymce.plugins.livepress);*/
 })();

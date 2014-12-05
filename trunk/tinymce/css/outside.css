@@ -300,12 +300,22 @@ body.livepress-active #post-body-content .editorcontainerend{
 		border-top: 1px solid #ccc;
 		background: white;
 		padding-top: 10px;
-		padding-bottom: 10px;
+		padding-bottom: 36px;
+	}
+
+	form.livepress-update-form textarea {
+		width: 100%;
+		height: 80px;
+	}
+
+	 form.livepress-update-form .editorcontainerend {
+		display: none;
 	}
 
 		#livepress-canvas .editorcontainer,
 		#livepress-canvas .editorcontainerend,
-		#livepress-canvas .livepress-form-actions {
+		#livepress-canvas .livepress-form-actions,
+		#livepress-canvas .livepress-update-header {
 			margin-left: 10px;
 			margin-right: 10px;
 		}
@@ -340,4 +350,8 @@ body.livepress-active #post-body-content .editorcontainerend{
 
 div.livepress-update.livepress-update-stub{
 	display: none;
+}
+
+.livepress-update-format-default #livepress-canvas div.livepress-update{
+	background: none;
 }

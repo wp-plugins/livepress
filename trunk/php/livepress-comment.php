@@ -5,10 +5,10 @@
  * @package Livepress
  */
 
-require_once( 'livepress-config.php' );
-require_once( 'livepress-javascript-config.php' );
-require_once( 'livepress-communication.php' );
-require_once( 'livepress-wp-utils.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-config.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-javascript-config.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-communication.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-wp-utils.php' );
 
 class LivePress_Comment {
 	public static $comments_template_path;

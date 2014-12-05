@@ -263,6 +263,7 @@ module.exports = function ( grunt ) {
 
 	// Default task.
 	grunt.registerTask( 'default',      ['jshint', 'concat', 'uglify', 'pot', 'copy:main'] );
+	grunt.registerTask( 'js-only',      ['jshint', 'concat', 'uglify', 'copy:main'] );
 	grunt.registerTask( 'build-plugin', ['jshint', 'concat', 'uglify', 'pot', 'copy:main', 'clean', 'copy:plugin']  );
 
 };

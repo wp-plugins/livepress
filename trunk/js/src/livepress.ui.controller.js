@@ -1,5 +1,5 @@
 /*jslint vars:true */
-/*global lp_client_strings, Livepress, OORTLE, console, FB, _wpmejsSettings*/
+/*global lp_client_strings, Livepress, OORTLE, console, FB, _wpmejsSettings, LivepressConfig*/
 /**
  *  Connects to Oortle, apply diff messages and handles the view, playing sounds for each task.
  *
@@ -52,7 +52,24 @@ Livepress.Ui.Controller = function (config, hooks) {
 	}
 
 	function comet_error_callback ( message ) {
-		console.log( "Comet error: ", message );
+		if (message.reason === "cache_empty") {
+			// post is new, or we have connected to clean node
+			// nothing to be handled there now with incremental updates
+			// of course, we can miss some update, if it was published after page was cached
+			// but next updates would still correctly displayed live
+		} else 
+		if (message.reason === "cache_miss") {
+			// we have connected to node, that have no message, that we referenced
+			// that can be cause by:
+			// 1. we have very old cached page version, so there lot of updates, 
+			//    so "last" we know are outdated;
+			// 2. something was wrong, and last id published with page invalid
+			// in any case, right now nothing should be done:
+			// yes, we can miss some update(s) between cache and current moment
+			// but next updates would still correctly displayed live
+		} else {
+			console.log( "Comet warn: ", message );
+		}
 	}
 
 	function call_hook (name) {
@@ -149,11 +166,6 @@ Livepress.Ui.Controller = function (config, hooks) {
 		widget.set_live_updates_num($live_updates.length);
 
 		var current_post_link = window.location.href.replace(window.location.hash, "");
-		// If reached the page with an anchor to a specific post update, it should
-		// be highlight for 10 seconds.
-		$live_updates.filter(window.location.hash).each(function () {
-			return new Livepress.Ui.UpdateView(jQuery(this), current_post_link, 10, config.disable_comments);
-		});
 
 		if (on_single_page) {
 			$live_updates.addClass('lp-hl-on-hover');
@@ -162,13 +174,10 @@ Livepress.Ui.Controller = function (config, hooks) {
 		$live_updates.each(function () {
 			var $this = jQuery( this );
 			if ( ! $this.is( '.lp-live' ) ) {
-				/* Disable sharing UI for now
-				$this.on('mouseenter', function () {
-					return new Livepress.Ui.UpdateView($this, current_post_link, window.location, config.disable_comments);
-				});
-				*/
 				$this.addClass('lp-live');
-
+				if (LivepressConfig.sharing_ui !== 'dont_display'){
+					return new Livepress.Ui.UpdateView($this, current_post_link, config.disable_comments);
+				}
 			}
 		});
 	}
@@ -211,16 +220,19 @@ Livepress.Ui.Controller = function (config, hooks) {
 	}
 
 	function handle_page_title_update (data) {
-		// we want to notify about the new post updates and edits. No deletes.
+		// Notify about new post updates by changing the title count. No deletes and edits.
+		// Only if the window is not active
 		if (window.is_active) {
 			return;
 		}
-		var only_deletes = false;
+
+		// Only update the post title when we are inserting a new node
+		var is_ins_node = false;
 		jQuery.each(data, function (k, v) {
 			// it's deletion if only del_node operations are in changes array
-			only_deletes = (v[0] === "del_node");
+			is_ins_node = (v[0] === "ins_node");
 		});
-		if (only_deletes) {
+		if ( ! is_ins_node ) {
 			return;
 		}
 
@@ -265,6 +277,15 @@ Livepress.Ui.Controller = function (config, hooks) {
 			abbr       = '<abbr class="livepress-timestamp" title="' + dateString +'"></abbr>';
 
 		console.log("post_update with data = ", data);
+        if ('op' in data && data.op === 'broadcast') {
+            var broadcast = JSON.parse(data.data);
+            if('shortlink' in broadcast) {
+                jQuery.each(broadcast['shortlink'], function(k,v) {
+                    Livepress.updateShortlinksCache[k] = v;
+                });
+            }
+            return;
+        }
 		if ('event' in data && data.event === 'post_title') {
 			return post_title_update(data.data);
 		}
@@ -290,7 +311,16 @@ Livepress.Ui.Controller = function (config, hooks) {
 		$livepress.find('.lp-updated-counter').html( abbr );
 		$livepress.find('.lp-updated-counter').find('.livepress-timestamp').attr('title', dateString );
 		$livepress.find('.lp-bar .lp-status').removeClass('lp-off').addClass('lp-on');
-		jQuery("abbr.livepress-timestamp").timeago();
+		var timestamp = jQuery('abbr.livepress-timestamp').eq( 1 ),
+			update_id = timestamp.closest('.livepress-update').attr('id');
+		if ( 'timeago' === LivepressConfig.timestamp_format ) {
+			timestamp.timeago().attr( 'title', '' );
+		} else {
+			jQuery('.lp-bar abbr.livepress-timestamp').timeago();
+			jQuery('abbr.livepress-timestamp').attr( 'title', '' );
+		}
+		timestamp.wrap('<a href="' + Livepress.getUpdatePermalink(update_id) + '" ></a>');
+
 		jQuery( document ).trigger( 'live_post_update' ); /*Trigger a post-update event so display can adjust*/
 	}
 
@@ -323,6 +353,7 @@ Livepress.Ui.Controller = function (config, hooks) {
 	}
 
 	function bindPageActivity () {
+		console.log( 'bindPageActivity' );
 		var animateLateUpdates = function () {
 			var updates = jQuery(".unfocused-lp-update");
 			var old_bg = updates.data("oldbg") || "#FFF";
@@ -355,6 +386,7 @@ Livepress.Ui.Controller = function (config, hooks) {
 						post_dom_manipulator.addLiveTagToControls( tag );
 					});
 			}
+		jQuery( document ).trigger( 'live_post_update' );
 	}
 
 	window.is_active = true;

@@ -4,7 +4,6 @@ var Livepress = Livepress || {};
 
 (function () {
 	var loader = function () {
-		console.log( 'loader' );
 		var scripts = [],
 			styles = [],
 			agent = navigator.userAgent.toLowerCase(),
@@ -25,7 +24,6 @@ var Livepress = Livepress || {};
 
 		//DEBUG Lines are included only in debugging version. They are completely removed from release code
 		if (LivepressConfig.debug !== undefined && LivepressConfig.debug) { //DEBUG
-	console.log( 'loader pass a' );
 
 			var run = encodeURIComponent("jQuery(function(){Livepress.Ready()})"); //DEBUG
 			scripts = scripts.concat([ //DEBUG
@@ -34,7 +32,6 @@ var Livepress = Livepress || {};
 			]); //DEBUG
 		} else //DEBUG
 		{
-	console.log( 'loader pass b' );
 			scripts = scripts.concat([
 				'static://oortle/' + LivepressConfig.oover[0] + '/oortle.min.js',
 				'static://' + LivepressConfig.oover[1] + '/cluster_settings.js?v=' + LivepressConfig.oover[2]

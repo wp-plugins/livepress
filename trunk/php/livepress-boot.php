@@ -2,23 +2,23 @@
 /**
  * LivePress boot.
  */
+require_once( LP_PLUGIN_PATH . 'php/livepress-administration.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-admin-settings.php' );
 
 // @todo Add comments for each require.
-require_once( 'livepress-updater.php' );
-require_once( 'livepress-compatibility-fixes.php' );
-require_once( 'livepress-administration.php' );
-require_once( 'livepress-collaboration.php' );
-require_once( 'livepress-template.php' );
-require_once( 'livepress-feed.php' );
-require_once( 'livepress-xmlrpc.php' );
-require_once( 'livepress-themes-helper.php' );
-require_once( 'livepress-wp-utils.php' );
-require_once( 'livepress-admin-bar-status-menu.php' );
-require_once( 'livepress-user-settings.php' );
-require_once( 'livepress-admin-settings.php' );
-require_once( 'livepress-blogging-tools.php' );
-require_once( 'livepress-post-format-controller.php' );
-require_once( 'livepress-fix-twitter-oembed.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-updater.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-compatibility-fixes.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-collaboration.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-template.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-feed.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-xmlrpc.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-themes-helper.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-wp-utils.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-admin-bar-status-menu.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-user-settings.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-blogging-tools.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-post-format-controller.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-fix-twitter-oembed.php' );
 
 // Handle i10n/i18n
 add_action( 'plugins_loaded', 'livepress_init' );
@@ -78,7 +78,7 @@ add_action( 'manage_posts_custom_column' , array( $blogging_tools, 'display_post
  */
 function add_livepress_status_column( $columns, $post_type ) {
 	if ( in_array( $post_type, apply_filters( 'livepress_post_types', array( 'post' ) ) ) ) {
-		$columns = array_merge( $columns, array( 'livepress_status' => esc_html__( 'LivePress Status', 'livepress' ) ) );
+		$columns = array_merge( $columns, array( 'livepress_status' => esc_html__( 'Live Status', 'livepress' ) ) );
 	}
 	return $columns;
 }

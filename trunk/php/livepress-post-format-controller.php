@@ -49,6 +49,15 @@ class LivePress_PF_Updates {
 	 */
 	var $pieces;
 
+	/**
+	 * Array of live tags.
+	 *
+	 * Must be populated by calling assemble_pieces() and specifying the Post for which to parse regions.
+	 *
+	 * @var array[]
+	 */
+	var $livetags;
+
     /**
      * Collected post meta information, populated by assemble_pieces()
      *
@@ -68,10 +77,13 @@ class LivePress_PF_Updates {
 	protected function __construct() {
 		$options = get_option( LivePress_Administration::$options_name);
 
-		$this->api_key = $options['api_key'];
-		$this->lp_comm = new LivePress_Communication( $this->api_key );
+		if( false != $options ){
+			$this->api_key = $options['api_key'];
+			$this->lp_comm = new LivePress_Communication( $this->api_key );
 
-		$this->order = $options['feed_order'];
+			$this->order = $options['feed_order'];
+		}
+
 
 		// Wire actions
 		add_action( 'wp_ajax_start_ee',              array( $this, 'start_editor' ) );
@@ -189,6 +201,10 @@ class LivePress_PF_Updates {
 	private function clear_most_the_content_filters() {
 		global $wp_filter;
 		//return;
+		//
+		if ( empty( $wp_filter['the_content'] ) ) {
+			return;
+		}
 
 		// White list of the filters we want to preserve
 		$whiltelisted_content_filters = array(
@@ -239,6 +255,10 @@ class LivePress_PF_Updates {
 	 */
 	public function add_children_to_post( $content ) {
 		global $post;
+
+		if ( apply_filters( 'livepress_the_content_filter_disabled', false ) ) {
+			return $content;
+		}
 
 		// Only filter on single post pages
 		if ( ! is_singular( apply_filters( 'livepress_post_types', array( 'post' ) ) ) ) {
@@ -291,9 +311,10 @@ class LivePress_PF_Updates {
 				// We have no content to display. Grab the post's first update and return it instead.
 				$children = get_children(
 					array(
-						'post_type'   => 'post',
-						'post_parent' => $post->ID,
-						'numberposts' => 1
+						'post_type'        => 'post',
+						'post_parent'      => $post->ID,
+						'numberposts'      => 1,
+						'suppress_filters' => false,
 					)
 				);
 
@@ -322,6 +343,7 @@ class LivePress_PF_Updates {
 	 * @return WP_Query
 	 */
 	public function filter_children_from_query( WP_Query $query ) {
+
 		$post_type = $query->get('post_type');
 
 		// only applies to indexes and post format
@@ -600,7 +622,13 @@ class LivePress_PF_Updates {
 		$post = get_post( $post_id );
 
 		// If post has no children bail
-		if ( 0 == count( get_children( $post_id ) ) ) {
+		if ( 0 == count( get_children(
+				array(
+					'post_type'        => 'post',
+					'post_parent'      => $post_id,
+					'numberposts'      => 1,
+					'suppress_filters' => false,
+				) ) ) ) {
 			return $post;
 		}
 
@@ -613,8 +641,13 @@ class LivePress_PF_Updates {
 		$post_content = $post->post_content;
 
 		// Remove all the_content filters for merge
+		global $wp_filter;
+		$stored_wp_filter_the_content = $wp_filter['the_content'];
+		$wp_filter['the_content'] = array();
 		// Assemble all the children for merging
 		$this->assemble_pieces( $post );
+		// Restore the_content filters
+		$wp_filter['the_content'] = $stored_wp_filter_the_content;
 
 		$response = array();
 		// Wrap each child for display
@@ -660,8 +693,9 @@ class LivePress_PF_Updates {
 		// Get all children
 		$children = get_children(
 			array(
-				'post_type'   => 'post',
-				'post_parent' => $parent
+				'post_type'        => 'post',
+				'post_parent'      => $parent,
+				'suppress_filters' => false,
 			)
 		);
 
@@ -730,6 +764,11 @@ class LivePress_PF_Updates {
 		}
 
         list($_, $piece_id, $piece_gen) = explode("__", $update->post_title, 3);
+		global $wp_filter;
+		// Remove all the_content filters so child posts are not filtered
+		// removing share, vote and other per-post items from the live update stream.
+		// Store the filters first for later restoration so filters still fire outside the update stream
+		$stored_wp_filter_the_content = $wp_filter;
 		$this->clear_most_the_content_filters();
 
 		$region = array(
@@ -741,6 +780,8 @@ class LivePress_PF_Updates {
 			'prefix'  => sprintf( '<div id="livepress-update-%s" data-lpg="%d" class="livepress-update">', $piece_id, $piece_gen ),
 			'suffix'  => '</div>'
 		);
+		// Restore the_content filters and carry on
+		$wp_filter = $stored_wp_filter_the_content;
         $message = array(
             'op' => $op,
             'post_id' => $post->ID,
@@ -824,14 +865,18 @@ class LivePress_PF_Updates {
 		// Set up child posts
 		$children = get_children(
 			array(
-				'post_type'   => 'post',
-				'post_parent' => $parent->ID
+				'post_type'        => 'post',
+				'post_parent'      => $parent->ID,
+				'suppress_filters' => false,
 			)
 		);
 		$child_pieces = array();
 		$live_tags    = array();
-		if ( count( $children ) > 0 ) {
+		$update_count = 0;
+		$child_count  = count( $children );
+		if ( $child_count > 0 ) {
 			foreach( $children as $child ) {
+				$update_count++;
 				$post = $child;
                 list($_, $piece_id, $piece_gen) = explode("__", $child->post_title, 3);
 				$this->post_modified_gmt = max($this->post_modified_gmt, $child->post_modified_gmt);
@@ -843,7 +888,7 @@ class LivePress_PF_Updates {
                     $this->near_uuid = $piece_id.":".$piece_gen;
                 }
 				// Grab and integrate any live update tags
-				$update_tags = wp_get_object_terms( $child->ID, 'livetags' );
+				$update_tags = get_the_terms( $child->ID, 'livetags' );
 				$update_tag_classes = '';
 				if ( ! empty( $update_tags ) ) {
 					foreach( $update_tags as $a_tag ) {
@@ -854,15 +899,19 @@ class LivePress_PF_Updates {
 						}
 					}
 				}
-
-
+				$pin_header = LivePress_Updater::instance()->blogging_tools->is_post_header_enabled( $parent->ID );
 				$piece = array(
 					'id'      => $piece_id,
                     'lpg'     => $piece_gen,
 					'content' => $child->post_content,
 					'proceed' => apply_filters( 'the_content', $child->post_content ),
-					'prefix'  => sprintf( '<div id="livepress-update-%s" data-lpg="%d" class="livepress-update%s">', $piece_id, $piece_gen, $update_tag_classes ),
-					'suffix'  => '</div>'
+					'prefix'  => sprintf(
+							'<div id="livepress-update-%s" data-lpg="%d" class="livepress-update%s %s">',
+								$piece_id,
+								$piece_gen,
+								$update_tag_classes,
+								( $child_count == $update_count && $pin_header ) ? 'pinned-first-live-update' : '' ),
+							'suffix'  => '</div>'
 				);
 
 				$child_pieces[] = $piece;
@@ -921,10 +970,11 @@ class LivePress_PF_Updates {
 	 */
 	protected function is_new( $post_id ) {
 		$options = array(
-			'post_parent' => $post_id,
-			'post_type'   => 'revision',
-			'numberposts' => 2,
-			'post_status' => 'any',
+			'post_parent'      => $post_id,
+			'post_type'        => 'revision',
+			'numberposts'      => 2,
+			'post_status'      => 'any',
+			'suppress_filters' => false,
 		);
 
 		$updates = get_children( $options );
@@ -954,10 +1004,10 @@ class LivePress_PF_Updates {
 
 		$query = $wpdb->prepare( '
 			SELECT      *
-			FROM        wp_posts
-			WHERE       wp_posts.post_name   = %s
-			AND         wp_posts.post_type   = "post"
-			AND         wp_posts.post_parent = %s
+			FROM        ' . $wpdb->posts . '
+			WHERE       post_name   = %s
+			AND         post_type   = "post"
+			AND         post_parent = %s
 			LIMIT 1',
 			'livepress_update__' . $livepress_update_id,
 			$parent_id

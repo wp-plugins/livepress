@@ -2,7 +2,7 @@
 Requires at least: 3.5
 Tested up to: 4.0.0
 Tags: LivePress, live, live blogging, liveblogging, realtime, collaboration, Twitter
-Stable tag: 1.1.5
+Stable tag: 1.2.0
 
 LivePress is a hosted live blogging solution that integrates seamlessly with your WordPress blog.
 
@@ -49,6 +49,8 @@ Filter must be exact for current post, so include post id if need. Default are #
 It seems that you have symlinked plugin directory instead of copying it.
 To fix this behavior rename config.sample to config and check PLUGIN_SYMLINK value.
 
+== Other notes ==
+
 == Hooks and Filters ==
 
 LivePress is fully extensible by third-party applications using WordPress-style action hooks and filters.
@@ -89,12 +91,49 @@ The default tab IDs used in LivePress are:
 * Manage Remove Authors  => 'live-remote-authors'
 * Author Notes           => 'live-notes'
 
+= Custom post types =
+
+In order to live blog on a custom post type, you need to add a filter. You can add it in your theme's functions.php file:
+
+```
+// In this case, add the 'books' post type
+function add_livepress_post_types( $post_types ) {
+         array_push( $post_types, 'books' );
+         return $post_types;
+}
+add_filter( 'livepress_post_types', 'add_livepress_post_types' );
+```
+
+= Control insertion of live stream =
+
+You can use the 'livepress_the_content_filter_disabled' to turn off LivePress's 'the_content' filter.
+
+```
+apply_filters( 'livepress_the_content_filter_disabled', '__return_true' );
+```
+
 == Screenshots ==
 
 1. Just create a new post with livepress enabled.  Anyone who has the main blog page open will see the notification.
 2. New update sent -- it appears for all readers of this post at the same time.
 
 == Changelog ==
+
+= 1.2.0 =
+* Back port of the code changes from the WordPress VIP version of livepress
+* Fixed: remote authors and posting from Twitter
+* Added sharing links for individual updates
+* Added Headlines for individual updates (edited)
+* Added Tags for individual updates
+* Added Avatars for individual
+* General bug squashing and cleanup
+
+= 1.1.5 =
+* Adds filter to disable LivePress's 'the_content' filter. See more in [Other notes](https://wordpress.org/plugins/livepress/other_notes/)
+* Adds support for custom post types. In order to enable live blogging on a custom post type, you need to add a filter. See more in [Other notes](https://wordpress.org/plugins/livepress/other_notes/)
+* Adds support for per update headers.
+* Adds suport for tags for updates.
+* Several bug fixes: timezone offset in live updates, clear comment textarea after sending comment, sound notifications setting being ignored, first update not editable.
 
 = 1.1.4 =
 * Merge in WordPress VIP branch

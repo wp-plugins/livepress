@@ -8,7 +8,7 @@
  * @package Livepress
  */
 
-require_once( 'livepress-config.php' );
+require_once( LP_PLUGIN_PATH . 'php/livepress-config.php' );
 
 if ( ! class_exists( 'WP_Http' ) ) {
 	include_once( ABSPATH . WPINC. '/class-http.php' );
@@ -138,6 +138,18 @@ class LivePress_Communication {
 	public function send_to_livepress_post_update($post_vars) {
 		$return_data = json_decode($this->request_content_from_livepress('/message/post_update', 'post', $post_vars));
 		return $return_data->oortle->jobs->reader;
+	}
+
+	/**
+	 * Broadcast any message over post
+	 */
+	public function send_to_livepress_broadcast( $post_id, $data ) {
+		$post_vars = array(
+			'post_id' => $post_id,
+			'data' => json_encode( $data )
+		);
+		$return_data = json_decode( $this->request_content_from_livepress( '/message/broadcast', 'post', $post_vars ) );
+		return $return_data->oortle->jobs->publish;
 	}
 
 	/**
@@ -431,7 +443,13 @@ class LivePress_Communication {
 			$url  = "http://api.twitter.com/1/users/show.json?screen_name=";
 			$url .= urlencode($username);
 			if ( function_exists( 'vip_safe_wp_remote_get' ) ) {
-				$res = vip_safe_wp_remote_get( $url, array( 'reject_unsafe_urls' => false ) );
+				$res = vip_safe_wp_remote_get(
+						$url,
+						'',    /* fallback value */
+						5,     /* threshold */
+						1,     /* timeout */
+						20,    /* retry */
+						array( 'reject_unsafe_urls' => false ) );
 			} else {
 				$res = wp_remote_get( $url, array( 'reject_unsafe_urls' => false ) );
 			}
@@ -596,6 +614,10 @@ class LivePress_Communication {
 		if ( function_exists( 'vip_safe_wp_remote_get' ) ) {
 			return vip_safe_wp_remote_get(
 				$url,
+				'',    /* fallback value */
+				5,     /* threshold */
+				1,     /* timeout */
+				20,    /* retry */
 				array(
 					'reject_unsafe_urls' => false,
 				)

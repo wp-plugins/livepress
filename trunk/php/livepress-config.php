@@ -54,7 +54,26 @@ class LivePress_Config {
 	 * Contructor that assigns the wordpress hooks, initialize the
 	 * configurable options and gets the wordpress options set.
 	 */
-	private function __construct() {}
+	private function __construct() {
+		/**
+		 * Filter Allows you to set the global author.
+		 *
+		 * @since 1.3
+		 *
+		 * @param string  $order_template a set of ###replace### target.
+		 *
+		 */
+		$this->configurable_options['TIMESTAMP_HTML_TEMPLATE'] = apply_filters('livepress_global_time_template', $this->configurable_options['TIMESTAMP_HTML_TEMPLATE'] );
+		/**
+		 * Filter Allows you to change the order of the elements and add to teh meta info html.
+		 *
+		 * @since 1.3
+		 *
+		 * @param string  $order_template a set of ###replace### target.
+		 *
+		 */
+		$this->configurable_options['AUTHOR_TEMPLATE'] = apply_filters('livepress_global_author_template', $this->configurable_options['AUTHOR_TEMPLATE'] );
+	}
 
 	/**
 	 * Static host.

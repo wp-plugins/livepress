@@ -47,7 +47,7 @@ Dashboard.Controller = Dashboard.Controller || function () {
 		} );
 
 		// Add the new page tab
-		var tab_markup = '<a id="content-livepress" class="hide-if-no-js wp-switch-editor switch-livepress"><span class="icon-livepress-logo"></span> Real-Time</a>';
+		var tab_markup = '<a id="content-livepress-html" class="hide-if-no-js wp-switch-editor switch-livepress-html"><span class="icon-livepress-logo"></span> Real-Time Text</a><a id="content-livepress" class="hide-if-no-js wp-switch-editor switch-livepress active"><span class="icon-livepress-logo"></span> Real-Time</a>';
 		jQuery( tab_markup ).insertAfter( '#content-tmce' );
 	};
 
@@ -96,7 +96,7 @@ Dashboard.Controller = Dashboard.Controller || function () {
 		Dashboard.Comments.conditionallyEnable();
 		currPane.find( 'span.count-update' ).hide();
 	};
-
+	// switches the tab on the live in the live blogging tools
 	jQuery( '.blogging-tools-tabs ul li' ).on( 'click', function() {
 		var $this = jQuery( this );
 		if ( $this.is( '.active' ) === false ) {

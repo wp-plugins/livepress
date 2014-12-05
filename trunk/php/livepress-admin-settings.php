@@ -33,14 +33,15 @@ class LivePress_Admin_Settings {
 	 * Get the current settings.
 	 */
 	function get_settings() {
-		$settings = get_option( 'livepress' );
+		$settings = get_option( LivePress_Administration::$options_name );
 
 		return (object) wp_parse_args(
 			$settings,
 			array(
 				'api_key'                      => '',
 				'feed_order'                   => 'top',
-				'notifications'                => array( 'tool-tip' ),
+				'notifications'                => array( 'tool-tip', 'effects' ),
+				'show'                         => array( 'TIME', 'AUTHOR', 'HEADER' ),
 				'byline_style'                 => '',
 				'allow_remote_twitter'         => true,
 				'allow_sms'                    => true,
@@ -51,6 +52,10 @@ class LivePress_Admin_Settings {
 				'include_avatar'               => false,
 				'update_author'                => true,
 				'author_display'               => '',
+				'timestamp_format'             => 'timeago',
+				'update_format'                => 'default',
+				'facebook_app_id'              => '',
+				'sharing_ui'                   => '',
 			)
 		);
 	}
@@ -101,6 +106,12 @@ class LivePress_Admin_Settings {
 		// Add setting fields
 		add_settings_field( 'api_key',  esc_html__( 'Authorization Key', 'livepress' ), array( $this, 'api_key_form' ), 'livepress-settings', 'lp-connection' );
 		add_settings_field( 'feed_order',  esc_html__( 'When using the real-time editor, place new updates on', 'livepress' ), array( $this, 'feed_order_form' ), 'livepress-settings', 'lp-appearance' );
+		add_settings_field( 'timestamp_format',  esc_html__( 'When using update timestamps, show', 'livepress' ), array( $this, 'timestamp_format_form' ), 'livepress-settings', 'lp-appearance' );
+		add_settings_field( 'update_format',  esc_html__( 'Live update format', 'livepress' ), array( $this, 'update_format_form' ), 'livepress-settings', 'lp-appearance' );
+		add_settings_field( 'show_meta',  esc_html__( 'Metadata to show', 'livepress' ), array( $this, 'show_form' ), 'livepress-settings', 'lp-appearance' );
+		add_settings_field( 'sharing_ui',  esc_html__( 'Display Sharing links per update', 'livepress' ), array( $this, 'sharing_ui_form' ), 'livepress-settings', 'lp-appearance' );
+		add_settings_field( 'facebook_app_id',  esc_html__( 'Facebook App ID', 'livepress' ), array( $this, 'facebook_app_id_form' ), 'livepress-settings', 'lp-appearance' );
+
 		add_settings_field( 'notifications',  esc_html__( 'Readers receive these notifications when you update or publish a post', 'livepress' ), array( $this, 'notifications_form' ), 'livepress-settings', 'lp-appearance' );
 		add_settings_field( 'allow_remote_twitter',  esc_html__( 'Allow authors to publish via Twitter', 'livepress' ), array( $this, 'allow_remote_twitter_form' ), 'livepress-settings', 'lp-remote' );
 		add_settings_field( 'allow_sms',  esc_html__( 'Allow authors to publish via SMS', 'livepress' ), array( $this, 'allow_sms_form' ), 'livepress-settings', 'lp-remote' );
@@ -202,6 +213,48 @@ class LivePress_Admin_Settings {
 	}
 
 	/**
+	 * Update format option form output.
+	 */
+	function update_format_form() {
+		$settings = $this->settings;
+		?>
+	<p>
+		<label>
+			<input type="radio" name="livepress[update_format]" id="update_format" value="default" <?php echo checked( 'default', $settings->update_format, false ); ?> />
+			<?php esc_html_e( 'Compact Format the update metadata is shown inline,  preceding the content', 'livepress' ); ?>
+		</label>
+	</p>
+	<p>
+		<label>
+			<input type="radio" name="livepress[update_format]" id="update_format" value="newstyle" <?php echo checked( 'newstyle', $settings->update_format, false ); ?> />
+			<?php esc_html_e( 'Expanded Format the update metadata is shown in a header above the content', 'livepress' ); ?>
+		</label>
+	</p>
+		<?php
+	}
+
+	/**
+	 * Timestamp format option form output.
+	 */
+	function timestamp_format_form() {
+		$settings = $this->settings;
+		?>
+	<p>
+		<label>
+			<input type="radio" name="livepress[timestamp_format]" id="timestamp_format" value="timeago" <?php echo checked( 'timeago', $settings->timestamp_format, false ); ?> />
+			<?php esc_html_e( 'Time since update', 'livepress' ); ?>
+		</label>
+	</p>
+	<p>
+		<label>
+			<input type="radio" name="livepress[timestamp_format]" id="timestamp_format" value="timeof" <?php echo checked( 'timeof', $settings->timestamp_format, false ); ?> />
+			<?php esc_html_e( 'Time of update', 'livepress' ); ?>
+		</label>
+	</p>
+		<?php
+	}
+
+	/**
 	 * Feed order form output.
 	 */
 	function feed_order_form() {
@@ -223,6 +276,23 @@ class LivePress_Admin_Settings {
 	}
 
 	/**
+	 * Items to show.
+	 */
+	function show_form() {
+		$settings = $this->settings;
+		echo '<p><label><input type="checkbox" name="livepress[show][]" id="lp-notifications" value="AVATAR" ' .
+		     checked( true, in_array( 'AVATAR', $settings->show ), false ) . '> ' . esc_html__( 'Show Avatar ( avatar shows to the left of the update )', 'livepress' ) . '</label></p>';
+		echo '<p><label><input type="checkbox" name="livepress[show][]" id="lp-notifications" value="AUTHOR"
+		' . checked( true , in_array( 'AUTHOR', $settings->show ), false ) . '> ' . esc_html__( 'Show Author', 'livepress' ) . '</label></p>';
+		echo '<p><label><input type="checkbox" name="livepress[show][]" id="lp-notifications" value="TIME" '
+		     . checked( true, in_array( 'TIME', $settings->show ), false ) . '> ' . esc_html__( 'Show Time', 'livepress' ) . ' </label></p>';
+		echo '<p><label><input type="checkbox" name="livepress[show][]" id="lp-notifications" value="HEADER" '
+		     . checked( true, in_array( 'HEADER', $settings->show ), false ) . '> ' . esc_html__( 'Show Headline', 'livepress' ) . ' </label></p>';
+		echo '<p><label><input type="checkbox" name="livepress[show][]" id="lp-notifications" value="TAGS" '
+		     . checked( true, in_array( 'TAGS', $settings->show ), false ) . '> ' . esc_html__( 'Show tags', 'livepress' ) . ' </label></p>';
+	}
+
+	/**
 	 * Notifications form.
 	 */
 	function notifications_form() {
@@ -233,6 +303,8 @@ class LivePress_Admin_Settings {
 		checked( true, in_array( 'audio', $settings->notifications ), false ) . '> ' . esc_html__( 'A soft chime (audio)', 'livepress' ) . '</label></p>';
 		echo '<p><label><input type="checkbox" name="livepress[notifications][]" id="lp-notifications" value="scroll" '
 		. checked( true, in_array( 'scroll', $settings->notifications ), false ) . '> ' . esc_html__( 'Autoscroll to update', 'livepress' ) . ' </label></p>';
+		echo '<p><label><input type="checkbox" name="livepress[notifications][]" id="lp-notifications" value="effects" '
+		. checked( true, in_array( 'effects', $settings->notifications ), false ) . '> ' . esc_html__( 'Color highlight effect', 'livepress' ) . ' </label></p>';
 	}
 
 	/**
@@ -248,7 +320,7 @@ class LivePress_Admin_Settings {
 	function allow_remote_twitter_form() {
 		$settings = $this->settings;
 		echo '<p><label><input type="checkbox" name="livepress[allow_remote_twitter]" id="lp-remote" value="allow"' .
-		checked( 'allow', $settings->allow_remote_twitter, false ) . '"> ' . esc_html__( 'Allow', 'livepress' ) . '</label></p>';
+		checked( 'allow', $settings->allow_remote_twitter, false ) . '> ' . esc_html__( 'Allow', 'livepress' ) . '</label></p>';
 	}
 
 	/**
@@ -257,7 +329,7 @@ class LivePress_Admin_Settings {
 	function allow_sms_form() {
 		$settings = $this->settings;
 		echo '<p><label><input type="checkbox" name="livepress[allow_sms]" id="lp-sms" value="allow"' .
-		checked( 'allow', $settings->allow_sms, false ) . '"> ' . esc_html__( 'Allow', 'livepress' ) . '</label></p>';
+		checked( 'allow', $settings->allow_sms, false ) . '> ' . esc_html__( 'Allow', 'livepress' ) . '</label></p>';
 	}
 
 	/**
@@ -278,6 +350,23 @@ class LivePress_Admin_Settings {
 		}
 		echo '</span>';
 		echo '<br /><a href="#" id="lp-post-to-twitter-change_link" style="display: none">' . esc_html__( 'Click here to change accounts.', 'livepress' ).  '</a>';
+	}
+
+	function facebook_app_id_form() {
+		$options = get_option( 'livepress' );
+		$facebook_app_id = isset( $options['facebook_app_id'] ) ? trim( $options['facebook_app_id'] ) : '';
+
+		echo '<input type="text" name="livepress[facebook_app_id]" id="facebook_app_id" value="' . esc_attr( $facebook_app_id ) . '">';
+		echo '<br />' . sprintf( esc_html__( 'Supply an  app ID to enable the Facebook Share Dialog.%1$s
+					By default LivePress will present a Feed Dialog for sharing to Facebook.%1$s ', 'livepress' ), '<br />' ).
+		            '<a href="http://help.livepress.com/" target="_blank" >' .
+					 esc_html__( 'See our FAQ for more information.', 'livepress' ) .  '</a>';
+	}
+
+	function sharing_ui_form() {
+		$settings = $this->settings;
+		echo '<p><label><input type="checkbox" name="livepress[sharing_ui]" id="lp-sharing-ui" value="display"' .
+		checked( 'display', $settings->sharing_ui, false ) . '> ' . esc_html__( 'Display', 'livepress' ) . '</label></p>';
 	}
 
 	/**
@@ -328,11 +417,30 @@ class LivePress_Admin_Settings {
 			$sanitized_input['feed_order'] = 'top';
 		}
 
+		if ( isset( $input['timestamp_format'] ) && $input['timestamp_format'] == 'timeof' ) {
+			$sanitized_input['timestamp_format'] = 'timeof';
+		} else {
+			$sanitized_input['timestamp_format'] = 'timeago';
+		}
+
+		if ( isset( $input['update_format'] ) && $input['update_format'] == 'newstyle' ) {
+			$sanitized_input['update_format'] = 'newstyle';
+		} else {
+			$sanitized_input['update_format'] = 'default';
+		}
+
+		if ( isset( $input['show'] ) && ! empty( $input['show'] ) ) {
+			$sanitized_input['show'] = array_map( 'sanitize_text_field',  $input['show'] );
+		} else {
+			$sanitized_input['show'] = array();
+		}
+
 		if ( isset( $input['notifications'] ) && ! empty( $input['notifications'] ) ) {
 			$sanitized_input['notifications'] = array_map( 'sanitize_text_field',  $input['notifications'] );
 		} else {
 			$sanitized_input['notifications'] = array();
 		}
+
 
 		if ( isset( $input['allow_remote_twitter'] ) ) {
 			$sanitized_input['allow_remote_twitter'] = 'allow';
@@ -352,6 +460,18 @@ class LivePress_Admin_Settings {
 
 		if ( isset( $input['post_to_twitter'] ) ) {
 			$sanitized_input['post_to_twitter'] = (bool) $input['post_to_twitter'];
+		}
+
+		if ( isset( $input['sharing_ui'] ) ) {
+			$sanitized_input['sharing_ui'] = 'display';
+		} else {
+			$sanitized_input['sharing_ui'] = 'dont_display';
+		}
+
+		if ( isset( $input['facebook_app_id'] ) ) {
+			$sanitized_input['facebook_app_id'] = sanitize_text_field( $input['facebook_app_id'] );
+		} else {
+			$sanitized_input['facebook_app_id'] = '';
 		}
 
 		$merged_input = wp_parse_args( $sanitized_input, (array) $this->settings ); // For the settings not exposed

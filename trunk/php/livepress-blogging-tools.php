@@ -37,9 +37,20 @@ final class LivePress_Blogging_Tools {
 		}
 		add_filter( 'mce_buttons',                                    array( $this, 'lp_filter_mce_buttons' ) );
 		add_filter( 'admin_body_class',                               array( $this, 'lp_admin_body_class' ) );
+		add_filter( 'body_class',                                     array( $this, 'lp_body_class' ) );
 		add_action( 'wp', array( $this, 'opengraph_request' ) );
+		add_action( 'wp_ajax_lp_update_shortlink', array( $this, 'lp_update_shortlink' ) );
+		add_action( 'wp_ajax_nopriv_lp_update_shortlink', array( $this, 'lp_update_shortlink' ) );
 	}
 
+	/**
+	 * String any shortcodes including caption
+	 */
+	function lp_strip_shortcodes( $content ) {
+		$content = preg_replace('#\s*\[caption[^]]*\].*?\[/caption\]\s*#is', '', $content);
+		$content = preg_replace( "/\[[^]]*/","", $content );
+		return $content;
+	}
   /**
    * Check if the request is from Facebook's Open Graph protocol. If
    * so then just return the basic HTML for embedding. The link to
@@ -47,39 +58,57 @@ final class LivePress_Blogging_Tools {
    * http://host/permalink?lpup=[livepress_update_id]
    */
 	function opengraph_request(){
-		if ( isset( $_GET['lpup'] ) && ( 1 === preg_match( '/facebookexternalhit(\/[0-9]\.[0-9])?|Facebot|Slackbot-LinkExpanding/i', $_SERVER['HTTP_USER_AGENT'] ) ) ) {
-
+		if ( isset( $_GET['lpup'] ) ){
 			$id = absint( $_GET['lpup'] );
-			$lp_updates = LivePress_PF_Updates::get_instance();
-			remove_action( 'pre_get_posts', array( $lp_updates, 'filter_children_from_query' )  );
-			$args = array(
-				'posts_per_page'  => 1,
-				'nopaging'        => true,
-				'no_found_rows'   => true,
-				'post_status'     => 'inherit',
-				'suppress_filters'=> true,
-				'post_name'       => 'livepress_update__' . $id
-			);
-			$results = new WP_Query( $args );
-			add_action( 'pre_get_posts', array( $lp_updates, 'filter_children_from_query' ) );
-
-			$update = $results->posts[0];
-
+			$update = $this->lp_get_single_update( $id );
 			$data = $this->opengraph_data( $update );
-
-			$canonical_url = get_permalink( $update->ID ) . '&lpup=' . $id . '#livepress-update-' . $id;
+			$post_parent_url = get_permalink( $update->post_parent );
+			if ( 0 === preg_match('/\/\?/', $post_parent_url ) ) {
+				$post_parent_url .= "?";
+			} else {
+				$post_parent_url .= "&";
+			}
+			$canonical_url = $post_parent_url . 'lpup=' . $id . '#livepress-update-' . $id;
 
 			echo "<!DOCTYPE HTML>\n";
 			echo "<html>\n";
 			echo "<head prefix=\"og: http://ogp.me/ns#\">\n";
-			echo "<link rel=\"canonical\" href=\"" .           esc_url( $canonical_url ) . "\">\n";
-			echo "<title>" .                                   esc_html( $data->title ) . "</title>\n";
-			echo '<meta property="og:title" content="' .       esc_attr( $data->title ) . "\" />\n";
-			echo "<meta property=\"og:type\" content=\"" .     esc_attr( $data->type ) . "\" />\n";
-			echo '<meta property="og:url" content="' .         esc_attr( $canonical_url ) .	"\" />\n";
-			echo '<meta property="og:image" content="' .       esc_attr( $data->img ) . "\" />\n";
-			echo '<meta property="og:site_name" content="' .   esc_attr( get_bloginfo( 'name' ) ) . "\" />\n";
-			echo '<meta property="og:description" content="' . esc_attr( $data->description ) . "\" />\n";
+			echo "<link rel=\"canonical\" href=\"" .            esc_url( $canonical_url ) . "\">\n";
+			echo "<title>" .                                    esc_html( $this->lp_strip_shortcodes( $data->title ) ) . "</title>\n";
+
+			// Twitter card:
+			// TODO: Make this customizable
+			echo "<meta name=\"twitter:card\" content=\"summary_large_image\" />\n";
+			echo '<meta name="twitter:title" content="' .       esc_attr( $this->lp_strip_shortcodes( urldecode( $data->title ) ) ) . "\" />\n";
+			echo '<meta name="twitter:description" content="' . esc_html( $this->lp_strip_shortcodes( urldecode( $data->description ) ) )  . "\" />\n";
+			echo '<meta name="twitter:image" content="' .       esc_attr( $data->img )  . "\" />\n";
+			echo '<meta name="twitter:url" content="' .         esc_url( $canonical_url )  . "\" />\n";
+
+			// Check if the update should be attributed to a Twitter user:
+			$lp_twitter_user = get_user_meta( $update->post_author, 'lp_twitter', true );
+			if ( !empty( $lp_twitter_user ) ){
+				echo '<meta name="twitter:site:id" content="' .   esc_attr( $lp_twitter_user ) . "\" />\n";
+			}
+
+			// Check if we're posting updates to a Twitter account and use
+			// it for twitter site handle:
+			$options = get_option( LivePress_Administration::$options_name );
+			if ( $options['post_to_twitter'] == TRUE && !empty( $options['oauth_authorized_user'] ) ){
+				echo '<meta name="twitter:site" content='  .      esc_attr( $options['oauth_authorized_user'] ) . "\" />\n";
+			}
+
+			// Facebook Open Graph:
+			echo '<meta property="og:title" content="' .        esc_attr( $this->lp_strip_shortcodes( urldecode( $data->title ) ) ) . "\" />\n";
+			echo "<meta property=\"og:type\" content=\"" .      esc_attr( $data->type ) . "\" />\n";
+			echo '<meta property="og:url" content="' .          esc_url( $canonical_url ) .	"\" />\n";
+			echo '<meta property="og:image" content="' .        esc_attr( $data->img ) . "\" />\n";
+			echo '<meta property="og:image:url" content="' .    esc_attr( $data->img ) . "\" />\n";
+			echo '<meta property="og:site_name" content="' .    esc_attr( get_bloginfo( 'name' ) ) . "\" />\n";
+			echo '<meta property="og:description" content="' .  esc_html( $this->lp_strip_shortcodes( urldecode( $data->description ) ) ) . "\" />\n";
+
+			$post_url = $post_parent_url  . '#livepress-update-' . $id;
+			echo "<meta http-equiv=\"refresh\" content=\"2;URL=" . $post_url . "\">\n";
+			echo "<script type=\"text/javascript\">window.location.replace('" . $post_url . "');</script>\n";
 			echo "</head>\n";
 			echo "<body>\n";
 			echo '<p>' . esc_html( $data->description ) . "</p>\n";
@@ -88,47 +117,85 @@ final class LivePress_Blogging_Tools {
 		}
 	}
 
+	private function lp_get_single_update( $id ){
+		global $wpdb;
+
+		$lp_get_post_cache_key = 'lp_get_post_cache_key_' . LP_PLUGIN_VERSION .'_' . $id;
+		if ( false === ( $theresult = get_transient( $lp_get_post_cache_key ) ) ) {
+
+			$query = $wpdb->prepare( "SELECT * FROM " . $wpdb->posts . " WHERE ".
+                " post_name = '%s' AND post_type = 'post'" .
+                " ORDER BY ID DESC LIMIT 1", 'livepress_update__' . $id );
+
+			$results = $wpdb->get_results( $query );
+			$theresult = $results[0];
+			set_transient( $lp_get_post_cache_key, $theresult, DAY_IN_SECONDS );
+		}
+		return $theresult;
+	}
+
 	private function opengraph_data( $update ){
 		$data = new stdClass();
 		$data->description = '';
+		// TODO: make this customizable:
 		$data->type = 'article';
+		$data->title = $this->headline_title($update);
+
+		$content = $this->remove_author_info( $update->post_content );
 		$content = wp_strip_all_tags(
-			preg_replace( "/\[livepress_metainfo.+\]/", '', $update->post_content )
+			preg_replace( "/\[livepress_metainfo.+\]/", '', $content )
 		);
+
 		// Check tweets first since their content is already cached:
 		if ( 1 === preg_match( '/https?:\/\/twitter\.com\S*/', $content, $matches ) ){
 			// Get embedded tweet from WP
 			$tweet_data = wp_oembed_get( $matches[0] );
 			$data->description = wp_strip_all_tags( $tweet_data );
 			$data->img = $this->og_image( $update );
-			$data->title = wp_trim_words( $data->description, 10, esc_html__( '&hellip;', 'livepress' ) );
+			if ( ! $data->title ){
+				$data->title = wp_trim_words( $data->description, 10, esc_html__( '&hellip;', 'livepress' ) );
+			}
 			return $data;
+
 		} elseif( preg_match( '/^(https?:\/\/)\S*/i', $content, $matches ) ) {
 			// oEmbed update:
-			$odata = get_transient( 'lpup_' . $update->ID );
+			$odata = get_transient( 'lpup_' . LP_PLUGIN_VERSION . '_' . $update->ID );
 			if ( false === $odata ){
 				// Get oEmbed data
 				$url = $matches[0];
 				wp_oembed_get( $url );
 				$oembed = _wp_oembed_get_object();
 				$provider_url = $oembed->get_provider( $matches[0] );
+				// Returns false on failure or object (
 				$odata = $oembed->fetch( $provider_url, $url );
-				// Set the cache to expire in one month
-				set_transient( 'lpup_' . $update->ID, $odata, 30 * DAY_IN_SECONDS );
+				if ( false !== $odata) {
+					// Set the cache to expire in one month
+					set_transient( 'lpup_' . LP_PLUGIN_VERSION . '_' . $update->ID, $odata, 30 * DAY_IN_SECONDS );
+				}
 			}
-			$data->title = $odata->title;
-			$data->description = $data->title;
-			$data->img = $odata->thumbnail_url;
-			return $data;
+			if ( false !== $odata) {
+				if ( ! $data->title ){
+					$data->title = $odata->title;
+				}
+
+				$data->description = $data->title;
+				$data->img = $odata->thumbnail_url;
+
+				return $data;
+			}
 		}
+
 		// No oEmbeds:
 		$data->img = $this->og_image( $update );
-		$data->title = $this->og_title( $update );
+		if ( ! $data->title ){
+			$data->title = $this->og_title( $content );
+		}
 		if (count($content) > 0 && $content != '') {
 			$data->description = wp_trim_words( $content, 40, esc_html__( '&hellip;', 'livepress' ) );
 		} else {
 			$data->description = $data->title;
 		}
+
 		return $data;
 	}
 
@@ -137,7 +204,8 @@ final class LivePress_Blogging_Tools {
 	private function og_image( $update ){
 		global $post;
 		$img = '';
-		preg_match( '/<img.*src=[\'|\"]?(\S+\.{1}[a-z]{3,4})/i', $update->post_content, $matches );
+		$content = $this->remove_author_info( $update->post_content );
+		preg_match( '/<img.*src=[\'|\"]?(\S+\.{1}[a-z]{3,4})/i', $content, $matches );
 		if( 0 < count($matches) ){
 			$img = $matches[1];
 		} elseif( has_post_thumbnail( $post->ID ) ){
@@ -146,42 +214,109 @@ final class LivePress_Blogging_Tools {
 		return $img;
 	}
 
-	// Get the title from the update (once we implement headlines), the
-	// content or the post parent's title:
-	private function og_title( $update ){
-		if ($update->post_title && $update->post_title != '' && ( 1 !== preg_match("/livepress_update__[0-9]+/", $update->post_title ) ) ){
-			return $update->post_title;
+	// Get the title from the update header
+	private function headline_title( $update ){
+		if ( preg_match('/\[livepress_metainfo.+update_header=\"(.+)\".*\]/', $update->post_content, $matches) ) {
+			return $matches[1];
+		} else {
+			return false;
+		}
+	}
+
+	// Use when there's no update header or oembed title. Get the title from
+	// the post content or the original post's title if everything else fails.
+	private function og_title( $post_content ){
+		if ( 0 < count( $post_content ) && $post_content != '' ){
+			$title = wp_trim_words( $post_content, 10, esc_html__( '&hellip;', 'livepress' ) );
 		} else {
 			global $post;
-			$content = preg_replace( '/\[livepress_metainfo.+\]/', '', $update->post_content );
-			$content = wp_strip_all_tags( $content );
-			if ( 0 < count( $content ) && $content != '' ){
-				$title = wp_trim_words( $content, 10, esc_html__( '&hellip;', 'livepress' ) );
-			} else {
-				$title = $post->post_title;
-			}
+			$title = $post->post_title;
 		}
 		return $title;
 	}
 
+	// Remove author name and avatar from content:
+	private function remove_author_info( $content ) {
+		return preg_replace( "/\<div\sclass=\"live-update-authors\"\>.+\<\/div\>/", '', $content );
+	}
+
+
 /**
- * Add the livepress-live class to the edit post page when a post is live.
+ * Add the livepress classes to the page when a post is live.
  * @param  Array $classes Array of classes.
  * @return Array          Updated array of classes.
+ *
+ * @since 1.1.5
+ */
+function lp_body_class( $classes ) {
+	global $post;
+
+	// Only add once!
+	if ( in_array( 'livepress-live', $classes ) ) {
+		return $classes;
+	}
+
+	// Only apply to live posts
+	if ( ! is_object( $post ) || ! $this->get_post_live_status( $post->ID ) ) {
+		return $classes;
+	}
+
+	// Add the livepress-live class
+	array_push( $classes, 'livepress-live' );
+
+	// Add the livepress update format class
+	$settings      = get_option( 'livepress' );
+	$update_format = isset( $settings['update_format'] ) ? $settings['update_format'] : '';
+	array_push( $classes, 'livepress-update-format-' . $update_format );
+
+	if( array_key_exists( "show", $settings ) && null !== $settings['show'] ){
+		foreach( $settings['show'] as $show ){
+			// "###AVATAR### ###AUTHOR###  ###TIME### 	###HEADER###";
+			array_push( $classes, 'livepress-update-show-' . strtolower( $show ) );
+		}
+	}
+
+	return $classes;
+}
+
+/**
+ * Add the livepress classes to the edit post page when a post is live.
+ * @param  String $classes String list of classes.
+ * @return String          Updated list of classes.
  *
  * @since 1.1.1
  */
 function lp_admin_body_class( $classes ) {
 	global $post;
 	$screen = get_current_screen();
-	if ( is_admin() &&                               /* in admin? */
-		in_array( $screen->id, apply_filters( 'livepress_post_types', array( 'post' ) ) ) &&                   /* on edit post page? */
-		 $this->get_post_live_status( $post->ID ) && /* is this post live */
-		 ! strstr( $classes, ' livepress-live')) {   /* only add once at most */
-
-		// Add the livepress-live class
-		$classes .= ' livepress-live';
+	// In admin, only add on supported post types
+	if ( is_admin() && ! in_array( $screen->id, apply_filters( 'livepress_post_types', array( 'post' ) ) ) ) {
+		return $classes;
 	}
+
+	// Only apply to live posts
+	if ( ! $this->get_post_live_status( $post->ID ) ) {
+		return $classes;
+	}
+	// Only add once!
+	if ( false !== strstr( $classes, 'livepress-live') ) {
+		return $classes;
+	}
+
+	// Add the livepress-live class
+	$classes .= ' livepress-live';
+
+	// Add the livepress update format class
+	$settings      = get_option( 'livepress' );
+	$update_format = isset( $settings['update_format'] ) ? $settings['update_format'] : 'default';
+	$classes .= ' livepress-update-format-' . $update_format;
+	if( array_key_exists( "show", $settings ) && null !== $settings['show'] ){
+		foreach( $settings['show'] as $show ){
+			// "###AVATAR### ###AUTHOR###  ###TIME### 	###HEADER###";
+			$classes .= ' livepress-update-show-' . strtolower( $show );
+		}
+	}
+
 	return $classes;
 }
 
@@ -888,6 +1023,64 @@ function lp_admin_body_class( $classes ) {
 		}
 
 		echo sprintf( '<div title="%s" class="live-status-circle live-status-%s"></div>', esc_attr( $title ), esc_attr( $toggle ) ) ;
+	}
+
+	function lp_update_shortlink() {
+		check_ajax_referer( 'lp_update_shortlink' );
+		$post_id     = isset( $_REQUEST['post_id'] ) ? intval( $_REQUEST['post_id'] ) : null;
+		$update_id   = isset( $_REQUEST['update_id'] ) ? intval( $_REQUEST['update_id'] ) : null;
+		$cache_key   = 'lp_shortlink_aaaa' . LP_PLUGIN_VERSION . '_' . $update_id;
+		$shortlink   = LivePress_WP_Utils::get_from_post( $post_id, $cache_key, true );
+		$status_code = 200;
+		if( ! $shortlink ) {
+			global $post;
+			$post = get_post( $post_id );
+			$post_parent_url = get_permalink( $post );
+			if ( 0 === preg_match('/\/\?/', $post_parent_url ) ) {
+				$post_parent_url .= "?";
+			} else {
+				$post_parent_url .= "&";
+			}
+			$canonical_url = $post_parent_url . 'lpup=' . $update_id . '#livepress-update-' . $update_id;
+
+			//$bitly_api = '7ea952a9826d091fbda8a4ca220ba634efe61e31'; // TODO: Allow to set up from web page
+			$bitly_api = 'a68d0da03159457bff5f6b287d6cdecb88b108dd'; // datacompboy
+			$get_shortlink = 'https://api-ssl.bitly.com/v3/shorten?access_token=' . $bitly_api .
+				'&domain=bit.ly&longUrl=' . urlencode( $canonical_url );
+
+			$url = $get_shortlink;
+			if ( function_exists( 'vip_safe_wp_remote_get' ) ) {
+				$res = vip_safe_wp_remote_get(
+							$url,
+							'',    /* fallback value */
+							5,     /* threshold */
+							1,     /* timeout */
+							20,    /* retry */
+							array( 'reject_unsafe_urls' => false )
+						);
+			} else {
+				$res = wp_remote_get( $url, array( 'reject_unsafe_urls' => false ));
+			}
+			$response = json_decode( $res['body'], true );
+			$status_code = $response["status_code"];
+
+			if ( is_wp_error( $res ) || $status_code != 200 ) {
+				$shortlink = $canonical_url;
+			} else {
+				if( !$res || !isset($response['data']) || !isset( $response['data']['url'] ) ) {
+					$shortlink = $canonical_url;
+					$status_code = 500;
+				} else {
+					$shortlink = $response['data']['url'];
+					LivePress_WP_Utils::save_on_post( $post_id, $cache_key, $shortlink );
+
+					$options = get_option( LivePress_Administration::$options_name );
+					$livepress_com = new LivePress_Communication( $options['api_key'] );
+					$livepress_com->send_to_livepress_broadcast( $post_id, array( 'shortlink'=>array($update_id=>$shortlink ) ) );
+				}
+			}
+		}
+		wp_send_json_success( array( 'shortlink' => $shortlink, 'code' => $status_code ) );
 	}
 
 }

@@ -308,6 +308,14 @@ class LivePress_Administration {
 	static function plugin_install() {
 		$blogging_tools = new LivePress_Blogging_Tools();
 		$blogging_tools->upgrade_live_status_system();
+
+		// set default value of sharingUI if not set
+		$livepress = get_option( 'livepress' );
+		if( !array_key_exists( 'sharing_ui', $livepress ) ){
+			$livepress['sharing_ui'] = 'display';
+			update_option( 'livepress', $livepress );
+		}
+
 	}
 
 	/**
@@ -452,7 +460,14 @@ class LivePress_Administration {
 				'item_name'  => urlencode( LP_ITEM_NAME )
 			);
 			if( function_exists( 'vip_safe_wp_remote_get' ) ) {
-				$response = vip_safe_wp_remote_get( add_query_arg( $api_params, LP_STORE_URL ), array( 'reject_unsafe_urls' => false ) );
+				$response = vip_safe_wp_remote_get(
+						add_query_arg( $api_params, LP_STORE_URL ),
+						'',    /* fallback value */
+						5,     /* threshold */
+						1,     /* timeout */
+						20,    /* retry */
+						array( 'reject_unsafe_urls' => false )
+					);
 			} else {
 				$response = wp_remote_get( add_query_arg( $api_params, LP_STORE_URL ), array( 'reject_unsafe_urls' => false ) );
 			}
@@ -530,6 +545,42 @@ class LivePress_Administration {
 
 		update_option( self::$options_name, $options );
 		die($url);
+	}
+
+	/**
+	 * Get a paginated list of users for the byline selector
+	 */
+	public static function lp_get_authors() {
+
+		$lp_author_transient_key = 'lp_author_list_plus_' . LP_PLUGIN_VERSION;
+		if ( false === ( $return = get_transient( $lp_author_transient_key ) ) ) {
+			$users     = get_users( array( 'number' => 100 ) );
+			$names     = array();
+			$gravatars = array();
+			$links     = array();
+
+			foreach ( $users as $user ) {
+				array_push( $names, array(
+					'id'   => $user->ID,
+					'text' => $user->display_name,
+				) );
+				array_push( $gravatars, array(
+					'id'           => $user->ID,
+					'avatar'       => apply_filters( 'livepress_get_avatar', get_avatar( $user->ID ), $user )
+				) );
+				array_push( $links, array(
+					'id'           => $user->ID,
+					'link'         => apply_filters( 'livepress_get_avatar_link', get_author_posts_url( $user->ID ), $user )
+				) );
+			}
+			$return = array(
+				'names'     => $names,
+				'gravatars' => $gravatars,
+				'links'     => $links,
+			);
+			set_transient( $lp_author_transient_key, $return, 60 );
+		}
+		return apply_filters( 'lp_authors_return', $return );
 	}
 
 	/**
