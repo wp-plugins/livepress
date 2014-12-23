@@ -89,6 +89,7 @@ class LivePress_Live_Update {
 	public function shortcode( $atts,  $content = null  ) {
 		// Extract the attributes
 		$atts = shortcode_atts( array(
+			'authors'       => "",
 			'author'        => "",
 			'time'          => "",
 			'avatar_url'    => NULL,
@@ -99,7 +100,7 @@ class LivePress_Live_Update {
 		), $atts ) ;
 
 
-		$author         = esc_attr( $atts['author'] );
+		$authors        = esc_attr( $atts['authors'] . $atts['author']);
 		$time           = esc_attr( $atts['time'] );
 		$avatar_url     = esc_url( $atts['avatar_url'] );
 		$has_avatar     = ( true == $atts['has_avatar'] )?true:false;
@@ -108,7 +109,7 @@ class LivePress_Live_Update {
 		$avatar_block   = ( 'shown' == $atts['avatar_block'] )?true:false;
 
 		$options  = $this->options;
-	
+
 
 		$template_elements = '';
 		if( array_key_exists( "show", $options ) && null !== $options['show'] ){
@@ -118,8 +119,9 @@ class LivePress_Live_Update {
 					$template_elements .= ' ###' . $show . '###';
 				}
 			}
+		}else{
+			$template_elements = '###AVATAR### ###AUTHOR###  ###TIME### ###HEADER###';
 		}
-
 
 
 		/**
@@ -154,17 +156,16 @@ class LivePress_Live_Update {
 
 		$settings      = get_option( 'livepress' );
 
-		$update_format = '';
+		$update_format = 'default';
 		if( isset( $settings['update_format'] ) ){
 			$update_format = $settings['update_format'];
 		}
+
+
 		$author_info = '';
-
-
-
 		if ( ! $avatar_block ) {
-			if ( $author ) {
-				$author_info .= $this->format_author( $author ) . ' ';
+			if ( $authors ) {
+				$author_info .= $this->format_author( $authors ) . ' ';
 				if ( $time ) {
 					$author_info .= " <strong>|</strong> ";
 				}
@@ -179,7 +180,7 @@ class LivePress_Live_Update {
 		 * @param string $author  Name of Author.
 		 *
 		 */
-		$metainfo = str_replace( '###AUTHOR###', apply_filters('livepress_meta_info_template_author', $author_info, $author ), $metainfo );
+		$metainfo = str_replace( '###AUTHOR###', apply_filters('livepress_meta_info_template_author', $author_info, $authors ), $metainfo );
 
 		/**
 		 * Filter Allows you to change date format use in a livepress post meta.
@@ -193,17 +194,15 @@ class LivePress_Live_Update {
 
 		$time_info  = '';
 		if ($time) {
-		
-
 
 			if ( isset( $options['timestamp_format'] ) && 'timeof' === $options['timestamp_format'] ) {
-	
+
 				$time_info .= '<span class="livepress-update-header-timestamp">';
 				$time_info .= str_replace( '###TIME###', $timestring, self::timestamp_html_template())." ";
 				$time_info  = str_replace( '###TIMESTAMP###', $timestamp, $time_info );
 				$time_info .= '</span>';
 			} else {
-	
+
 				$time_info .= '<span class="livepress-update-header-timestamp">';
 				$time_info .= str_replace('###TIME###', $time, self::timestamp_html_template())." ";
 				$time_info  = str_replace( '###TIMESTAMP###', $timestamp, $time_info );
@@ -227,7 +226,7 @@ class LivePress_Live_Update {
 			$metainfo .= '<span class="livepress-update-header">' . wptexturize( urldecode( $update_header ) ) . "</span> ";
 		}
 
-		
+
 		/**
 		 * Filter Allows you to change the order of the elements and add to teh meta info html.
 		 *
@@ -238,7 +237,6 @@ class LivePress_Live_Update {
 		 *
 		 */
 		$metainfo = str_replace( '###HEADER###', apply_filters('livepress_meta_info_template_header', $header, $update_header ), $metainfo );
-
 
 		if ( $metainfo ) {
 			/**
@@ -252,7 +250,7 @@ class LivePress_Live_Update {
 			 */
 			$div_class = apply_filters('livepress_meta_info_template_header', array( self::$metainfo_class ) );
 			if( null != $content ){
-				$metainfo = $metainfo . $content;
+				$metainfo = $metainfo . PHP_EOL . $content . PHP_EOL ;
 			}
 
 			$metainfo = '<'. self::$metainfo_tag .' class="'. implode(', ', $div_class) .'">'
@@ -260,7 +258,7 @@ class LivePress_Live_Update {
 				. '</'. self::$metainfo_tag .'>';
 		}
 
-		return $metainfo;
+		return $metainfo . PHP_EOL;
 	}
 
 	/**
@@ -270,40 +268,58 @@ class LivePress_Live_Update {
 	 */
 	public function fill_livepress_shortcodes( $content ) {
 
-		//$content       = wp_unslash( $content );
-
+		$content = str_replace( '\\', '', $content );
 		$options       = $this->options;
-		$new_shortcode = "[livepress_metainfo";
 
-		preg_match('/\[livepress_metainfo show_timestmp="(.*)"\]/s', $content, $show_timestmp );
-		if ( ! empty( $show_timestmp[1] ) ) {
-			$current_time_attr = ' time="'. $this->format_timestamp( current_time('timestamp') ) .'" ';
-			if ($options['timestamp']) {
-				if (isset($this->custom_timestamp)) {
-					$custom_timestamp = strtotime($this->custom_timestamp);
-					$new_shortcode   .= ' time="'. $this->format_timestamp($custom_timestamp) .'"';
+		$new_shortcode = "[livepress_metainfo";
+		// do we have a short code
+
+		$has_shortcode = ( false === strpos( $content, '[livepress_metainfo' ) ) ? false : true;
+
+		preg_match('/\[livepress_metainfo show_timestmp="(.)".*\]/s', $content, $show_timestmp );
+
+		if ( ! empty( $show_timestmp[1] ) || ! $has_shortcode ) {
+			$current_time_attr = ' time="'. $this->format_timestamp( current_time( 'timestamp' ) ) .'" ';
+			if ( $options['timestamp'] ) {
+				if ( isset( $this->custom_timestamp ) ) {
+					$custom_timestamp = strtotime( $this->custom_timestamp );
+					$new_shortcode   .= ' time="'. $this->format_timestamp( $custom_timestamp ) .'"';
 				} else {
 					$new_shortcode .= $current_time_attr;
 				}
 			}
-			$new_shortcode   .= ' timestamp="'. date( 'c', current_time('timestamp', 1) ) .'"';
+			$new_shortcode   .= ' timestamp="'. date( 'c', current_time( 'timestamp', 1 ) ) .'"';
 		}
-		if (isset($this->custom_author_name)) {
-			$authorname = $this->custom_author_name;
+
+
+
+		preg_match( '/\[livepress_metainfo.*authors="(.*)"\]/s', $content, $author_block );
+
+		if ( empty($author_block) || 0 == strlen( $author_block[1] ) ) {
+			$current_authors     = isset( $_POST['authors'] ) ? $_POST['authors'] : array();
+			$custom_author_names = '';
+			$separator           = '';
+			foreach ( $current_authors as $author ) {
+				$custom_author_names .= $separator . $author['text'];
+				$separator = ' - ';
+			}
+		}else{
+			$custom_author_names = $author_block[1];
+		}
+
+		if ( '' !== trim( $custom_author_names ) ) {
+			$authorname = $custom_author_names;
 		} else {
 			$authorname = self::get_author_display_name($options);
 		}
 
 		// look to see if we have an avatar and hide the author name if we have
-		preg_match('/\[livepress_metainfo(.*)avatar_block="(.*)"\]/s', $content, $avatar_block );
-		if ( empty( $avatar_block[2] ) ) {
+		preg_match('/\[livepress_metainfo.*avatar_block="shown".*\]/s', $content, $avatar_block );
+		if ( empty( $avatar_block ) ) {
 			if ( $authorname ) {
-				$new_shortcode .= ' author="' . $authorname . '"';
+				$new_shortcode .= ' authors="' . $authorname . '"';
 			}
 		}
-
-
-
 
 		if ($options["include_avatar"]) {
 			$new_shortcode .= ' has_avatar="1"';
@@ -319,10 +335,14 @@ class LivePress_Live_Update {
 			$new_shortcode .= ' update_header="' . $update_header[1] . '"';
 		}
 
+
 		$new_shortcode .= "]";
 
 		// Replace empty livepress_metainfo with calculated one
-		$content = preg_replace('/\[livepress_metainfo[^\]]*]/s', $new_shortcode, $content);
+		$content = preg_replace('/\[livepress_metainfo[^\]]*]/s', $new_shortcode,  $content . PHP_EOL);
+
+		//unload the filter so it does run again
+		remove_filter('content_save_pre', array( $this, 'fill_livepress_shortcodes' ), 5);
 
 		// Replace POSTTIME inside livepress_metainfo with current time
 		if ( ! empty( $show_timestmp[1] ) ) {
@@ -381,7 +401,7 @@ class LivePress_Live_Update {
 	 * @return string HTML image tag.
 	 */
 	public static function get_avatar_img_tag( $from ) {
-	
+
 		global $user;
 		$avatar_img_tag = get_avatar( $user->ID, 30);
 		if ( $from === 'twitter' && LivePress_Administration::twitter_avatar_url() ) {

@@ -13,6 +13,7 @@ class LivePress_Config {
 	/**
 	 * @access private
 	 * @var array $configurable_options Configurable options.
+	 * TODO: add fliters to template straings
 	 */
 	private $configurable_options = array (
 		'STATIC_HOST'               => 'https://static.livepress.com',
@@ -159,4 +160,67 @@ class LivePress_Config {
 	public function get_host_option($option_name) {
 		return get_option($option_name);
 	}
-}
+
+	/**
+	 * Gets a block of data to pass to the server about the current install.
+	 *
+	 * @param string $option_name
+	 * @return mixed anything that can be saved
+	 */
+	public function get_debug_data(){
+		$debug_data = array(
+			'configurable_options'  => $this->configurable_options,
+			'server'                => $this->get_server_details(),
+			'wp_version'            => get_bloginfo( 'version' ),
+			'installed_plugins'     => $this->get_installed_plugins(),
+			'installed_themes'      => $this->get_installed_themes(),
+		);
+
+		return $debug_data;
+	}
+
+	/**
+	 * return an array for server settings
+	 * @return array
+	 */
+	private function get_server_details(){
+		$server_report = array();
+		$server_report['hostname'] = gethostname();
+		$server_report['ip'] = gethostbyname( $server_report['hostname'] );
+		$server_report['php_version'] = PHP_VERSION;
+		return $server_report;
+	}
+
+	/**
+	 * Returns an array with the installed plugins
+	 * @return array
+	 */
+	private function get_installed_plugins(){
+		if ( ! function_exists( 'get_plugins' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+		$plugins = get_plugins();
+		// add the MU plugin details if any
+		$plugins['mu_plugins'] = get_mu_plugins ();
+		return $plugins;
+	}
+
+	/**
+	 * Returns an array with the installed themes
+	 * @return array
+	 */
+	private function get_installed_themes(){
+		$installed_themes =  wp_get_themes(  array( 'errors' => false , 'allowed' => null ) );
+		$themes = array();
+		foreach( $installed_themes as $key => $theme ){
+//			var_dump($theme);
+			$themes[$key] = array(
+				'Name'    => $theme->name,
+				'Version' => $theme->version
+			);
+		}
+		return $themes;
+	}
+
+} // end of class LivePress_Config
+

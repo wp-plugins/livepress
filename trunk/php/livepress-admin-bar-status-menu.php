@@ -39,7 +39,7 @@ class LivePress_Admin_Bar_Status_Menu {
 		}
 
 		wp_enqueue_style( 'livepress_main_sheets', LP_PLUGIN_URL . 'css/livepress.css' );
-					wp_enqueue_style('wp-jquery-ui-dialog');
+		wp_enqueue_style('wp-jquery-ui-dialog');
 
 	}
 
@@ -93,7 +93,7 @@ class LivePress_Admin_Bar_Status_Menu {
 	private function get_status() {
 
 		$status  = 'disconnected';
-		if( false == $this->options ){
+		if( false == $this->options || ! array_key_exists( 'api_key', $this->options )){
 			return $status;
 		}
 		$api_key = $this->options['api_key'];

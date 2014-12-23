@@ -2,10 +2,10 @@
 if ( !defined( 'WP_UNINSTALL_PLUGIN' ) )
 	exit();
 
-require_once 'php/livepress-collaboration.php';
-require_once 'php/livepress-blogging-tools.php';
-require_once 'php/livepress-administration.php';
-require_once 'php/livepress-post-format-controller.php';
+require_once( dirname(__FILE__) . '/php/livepress-collaboration.php' );
+require_once( dirname(__FILE__) . '/php/livepress-blogging-tools.php' );
+require_once( dirname(__FILE__) . '/php/livepress-administration.php' );
+require_once( dirname(__FILE__) . '/php/livepress-post-format-controller.php' );
 
 global $wpdb;
 

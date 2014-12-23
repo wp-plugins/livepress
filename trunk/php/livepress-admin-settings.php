@@ -10,6 +10,7 @@ class LivePress_Admin_Settings {
 	 * @var array $settings Settings array.
 	 */
 	public $settings = array();
+	private $livepress_config;
 
 	/**
 	 * Constructor.
@@ -20,6 +21,7 @@ class LivePress_Admin_Settings {
 		add_action( 'admin_menu',            array( $this, 'admin_menu' ) );
 
 		$this->settings = $this->get_settings();
+		$this->livepress_config = LivePress_Config::get_instance();
 	}
 
 	/**
@@ -55,7 +57,7 @@ class LivePress_Admin_Settings {
 				'timestamp_format'             => 'timeago',
 				'update_format'                => 'default',
 				'facebook_app_id'              => '',
-				'sharing_ui'                   => '',
+				'sharing_ui'                   => 'dont_display',
 			)
 		);
 	}
@@ -70,10 +72,16 @@ class LivePress_Admin_Settings {
 	 * @return string $hook, unaltered regardless.
 	 */
 	function admin_enqueue_scripts( $hook ) {
-		if ( $hook != 'settings_page_livepress-settings' )
+		if ( $hook != 'settings_page_livepress-settings' ){
 			return $hook;
+		}
 
-		wp_enqueue_script( 'livepress_admin_ui_js', LP_PLUGIN_URL . 'js/admin_ui.full.js', array( 'jquery' ) );
+		if ( $this->livepress_config->script_debug() ) {
+			wp_enqueue_script( 'livepress_admin_ui_js', LP_PLUGIN_URL . 'js/admin_ui.full.js', array( 'jquery' ) );
+		}else{
+			wp_enqueue_script( 'livepress_admin_ui_js', LP_PLUGIN_URL . 'js/admin_ui.min.js', array( 'jquery' ) );
+		}
+
 
 		wp_enqueue_style( 'livepress_admin', LP_PLUGIN_URL . 'css/wp-admin.css' );
 		return $hook;

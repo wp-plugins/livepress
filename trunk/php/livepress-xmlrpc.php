@@ -118,6 +118,7 @@ class LivePress_XMLRPC {
 			'post_title' => ''
 		);
 
+
 		$unparsed_data = wp_parse_args( $content_struct, $defaults );
 
 		// If this isn't an update, exit early so we don't walk all over ourselves.
@@ -147,16 +148,61 @@ class LivePress_XMLRPC {
 				$new_posts['new']['content'] = str_replace( $clean_content, '', $new_posts['new']['content'] );
 			}
 
+			$live_update = LivePress_Live_Update::instance();
+
+			$options = $live_update->options;
+
 			// Add timestamp to update - this is optional on the editor, but
 			// we're adding it here and can be customized later on in case
 			// it is requested:
 			$new_posts['new']['content'] = str_replace('[livepress_metainfo', '[livepress_metainfo show_timestmp="1"', $new_posts['new']['content']);
 
+			// get the author to pass to avatar function
+			preg_match( '/authors="(.*)"/s', $new_posts['new']['content'], $author );
+
+			$avater_class = ( in_array( 'AVATAR', $options['show'] ) ) ? 'lp_avatar_shown' : 'lp_avatar_hidden';
+			$avater_class ='lp_avatar_hidden'; // TODO: until we have the avatar code working
+
+			// default is the inline version
+			if('default' === $options['update_format'] ){
+
+
+				if( 'lp_avatar_shown' == $avater_class ){
+					$new_posts['new']['content'] =  $this->avatar_html( $author[1] ). $new_posts['new']['content'];
+				}
+
+				$new_posts['new']['content'] = $new_posts['new']['content'] . ' [/livepress_metainfo]';
+
+
+				if( false === strpos( $new_posts['new']['content'], 'livepress-update-outer-wrapper' ) ){
+					$new_posts['new']['content'] = '<div class="livepress-update-outer-wrapper ' . $avater_class . '">' . $new_posts['new']['content'] . '<\/div>';
+				}
+			}else{
+
+				$bits = explode( ']', $new_posts['new']['content'] );
+
+				if( false === strpos( $new_posts['new']['content'], 'livepress-update-inner-wrapper' ) ){
+					$new_posts['new']['content'] = '<div class="livepress-update-inner-wrapper ' . $avater_class . '">'.PHP_EOL .  $bits[1] . PHP_EOL .'<\/div>';
+				}
+
+				if( 'lp_avatar_shown' == $avater_class ){
+					$new_posts['new']['content'] = $this->avatar_html( $author[1] ) . $new_posts['new']['content'];
+				}
+
+				$new_posts['new']['content'] = $bits[0] . ']' . $new_posts['new']['content'];
+			}
+
+
+
+
+			 $new_posts['new']['content']  = $live_update->fill_livepress_shortcodes( $new_posts['new']['content'] );
 			$update_id = LivePress_PF_Updates::get_instance()->add_update( $post, $new_posts['new']['content'], array() );
+
 
 			// Remove the new post from the array so we don't double-process by mistake.
 			unset( $new_posts['new'] );
 		}
+
 
 		// Second, update the content of any posts that have been changed.
 		// You cannot *delete* an update via XMLRPC.  For that, you need to actually use the WordPress UI.
@@ -193,6 +239,21 @@ class LivePress_XMLRPC {
 
 		return $post_data;
 	}
+
+
+
+	private function avatar_html( $author ){
+		return ''; // come back later
+
+		$lp_authors = LivePress_Administration::lp_get_authors();
+
+		error_log("lp_authors - " . implode( ' - ', $lp_authors['names'][0] )  );
+		error_log("author - " .$author );
+		$output = '';
+
+		return '<div class="live-update-authors"><span class="live-update-author live-update-author-superadmin"><span class="lp-authorID">1</span><span class="live-author-gravatar"><a href="http://ms.bearne.ca/blog/author/superadmin/" target="_blank"><img alt="" src="http://0.gravatar.com/avatar/6eca4708c14b4aae041335e251dd3b12?s=96&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D96&amp;r=G" class="avatar avatar-96 photo" height="96" width="96" /></a></span><span class="live-author-name"><a href="http://ms.bearne.ca/blog/author/superadmin/" target="_blank">superAdmin</a></span></span></div>';
+	}
+
 
 	/**
 	 * Get an array of the existing post updates, including the parent post.
@@ -390,8 +451,7 @@ function livepress_append_to_post( $args ) {
 	$plugin_options = get_option( LivePress_Administration::$options_name );
 
 	// Adds metainfo shortcode
-	$content_struct['description'] = "[livepress_metainfo] "
-		. $content_struct['description'];
+	$content_struct['description'] = "[livepress_metainfo] " . $content_struct['description'];
 
 	$content_struct['ID'] = $args[0];
 	$content_struct['post_content'] = $content_struct['description'];
