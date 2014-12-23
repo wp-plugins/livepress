@@ -48,7 +48,7 @@ class LivePress_Post {
 		$this->options = get_option( LivePress_Administration::$options_name );
 		global $current_user;
 		$this->user_options = get_user_option( LivePress_Administration::$options_name, $current_user->ID, false );
-		$this->format_class = $this->options['update_format'];
+		$this->format_class = isset( $this->options['update_format'] ) ? $this->options['update_format'] : 'default';
 	}
 
 	/**

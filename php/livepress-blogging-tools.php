@@ -266,7 +266,7 @@ function lp_body_class( $classes ) {
 
 	// Add the livepress update format class
 	$settings      = get_option( 'livepress' );
-	$update_format = isset( $settings['update_format'] ) ? $settings['update_format'] : '';
+	$update_format = isset( $settings['update_format'] ) ? $settings['update_format'] : 'default';
 	array_push( $classes, 'livepress-update-format-' . $update_format );
 
 	if( array_key_exists( "show", $settings ) && null !== $settings['show'] ){
@@ -412,13 +412,12 @@ function lp_admin_body_class( $classes ) {
 	public function set_post_live_status( $post_id, $status ){
 		$live_posts = get_option( 'livepress_live_posts', array() );
 			// Add post id if setting status live
-			if ( $status && ! in_array( $post_id, $live_posts ) ){
-				array_push( $live_posts, $post_id );
-			} else {
-				// Remove post id if setting status not live
-				if ( ! $status && in_array( $post_id, $live_posts ) ){
-					$live_posts = array_diff( $live_posts, array( $post_id ) );
+			if ( $status ){
+				if ( ! in_array( $post_id, $live_posts ) ){
+					array_push( $live_posts, $post_id );
 				}
+			} else {
+				$live_posts = array_diff( $live_posts, array( $post_id ) );
 			}
 		update_option( 'livepress_live_posts', $live_posts );
 	}

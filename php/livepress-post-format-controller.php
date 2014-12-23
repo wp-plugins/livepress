@@ -77,7 +77,7 @@ class LivePress_PF_Updates {
 	protected function __construct() {
 		$options = get_option( LivePress_Administration::$options_name);
 
-		if( false != $options ){
+		if( false != $options && array_key_exists( 'api_key', $options ) ){
 			$this->api_key = $options['api_key'];
 			$this->lp_comm = new LivePress_Communication( $this->api_key );
 
@@ -457,10 +457,9 @@ class LivePress_PF_Updates {
 		check_ajax_referer( 'livepress-append_post_update-' . intval( $_POST['post_id'] ) );
 
 		$post = get_post( intval( $_POST['post_id'] ) );
-		$user_content = wp_kses_post( stripslashes( $_POST['content'] ) );
+		$user_content = wp_kses_post( wp_unslash( trim( $_POST['content'] ) ) );
 		// grab and escape the live update tags
 		$livetags = isset( $_POST['liveTags'] ) ? array_map( 'esc_attr', $_POST['liveTags'] ) : array();
-
         // $response = $this::add_update($post, $user_content);
         // PHP 5.2 compat static call
         $response = call_user_func_array( array( $this, 'add_update'), array( $post, $user_content, $livetags ) );
@@ -491,7 +490,9 @@ class LivePress_PF_Updates {
             // Todo: notify about error: post get deleted by another editor
             $region = false;
 		} else {
-            $user_content = wp_kses_post( stripslashes( $_POST['content'] ) );
+			//	need to double unslash here to normalise content
+            $user_content = wp_kses_post( stripslashes( stripslashes(   $_POST['content'] ) ) );
+
             if ( empty($user_content) ) {
                 $region = false;
             } else {
@@ -500,6 +501,7 @@ class LivePress_PF_Updates {
                 $piece_gen++;
                 $update->post_title = 'livepress_update__'.$piece_id.'__'.$piece_gen;
                 $update->post_content = $user_content;
+
                 wp_update_post( $update );
                 $region = $this::send_to_livepress_incremental_post_update('replace', $post, $update);
             }
@@ -649,14 +651,23 @@ class LivePress_PF_Updates {
 		// Restore the_content filters
 		$wp_filter['the_content'] = $stored_wp_filter_the_content;
 
+		// we want to render the HTML that the 'livepress_metainfo' shortcode will output into the Post content inorder fix the post
+		global $shortcode_tags; // all the shortcode
+		$golbal_shortcodes_tags = $shortcode_tags; // save so re-added them
+		remove_all_shortcodes();
+		$shortcode_tags['livepress_metainfo'] = $golbal_shortcodes_tags['livepress_metainfo']; // just back the shortcode need
+
+
 		$response = array();
 		// Wrap each child for display
 		foreach( $this->pieces as $piece ) {
 			$prefix = sprintf( '<div id="livepress-old-update-%s" class="livepress-old-update">', $piece[ 'id' ] );
 			$response[] = $prefix;
-			$response[] = $piece[ 'proceed' ];
-			$response[] = '</div>';
+			$response[] = do_shortcode( $piece[ 'proceed' ] );
+			$response[] = PHP_EOL.'</div>';
 		}
+
+		$shortcode_tags = $golbal_shortcodes_tags; // reset the short codes
 
 		// Append the children to the parent post content
 		$post->post_content = join( '', $response );

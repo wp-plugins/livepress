@@ -45,29 +45,6 @@ function livepress_template( $auto = false, $seconds_since_last = 0 ) {
 						<abbr class="livepress-timestamp" title="$date8601"></abbr>
 					</span>
 					</div>
-				<div class="lp-settings-button"></div>
-				<div id="lp-settings">
-					<div class="lp-settings-short">
-						<div class="lp-about">
-							$about
-						</div>
-					</div>
-					<ul>
-						<li>
-							<p>
-								<input type="checkbox" id="lp-setting-sound" name="lp-setting-sound" checked="checked" />
-								<label for="lp-setting-sound">$notifications</label>
-							</p>
-						</li>
-						<li>
-							<p>
-								<input type="checkbox" id="lp-setting-updates" name="lp-setting-updates" checked="checked" />
-								<label for="lp-setting-updates">$updates</label>
-							</p>
-						</li>
-					</ul>
-					<p class="powered-by">$powered_by</p>
-				</div>
 			</div>
 		</div>
 HTML;

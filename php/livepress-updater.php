@@ -97,6 +97,7 @@ class LivePress_Updater {
 			// Ensuring that the post is divided into micro-post livepress chunks
 			$live_update = $this->init_live_update();
 			add_filter( 'content_save_pre', array( $live_update, 'fill_livepress_shortcodes' ), 5);
+
 		}
 
 		$this->livepress_config        = LivePress_Config::get_instance();
@@ -411,16 +412,6 @@ class LivePress_Updater {
 
 			wp_enqueue_style( 'livepress_ui' );
 
-			// Enqueue timeago with i18n:
-//			wp_enqueue_script('jquery.timeago', LP_PLUGIN_URL . 'js/src/jquery.timeago.js', array('jquery') );
-//			switch ( get_locale() ){
-//			case "es_ES":
-//						wp_enqueue_script('jquery.timeago.es', LP_PLUGIN_URL . "js/locales/jquery.timeago.es.js", array('jquery.timeago') );
-//						break;
-//			case 'fr_FR':
-//						wp_enqueue_script('jquery.timeago.fr', LP_PLUGIN_URL . "js/locales/jquery.timeago.fr.js", array('jquery.timeago') );
-//						break;
-//			}
 			wp_enqueue_script("jquery-effects-core");
 			wp_enqueue_script("jquery-effects-bounce");
 
@@ -484,7 +475,6 @@ class LivePress_Updater {
 				'save'                         => esc_html__( 'Save', 'livepress' ),
 				'push_update'                  => esc_html__( 'Push Update', 'livepress' ),
 				'add_update'                   => esc_html__( 'Add update', 'livepress' ),
-				'confirm_cancel'               => esc_html__( 'Are you sure you want to cancel your changes? This action cannot be undone.', 'livepress' ),
 				'confirm_delete'               => esc_html__( 'Are you sure you want to delete this update? This action cannot be undone.', 'livepress' ),
 				'updates'                      => esc_html__( 'Updates', 'livepress' ),
 				'discard_unsaved'              => esc_html__( 'You have unsaved editors open. Discard them?', 'livepress' ),
@@ -540,24 +530,20 @@ class LivePress_Updater {
 				'test_msg_failure'             => esc_html__( 'Failure sending test message', 'livepress' ),
 				'send_again'                   => esc_html__( 'Send test message again', 'livepress' ),
 				'live_post_header'             => esc_html__( 'Pinned Live Post Header', 'livepress' ),
+				'visual_text_editor'           => esc_html__( 'Visual', 'livepress'),
+				'text_editor'                  => esc_html__( 'Text', 'livepress'),
 			);
-
-
 
 			wp_localize_script( 'lp-admin', 'lp_strings', $lp_strings );
 
 			wp_enqueue_script( 'dashboard-dyn', LP_PLUGIN_URL . 'js/dashboard-dyn.' . $mode . '.js', array( 'jquery', 'lp-admin' ), LP_PLUGIN_VERSION );
 		}
 
-		wp_enqueue_script('jquery.timeago', LP_PLUGIN_URL . 'js/src/jquery.timeago.js', array('jquery') );
-		switch ( get_locale() ){
-			case "es_ES":
-				wp_enqueue_script('jquery.timeago.es', LP_PLUGIN_URL . "js/locales/jquery.timeago.es.js", array('jquery.timeago') );
-				break;
-			case 'fr_FR':
-				wp_enqueue_script('jquery.timeago.fr', LP_PLUGIN_URL . "js/locales/jquery.timeago.fr.js", array('jquery.timeago') );
-				break;
+		$lan = explode( '_', get_locale() );
+		if( 'en' !== $lan[0] ){
+			wp_enqueue_script('jquery.timeago.'.$lan[0], LP_PLUGIN_URL . "js/locales/jquery.timeago.$lan[0].js", array('jquery.timeago') );
 		}
+
 
 		$current_theme = str_replace( ' ', '-', strtolower( wp_get_theme()->Name ) );
 		if ( file_exists( LP_PLUGIN_PATH . 'css/themes/' . $current_theme . ".css" ) ) {
@@ -912,10 +898,10 @@ class LivePress_Updater {
 	 * @return array The plugin_array with the modified tinyMCE added.
 	 */
 	public function add_modified_tinymce( $plugin_array ) {
-		if ($this->livepress_config->debug() ) {
+		if ( $this->livepress_config->debug() ) {
 			$plugin_array['livepress'] = LP_PLUGIN_URL . 'js/editor_plugin.js?rnd='.rand();
 		} else {
-			if ($this->livepress_config->script_debug() ) {
+			if ( $this->livepress_config->script_debug() ) {
 				$plugin_array['livepress'] = LP_PLUGIN_URL . 'js/editor_plugin_release.full.js?v='.LP_PLUGIN_VERSION;
 			} else {
 				$plugin_array['livepress'] = LP_PLUGIN_URL . 'js/editor_plugin_release.min.js?v='.LP_PLUGIN_VERSION;
@@ -931,7 +917,7 @@ class LivePress_Updater {
 	 */
 	function init_live_update() {
 		$live_update = LivePress_Live_Update::instance();
-		if (isset($this->custom_author_name) ) {
+		if ( isset( $this->custom_author_name ) ) {
 			$live_update->use_custom_author_name($this->custom_author_name);
 		}
 		if (isset($this->custom_timestamp) ) {

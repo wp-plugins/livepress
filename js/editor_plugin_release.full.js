@@ -80,7 +80,7 @@
 			var metainfo = "[livepress_metainfo";
 
 			if (config.author_display_name) {
-				metainfo += ' author="' + config.author_display_name + '"';
+				metainfo += ' authors="' + config.author_display_name + '"';
 			}
 
 			var d, utc, server_time;

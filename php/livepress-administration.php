@@ -296,6 +296,7 @@ class LivePress_Administration {
 			$lp_updater->merge_children( $the_post );
 			// Turn off live
 			$blogging_tools->set_post_live_status( $the_post, false );
+			
 		}
 
 	}
@@ -310,11 +311,17 @@ class LivePress_Administration {
 		$blogging_tools->upgrade_live_status_system();
 
 		// set default value of sharingUI if not set
-		$livepress = get_option( 'livepress' );
+		$livepress = get_option( self::$options_name );
 		if( !array_key_exists( 'sharing_ui', $livepress ) ){
 			$livepress['sharing_ui'] = 'display';
-			update_option( 'livepress', $livepress );
+			update_option( self::$options_name, $livepress );
 		}
+		if( !array_key_exists( 'show', $livepress ) ){
+			$livepress['show'] = array( 'AUTHOR', 'TIME', 'HEADER' );
+			update_option( self::$options_name, $livepress );
+		}
+
+
 
 	}
 
@@ -365,8 +372,17 @@ class LivePress_Administration {
 		$livepress_com = new LivePress_Communication($this->options['api_key']);
 
 		if ( $this->has_changed( 'api_key' ) ) {
-			// Note: site_url is the admin url on VIP
-			$validation = $livepress_com->validate_on_livepress( site_url() );
+            $domains = array();
+            // Add domain mapping primary domain
+            if ( function_exists( 'domain_mapping_siteurl' ) ) {
+                $domain_mapping_siteurl = domain_mapping_siteurl();
+                $domains[ 'alias[]' ] = $domain_mapping_siteurl;
+            }
+
+            $home_url = get_home_url(); // Mapped domain on VIP
+            $domains[ 'alias[]' ] = $home_url;
+
+			$validation = $livepress_com->validate_on_livepress( $domains );
 			$api_key = $this->options['api_key'];
 			$this->options = $this->old_options;
 			$this->options['api_key'] = $api_key;
@@ -422,20 +438,15 @@ class LivePress_Administration {
 
 		$api_key   = esc_html( stripslashes( $_GET['api_key'] ) );
 
+        $domains = array();
 		// Add domain mapping primary domain
 		if ( function_exists( 'domain_mapping_siteurl' ) ) {
 			$domain_mapping_siteurl = domain_mapping_siteurl();
 			$domains[ 'alias[]' ] = $domain_mapping_siteurl;
-		} else {
-			$home_url = get_home_url(); // Mapped domain on VIP
-			$domains[ 'alias[]' ] = $home_url;
-		}
+        }
 
-		//@todo Add all domain aliased to the domains?
-		// Ensure unique list of domains
-		// $domains[ 'alias[]' ] = array_unique( $domains[ 'alias[]' ] );
-		// String any http/https headers
-		// $domains = preg_replace( '/^https?:\/\/(.*)/i', '$1', $domains );
+        $home_url = get_home_url(); // Mapped domain on VIP
+        $domains[ 'alias[]' ] = $home_url;
 
 		// Validate with the LivePress webservice
 		$livepress_communication = new LivePress_Communication( $api_key );

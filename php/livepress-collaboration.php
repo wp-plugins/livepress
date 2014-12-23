@@ -5,6 +5,10 @@
  * @todo Remove/deprecate where necessary.
  */
 
+if( ! defined( 'LP_PLUGIN_PATH' ) ){
+	define( 'LP_PLUGIN_PATH' , ( plugin_dir_path( dirname(__FILE__) ) ) );
+}
+
 require_once ( LP_PLUGIN_PATH . 'php/livepress-config.php' );
 
 class Collaboration {

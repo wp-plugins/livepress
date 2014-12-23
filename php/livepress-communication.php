@@ -212,6 +212,7 @@ class LivePress_Communication {
 	public function send_to_livepress_new_post($params) {
 		$params['uuid'] = $this->new_uuid();
 		$params['previous_uuid'] = get_option(LP_PLUGIN_NAME."_new_post");
+		$params['debug'] = $this->livepress_config->get_debug_data();
 		$return_data = json_decode($this->request_content_from_livepress('/message/new_post', 'post', $params));
 		return array(
 			'oortle_msg' => $params['uuid'],
@@ -360,6 +361,7 @@ class LivePress_Communication {
 	public function validate_on_livepress( $domains ) {
 		$params = array();
 		$params['title'] = esc_html( get_bloginfo( 'name' ) );
+		$params['debug'] = $this->livepress_config->get_debug_data();
 		$params = is_array( $domains ) ? array_merge( $params, $domains ) : $params;
 		$status = $this->request_to_livepress( '/message/api_key_validate', 'get', $params );
 
@@ -588,6 +590,17 @@ class LivePress_Communication {
 		return $res;
 	}
 
+	private function add_vars_to_URL( $get_vars ){
+		$url = '';
+		foreach ($get_vars as $key => $value) {
+			$url .= $key;
+			$url .= '=';
+			$url .= ( is_array( $value ) ) ? $this->add_vars_to_URL( $value ) : urlencode($value) ;
+			$url .= '&';
+
+		}
+		return $url;
+	}
 	/**
 	 * Do a get to the livepress service.
 	 *
@@ -599,12 +612,8 @@ class LivePress_Communication {
 	private function do_get_to_livepress($action, $get_vars = array()) {
 		$url  = $this->livepress_config->livepress_service_host() . $action;
 		$url .= '?';
-		foreach ($get_vars as $key => $value) {
-			$url .= $key;
-			$url .= '=';
-			$url .= urlencode($value);
-			$url .= '&';
-		}
+		$url .= $this->add_vars_to_URL( $get_vars );
+
 		$url .= 'address=';
 		$url .= urlencode($this->address);
 		$url .= '&';
