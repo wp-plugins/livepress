@@ -363,7 +363,7 @@ class LivePress_Communication {
 		$params['title'] = esc_html( get_bloginfo( 'name' ) );
 		$params['debug'] = $this->livepress_config->get_debug_data();
 		$params = is_array( $domains ) ? array_merge( $params, $domains ) : $params;
-		$status = $this->request_to_livepress( '/message/api_key_validate', 'get', $params );
+		$status = $this->request_to_livepress( '/message/api_key_validate', 'post', $params );
 
 		if ( $status == 202 ) {
 			return 2;
@@ -449,7 +449,7 @@ class LivePress_Communication {
 						$url,
 						'',    /* fallback value */
 						5,     /* threshold */
-						1,     /* timeout */
+						10,     /* timeout */
 						20,    /* retry */
 						array( 'reject_unsafe_urls' => false ) );
 			} else {
@@ -625,7 +625,7 @@ class LivePress_Communication {
 				$url,
 				'',    /* fallback value */
 				5,     /* threshold */
-				1,     /* timeout */
+				10,     /* timeout */
 				20,    /* retry */
 				array(
 					'reject_unsafe_urls' => false,

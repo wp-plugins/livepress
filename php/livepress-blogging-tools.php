@@ -1053,7 +1053,7 @@ function lp_admin_body_class( $classes ) {
 							$url,
 							'',    /* fallback value */
 							5,     /* threshold */
-							1,     /* timeout */
+							10,     /* timeout */
 							20,    /* retry */
 							array( 'reject_unsafe_urls' => false )
 						);

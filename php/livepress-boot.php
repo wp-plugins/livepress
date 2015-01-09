@@ -20,6 +20,9 @@ require_once( LP_PLUGIN_PATH . 'php/livepress-blogging-tools.php' );
 require_once( LP_PLUGIN_PATH . 'php/livepress-post-format-controller.php' );
 require_once( LP_PLUGIN_PATH . 'php/livepress-fix-twitter-oembed.php' );
 
+// load wp-cli
+require_once( LP_PLUGIN_PATH . 'php/livepress-cli.php' );
+
 // Handle i10n/i18n
 add_action( 'plugins_loaded', 'livepress_init' );
 

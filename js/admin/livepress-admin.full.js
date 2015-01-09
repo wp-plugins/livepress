@@ -1,6 +1,6 @@
 /*! livepress -v1.2.2
  * http://livepress.com/
- * Copyright (c) 2014 LivePress, Inc.
+ * Copyright (c) 2015 LivePress, Inc.
  */
 var Livepress = Livepress || {};
 
@@ -342,8 +342,6 @@ ImIntegration.__spin_loading = function () {
 	var image_path = LivepressConfig.lp_plugin_url + '/img/spin.gif',
 		html_image = jQuery("<img />").attr('src', image_path);
 
-	console.log("created spin: " + html_image.html());
-	console.log("image_path  : " + image_path);
 	return html_image;
 };
 
@@ -366,7 +364,7 @@ ImIntegration.__check_status = function (protocol, tries) {
 	params.im_integration_check_status = true;
 	params.im_service = protocol;
 
-	console.log("Start status check to: protocol=" + protocol);
+	//console.log("Start status check to: protocol=" + protocol);
 
 	$check_button.hide();
 
@@ -470,7 +468,7 @@ ImIntegration.send_test_message = function (source, protocol) {
 	params.im_service = protocol;
 	params.buddy = buddy;
 
-	console.log("Sending test message to: " + buddy + " using " + protocol + " protocol");
+	//console.log("Sending test message to: " + buddy + " using " + protocol + " protocol");
 
 	jQuery.ajax({
 		url:      LivepressConfig.ajax_url,
@@ -483,7 +481,7 @@ ImIntegration.send_test_message = function (source, protocol) {
 		},
 
 		success: function (data) {
-			console.log("return from test message: %d", data);
+			//console.log("return from test message: %d", data);
 			if (data === 200) {
 				feedback_msg = lp_strings.test_msg_sent;
 			} else {
@@ -492,7 +490,7 @@ ImIntegration.send_test_message = function (source, protocol) {
 		},
 
 		complete: function (XMLHttpRequest, textStatus) {
-			console.log("feed: %s", feedback_msg);
+			//console.log("feed: %s", feedback_msg);
 			$feedback_msg.html(feedback_msg);
 
 			self.test_message_sending = false;
@@ -4323,7 +4321,7 @@ Livepress.Admin.PostToTwitter = function () {
 			},
 			success:  function (data) {
 				if (params.enable) {
-					console.log('OAuth url: ', data);
+
 					$msg_span.html(
 						lp_strings.new_twitter_window
 					);
@@ -4544,8 +4542,6 @@ Livepress.Admin.Tools = function () {
 						}, 50);
 					});
 				}
-			}else{
-				console.log('skipped as publishing');
 			}
 
 
@@ -4923,7 +4919,6 @@ jQuery(function () {
 						//        Collaboration.Chat.initialize();
 					}
 				} else {
-					console.log('already loaded chat before');
 					// Out of first LP release
 					//      Collaboration.Chat.initialize();
 				}
@@ -5242,7 +5237,7 @@ jQuery(function () {
 								post_id:          LivepressConfig.post_id
 							},
 							success: function() {
-								console.log( 'Added new tags to taxonomy' );
+								//console.log( 'Added new tags to taxonomy' );
 							}
 						});
 					}
@@ -5389,7 +5384,6 @@ jQuery(function () {
 
 					// Used stored meta information when editing an existing update
 					var show_timestmp =  $liveUpdateHeader.data( 'show_timestmp' );
-				//		console.log( 'show_timestmp - ' + show_timestmp );
 
 
 
@@ -5436,7 +5430,6 @@ jQuery(function () {
 					}
 
 					if ( 'undefined' !== typeof authors ) {
-						console.log( authors );
 						var custom_author_names = '';
 						var separator = '';
 						for (var i = 0; i < authors.length; i++){
@@ -5538,9 +5531,12 @@ jQuery(function () {
 					}
 				} else if (SELF.mode === 'editing' || SELF.mode === 'deleting') {
 					// saving old content in case of reset
+
 					var $el = $j(el);
-					SELF.originalHtmlContent = $el.data("originalHtmlContent") || $el;
-					SELF.originalContent = $el.data("originalContent") || $el.data("nonExpandedContent") || '';
+
+                    SELF.originalHtmlContent = ( 'string' === typeof( $el.data("originalHtmlContent")) )? $el.data("originalHtmlContent") : el.outerHTML  || new XMLSerializer().serializeToString( el ) ;
+
+                    SELF.originalContent = $el.data("originalContent") || $el.data("nonExpandedContent") || '';
 					SELF.originalId = $el.data('originalId');
 					SELF.originalUpdateId = $el.attr('id');
 					if (SELF.mode === 'deleting') {
@@ -5673,7 +5669,6 @@ jQuery(function () {
 						/*  old action methods are deprecated. This check ensures compatibility.
 						**/
 						mceAddCommand = ( '3' === tinymce.majorVersion ) ? 'mceAddControl' : 'mceAddEditor';
-
 					// initialize default editor at required selector
 					tinyMCE.execCommand( mceAddCommand, false, this.handle );
 					te = tinyMCE.editors[this.handle];
@@ -5701,6 +5696,7 @@ jQuery(function () {
 						editor      = te.editorContainer.id,
 						$activeForm = jQuery( '#' + editor ).closest( '.livepress-update-form' ),
 						content     = $domcontent.html();
+
 					var sourceContent = content;
 					/**
 					 * Handle the livepress_metainfo shortcode if present, including headline and timestamp
@@ -5748,7 +5744,6 @@ jQuery(function () {
 						headerChunks = metaInfo.split('timestamp="');
 						if ('undefined' !== typeof headerChunks[1]) {
 							var timestamp = headerChunks[1].split('"')[0];
-							console.log('storing timestamp ' + timestamp);
 							$formHeader.data('timestamp', "" + timestamp);
 						}
 						// Extract the authors setting
@@ -5809,7 +5804,6 @@ jQuery(function () {
 
 
 					$activeForm.find( '.liveupdate-byline' ).select2( 'data', theAuthors );
-
 					var $content = jQuery( jQuery.parseHTML( sourceContent ) );
 
 					/**
@@ -5829,16 +5823,16 @@ jQuery(function () {
 
 					if( 0 < content.indexOf( '[/livepress_metainfo' ) ){
 						var bits = content.split('[/');
-
 						content = bits[0].replace(/<p>/g,'').replace(/<\/p>/g,'').replace(/<div.*hidden">/g,'');
-
 					}else{
 						content = $domcontent.find( '.livepress-update-inner-wrapper' ).html();
-
 					}
 
 					// Reset the editor with the cleaned content
 					$domcontent.html( content );
+                    // flip the editor to make sure is loads and renders
+                    switchEditors.go( 'content', 'toggle');
+                    switchEditors.go( 'content', 'toggle');
 					/**
 					 * Add onchange and ctrl-click event handlers for the editor
 					 */
@@ -6129,12 +6123,18 @@ jQuery(function () {
 				 * replaces given element with formatted text update
 				 */
 				displayContent: function (el) {
-					var $newPost = $j(this.originalHtmlContent);
-					$newPost.data("nonExpandedContent", this.originalContent);
-					$newPost.data("originalContent", this.originalHtmlContent);
+
+                    var originalHtmlContent = ( 'string' === typeof( this.originalHtmlContent ) )? this.originalHtmlContent : this.originalHtmlContent.outerHTML  || new XMLSerializer().serializeToString( this.originalHtmlContent ) ;
+
+					var $newPost = $j(originalHtmlContent);
+					$newPost.data("nonExpandedContent", this.originalContent );
+					$newPost.data("originalContent", this.originalContent );
+                    $newPost.data("originalHtmlContent", originalHtmlContent );
                     $newPost.data("originalId", this.originalId);
 					$newPost.attr('editStyle', ''); // on cancel, disable delete mode
+
 					try { window.twttr.widgets.load( $newPost[0] ); } catch ( e ) {}
+
 					$newPost.insertAfter(el);
 					el.remove();
 					this.addListeners($newPost);
@@ -6238,10 +6238,11 @@ jQuery(function () {
 				 * Modifies livepress-tiny.
 				 */
 				onCancel:       function () {
-					console.log('onCancel()');
-					var newContent = Helper.getProcessedContent(tinyMCE.editors[this.handle]);
-					var check = true;
+
+				//	var newContent = Helper.getProcessedContent(tinyMCE.editors[this.handle]);
+				//	var check = true;
 					tinyMCE.execCommand('mceRemoveControl', false, this.handle);
+
 					this.displayContent(this.$form);
 					tinyMCE.remove( tinyMCE.editors[this.handle] );
 
@@ -6327,7 +6328,7 @@ jQuery(function () {
 				 * _(public)_ Builds and enabled main micro post form.
 				 */
 				var showMicroPostForm = function (cnt) {
-					console.log('Show micro post form');
+
 					// if MicroPost form doesn't exist
 					// add new micropost form
 					microPostForm = new Selection('new', cnt);
@@ -6343,7 +6344,7 @@ jQuery(function () {
 				};
 
 				var addPost = function (data) {
-					console.log('addPost(data)');
+
 					if (data.replace(/<p>\s*<\/p>/gi, "") === '') {
 						return false;
 					}
@@ -6694,9 +6695,9 @@ jQuery(function () {
 								sty = "";
 							}
 							var proc = reg.prefix + reg.proceed + reg.suffix;
-							var origproc = reg.origproc===undefined ? proc : reg.origproc;
+							var origproc = reg.origproc === undefined ? proc : reg.origproc;
 							var $block = $j(proc);
-							var orig = reg.orig===undefined ? reg.content : reg.orig;
+							var orig = reg.orig === undefined ? reg.content : reg.orig;
 							$block.data("nonExpandedContent", reg.content);
 							$block.data("originalContent", orig);
 							$block.data("originalHtmlContent", origproc);
@@ -6735,6 +6736,8 @@ jQuery(function () {
 								}
 								if (!isEditing()) {
 									var style = this.getAttribute( 'editStyle' );
+
+
 
 									var Sel = new Selection( 'del' === style ? 'deleting' : 'editing', this);
 									Sel.$form.insertAfter( this );
@@ -6914,7 +6917,6 @@ jQuery(function () {
 				target = target.parentNode;
 			}
 
-			console.log('handle intent');
 
 			if (target && target.nodeName.toLowerCase() === 'a' && target.href) {
 				m = target.href.match(intentRegex);

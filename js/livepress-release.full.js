@@ -1,6 +1,6 @@
 /*! livepress -v1.2.2
  * http://livepress.com/
- * Copyright (c) 2014 LivePress, Inc.
+ * Copyright (c) 2015 LivePress, Inc.
  */
 var Livepress = Livepress || {};
 
@@ -1147,7 +1147,7 @@ Livepress.Ui.View = function (disable_comments) {
 	// Live notifications
 	//
 	this.comment_alert = function (options, date) {
-		console.log('Comment alert', options);
+
 		var container = jQuery("<div>");
 		var dateEl = jQuery("<abbr>").attr("class", "timeago").attr("title", date).text(date.replace(/Z/, " UTC"));
 		container.append(dateEl);
@@ -1451,16 +1451,18 @@ Livepress.Ui.ReactButton = function (type, update) {
 				} else {
 					twitterLink
 						.done( function( data ){
-							window.open( 'https://twitter.com/intent/tweet?text=' + description + ( ( 'undefined' !== typeof data.data ) ? data.data.shortlink : Livepress.getUpdatePermalink( update.id ) ), "Twitter", options );
+                            var twitter_popup = window.open( 'about:blank' , "Twitter", options );
+                            twitter_popup.location = 'https://twitter.com/intent/tweet?text=' + description + ( ( 'undefined' !== typeof data.data ) ? data.data.shortlink : Livepress.getUpdatePermalink( update.id ) );
 							var re = /livepress-update-([0-9]+)/,
-								update_id = re.exec(update.id)[1];
+								update_id = re.exec( update.id )[1];
 							if ( 'undefined' !== typeof data.data ) {
 								Livepress.updateShortlinksCache[update_id] = data.data.shortlink;
 							}
 						})
 						// Fallback to full URL
 						.fail( function() {
-							window.open( 'https://twitter.com/intent/tweet?text=' + description + Livepress.getUpdatePermalink( update.id ), "Twitter", options );
+                            var twitter_popup = window.open( 'about:blank' , "Twitter", options );
+                            twitter_popup.location = 'https://twitter.com/intent/tweet?text=' + description + Livepress.getUpdatePermalink( update.id );
 						});
 				}
 			});
@@ -1511,7 +1513,6 @@ Livepress.Ui.ReactButton = function (type, update) {
 					i.hide();
 					u
 						.done( function( data ) {
-							console.log( data.data.shortlink );
 							i.show();
 							i.attr( 'value', '' + ( 'undefined' !== typeof data.data ) ? data.data.shortlink : Livepress.getUpdatePermalink( update.id ) );
 						})
@@ -1778,7 +1779,6 @@ Livepress.DOMManipulator.prototype = {
 							jQuery( document ).trigger( 'live_post_update' );
 						}
 					);
-					console.log('loading twitter');
 					window.twttr.widgets.load(el);
 				} catch ( e ) {}
 			} else {
@@ -2088,9 +2088,7 @@ Livepress.DOMManipulator.prototype = {
 			var inFilteredList = false,
 				$insertedtags  = $livetags.find( '.live-update-livetag' );
 
-			jQuery.each( $insertedtags, function( index, tag ) {
-				console.log( tag );
-			});
+
 			// iterate thru the update tags, checking if any match any active tag
 			jQuery.each( $insertedtags, function( index, tag ) {
 				target = jQuery( tag ).attr( 'class' );
@@ -2892,7 +2890,7 @@ Livepress.Ui.Controller = function (config, hooks) {
 			dateString = date.toISOString(),
 			abbr       = '<abbr class="livepress-timestamp" title="' + dateString +'"></abbr>';
 
-		console.log("post_update with data = ", data);
+
         if ('op' in data && data.op === 'broadcast') {
             var broadcast = JSON.parse(data.data);
             if('shortlink' in broadcast) {
@@ -2974,7 +2972,6 @@ Livepress.Ui.Controller = function (config, hooks) {
 
 	var firstRun = true;
 	function bindPageActivity () {
-		console.log( 'bindPageActivity' );
 		var animateLateUpdates = function () {
 			var updates = jQuery(".unfocused-lp-update");
 			var old_bg = updates.data("oldbg") || "#FFF";
@@ -2999,7 +2996,6 @@ Livepress.Ui.Controller = function (config, hooks) {
 
 		var $livediv = jQuery( '#post_content_livepress' ),
 			liveTags = $livediv.data( 'livetags' );
-			console.log( liveTags );
 			if ( '' !== liveTags ) {
 				post_dom_manipulator.addLiveTagControlBar();
 				var allTags = liveTags.split( ',' );
@@ -3330,7 +3326,6 @@ Livepress.Ready = function () {
 		// Adjust the positioning of the first post to pin it to the top
 		var adjustTopPostPositioning = function() {
 
-			window.console.log( 'adjust top' );
 			$lpcontent    = jQuery( '.livepress_content' );
 			$firstUpdate  = $lpcontent.find( '.pinned-first-live-update' );
 			// keep at the top of the list
@@ -3353,7 +3348,6 @@ Livepress.Ready = function () {
 
 		// Adjust the top position whenever the post is updated so it fits properly
 		jQuery( document ).on( 'live_post_update', function(){
-			console.log ('live_post_update triggered' );
 			setTimeout( adjustTopPostPositioning, 50 );
 			// Rerun in 2 seconds to account fo resized embeds
 			//setTimeout( adjustTopPostPositioning, 2000 );
@@ -4001,28 +3995,40 @@ this.createjs=this.createjs||{},function(){var a=createjs.SoundJS=createjs.Sound
 /*global LivepressConfig, Livepress, soundManager, console */
 Livepress.sounds = (function () {
 	var soundsBasePath = LivepressConfig.lp_plugin_url + "sounds/";
-	var soundOn = ( 1 == LivepressConfig.sounds_default );
-	var sounds = {};
+	var soundOn         = ( 1 == LivepressConfig.sounds_default );
+	var sounds          = {};
+    var soundsLoaded    = false;
 
 	// Sound files
 	var vibeslr = 'vibes_04-04LR_02-01.mp3';
 	var vibesshort = 'vibes-short_09-08.mp3';
 	var piano16 = 'piano_w-pad_01-16M_01-01.mp3';
 	var piano17 = 'piano_w-pad_01-17M_01.mp3';
-  var manager = createjs.Sound;
-  var timeoutId = 0;
+
+    var manager = createjs.Sound;
+    var timeoutId = 0;
 
 	manager.alternateExtensions = ["mp3"];
 
-	manager.registerSound(soundsBasePath + vibeslr, "commentAdded", 1);
-	manager.registerSound(soundsBasePath + vibeslr, "firstComment", 1);
-	manager.registerSound(soundsBasePath + vibesshort, "commentReplyToUserReceived", 1);
-	manager.registerSound(soundsBasePath + vibeslr, "commented", 1);
-	manager.registerSound(soundsBasePath + piano17, "newPost", 1);
-	manager.registerSound(soundsBasePath + piano16, "postUpdated", 1);
+    sounds.loadSounds = function() {
+        manager.registerSound(soundsBasePath + vibeslr, "commentAdded", 1);
+        manager.registerSound(soundsBasePath + vibeslr, "firstComment", 1);
+        manager.registerSound(soundsBasePath + vibesshort, "commentReplyToUserReceived", 1);
+        manager.registerSound(soundsBasePath + vibeslr, "commented", 1);
+        manager.registerSound(soundsBasePath + piano17, "newPost", 1);
+        manager.registerSound(soundsBasePath + piano16, "postUpdated", 1);
+        soundsLoaded = true;
+    };
+
+    if( soundOn ){
+        sounds.loadSounds();
+    }
 
 	sounds.on = function () {
 		soundOn = true;
+        if( false === soundsLoaded ){
+            sounds.loadSounds();
+        }
 	};
 
 	sounds.off = function () {

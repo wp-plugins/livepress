@@ -60,6 +60,8 @@ class LivePress_Post {
 	 */
 	private function parse_content() {
 		$content = stripslashes($this->content);
+		// just incase we get bad HTML
+		$content = balanceTags( $content, true );
 		$dom = new DOMDocument();
 		$xml = $this->get_valid_xml($content);
 		// Suppress XML parse warnings
@@ -69,6 +71,7 @@ class LivePress_Post {
 		// Restore previous error handling setting
 		libxml_use_internal_errors( $previous_libxml_use_internal_errors_value );
 		if (!$parse_success) {
+
 			$dom->loadHTML( $content );
 		}
 		return $dom;

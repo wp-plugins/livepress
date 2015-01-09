@@ -1,6 +1,6 @@
 /*! livepress -v1.2.2
  * http://livepress.com/
- * Copyright (c) 2014 LivePress, Inc.
+ * Copyright (c) 2015 LivePress, Inc.
  */
 var Livepress = Livepress || {};
 
@@ -1027,7 +1027,6 @@ Livepress.DOMManipulator.prototype = {
 							jQuery( document ).trigger( 'live_post_update' );
 						}
 					);
-					console.log('loading twitter');
 					window.twttr.widgets.load(el);
 				} catch ( e ) {}
 			} else {
@@ -1337,9 +1336,7 @@ Livepress.DOMManipulator.prototype = {
 			var inFilteredList = false,
 				$insertedtags  = $livetags.find( '.live-update-livetag' );
 
-			jQuery.each( $insertedtags, function( index, tag ) {
-				console.log( tag );
-			});
+
 			// iterate thru the update tags, checking if any match any active tag
 			jQuery.each( $insertedtags, function( index, tag ) {
 				target = jQuery( tag ).attr( 'class' );
@@ -1984,7 +1981,7 @@ Dashboard.Helpers = Dashboard.Helpers || new DHelpers();
 var Collaboration = Livepress.ensureExists(Collaboration);
 Collaboration.chat_topic_id = function () {
 	var topic = Collaboration.post_topic() + "_chat";
-	console.log("Collaboration.chat_topic evaluation -- " + topic);
+	//console.log("Collaboration.chat_topic evaluation -- " + topic);
 	return topic;
 };
 
@@ -2061,7 +2058,7 @@ Collaboration.Chat = {
 				$chatinput.width($dialogue.width() - bw - 20);
 			};
 
-			console.log(this, this.html);
+
 			jQuery('<div id="livepress-chat-window" title="' + lp_strings.live_press + ' <span>' + lp_strings.live_chat + '</span>">' + this.html + '</div>')
 				.dialog({
 					/*position: 'right',*/
@@ -2268,7 +2265,7 @@ jQuery.extend(Collaboration.Edit, {
 	},
 
 	readers_callback: function (data) {
-		console.log("Collaboration.readers_callback data -- " + data);
+		//console.log("Collaboration.readers_callback data -- " + data);
 		OORTLE.Livepress.LivepressHUD.updateReaders(data.count);
 	}
 });
@@ -2291,7 +2288,7 @@ Collaboration.connected = function () {
 		Dashboard.Helpers.hideErrors();
 		Dashboard.Helpers.setSwitcherState('connected');
 
-		console.log("Collaboration.connected");
+		//console.log("Collaboration.connected");
 	}
 };
 
@@ -2308,7 +2305,7 @@ Collaboration.disconnected = function () {
 		Dashboard.Helpers.handleErrors({ disconnected: Collaboration.errorMessages.disconnected });
 		Dashboard.Helpers.setSwitcherState('disconnected');
 
-		console.log("Collaboration.disconnected");
+		//console.log("Collaboration.disconnected");
 	}
 };
 
@@ -2409,7 +2406,7 @@ if (Dashboard.Comments === undefined) {
 		};
 
 		var approved_comment_callback = function (data) {
-			console.log("Collaboration.approved_comment_callback");
+			//console.log("Collaboration.approved_comment_callback");
 			data.status = 'approved';
 			new_comment_callback(data);
 		};
@@ -2499,7 +2496,7 @@ if (Dashboard.Comments === undefined) {
 					data:     params,
 
 					success: function (data, textStatus) {
-						console.log("Collaboration.comments_number -- " + data);
+						//console.log("Collaboration.comments_number -- " + data);
 						OORTLE.Livepress.LivepressHUD.updateComments(data);
 					}
 				});
@@ -4711,7 +4708,6 @@ var Livepress = Livepress || {};
 			return true;
 		};
 		var loadScript = function (idx, only) {
-			console.log( 'loadScript' );
 			if (idx >= scripts.length) {
 				return false;
 			}

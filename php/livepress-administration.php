@@ -291,12 +291,13 @@ class LivePress_Administration {
 		$blogging_tools = new LivePress_Blogging_Tools();
 		$live_posts = $blogging_tools->get_all_live_posts();
 		// Go thru each live post
+		// code used in livepress_cli.php
 		foreach( $live_posts as $the_post ){
 			// Merge children posts
 			$lp_updater->merge_children( $the_post );
 			// Turn off live
 			$blogging_tools->set_post_live_status( $the_post, false );
-			
+
 		}
 
 	}
@@ -475,7 +476,7 @@ class LivePress_Administration {
 						add_query_arg( $api_params, LP_STORE_URL ),
 						'',    /* fallback value */
 						5,     /* threshold */
-						1,     /* timeout */
+						10,     /* timeout */
 						20,    /* retry */
 						array( 'reject_unsafe_urls' => false )
 					);
