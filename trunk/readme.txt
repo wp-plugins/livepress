@@ -2,7 +2,7 @@
 Requires at least: 3.5
 Tested up to: 4.1.0
 Tags: LivePress, live, live blogging, liveblogging, realtime, collaboration, Twitter
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 
 LivePress is a hosted live blogging solution that integrates seamlessly with your WordPress blog.
 
@@ -118,6 +118,14 @@ apply_filters( 'livepress_the_content_filter_disabled', '__return_true' );
 2. New update sent -- it appears for all readers of this post at the same time.
 
 == Changelog ==
+
+= 1.2.2 =
+* WP CLI commands to manage posts
+* removed JS console.log calls
+* Increased the timeout for vip_safe_wp_remote_get calls from 1 to 10
+* Did some work to allow the twitter popup to still work if the calling Ajax call is slow
+* Other small bug fixes
+* test on WordPress 4.1
 
 = 1.2.1 =
 * removed src files from plugin

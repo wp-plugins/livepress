@@ -1,6 +1,6 @@
 /*! livepress -v1.2.2
  * http://livepress.com/
- * Copyright (c) 2014 LivePress, Inc.
+ * Copyright (c) 2015 LivePress, Inc.
  */
 jQuery.fn.placeholder = function (def_width) {
 	function placeholder_is_supported () {
