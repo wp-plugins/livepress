@@ -1,10 +1,7 @@
 <?php
 /*
- * Plugin Name: Livepress
- * Description: live blog wp-cli commands.
- * Version: 0.1
- * Author: livepress.com
- * Author URI: http://livepress.com/
+ * Livepress
+ * live blog wp-cli commands.
  */
 // code by Paul Bearne
 
