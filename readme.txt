@@ -2,7 +2,7 @@
 Requires at least: 3.5
 Tested up to: 4.1.0
 Tags: LivePress, live, live blogging, liveblogging, realtime, collaboration, Twitter
-Stable tag: 1.2.2
+Stable tag: 1.2.3
 
 LivePress is a hosted live blogging solution that integrates seamlessly with your WordPress blog.
 
@@ -118,6 +118,10 @@ apply_filters( 'livepress_the_content_filter_disabled', '__return_true' );
 2. New update sent -- it appears for all readers of this post at the same time.
 
 == Changelog ==
+
+= 1.2.3 =
+* removed comment block that was creating and install error
+* Added text domain detail to plugin Comment block
 
 = 1.2.2 =
 * WP CLI commands to manage posts
