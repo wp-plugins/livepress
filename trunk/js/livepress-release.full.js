@@ -3322,41 +3322,61 @@ Livepress.Ready = function () {
 
 	if ( jQuery( '.lp-status' ).hasClass( 'livepress-pinned-header' ) ) {
 
-		jQuery( '.livepress_content' ).find( '.livepress-update:first' ).addClass( 'pinned-first-live-update' );
+        jQuery( '.livepress_content' ).find( '.livepress-update:first' ).addClass( 'pinned-first-live-update' );
+
+		var movePinnedPost = function(){
+            //remove so we don't end up lots of content
+            jQuery( '#livepress  > .pinned-first-live-update' ).remove();
+            $lpcontent    = jQuery( '.livepress_content' );
+            $firstUpdate  = $lpcontent.find( '.pinned-first-live-update' );
+            $livepressBar = jQuery( '#livepress' );
+            $firstUpdate.hide();
+            // clone the hidden content
+            $firstUpdate.clone().prependTo( $livepressBar ).show();
+            //remove any diff copied
+            jQuery( '#livepress  > .pinned-first-live-update.oortle-diff-removed' ).remove();
+        };
+        // recopy whenever the post is updated
+        jQuery( document ).on( 'live_post_update', function(){
+            setTimeout( movePinnedPost, 50 );
+        });
+        setTimeout( movePinnedPost, 50 );
+
 		// Adjust the positioning of the first post to pin it to the top
 		var adjustTopPostPositioning = function() {
 
-			$lpcontent    = jQuery( '.livepress_content' );
-			$firstUpdate  = $lpcontent.find( '.pinned-first-live-update' );
+			//$lpcontent    = jQuery( '.livepress_content' );
+			//$firstUpdate  = $lpcontent.find( '.pinned-first-live-update' );
 			// keep at the top of the list
-			$firstUpdate.detach().prependTo( $lpcontent );
-			$firstUpdateContainer = $lpcontent.parent();
-			$firstUpdate.css( 'marginTop', 0 );
-			$livepressBar = jQuery( '#livepress' );
-			$livepressBar.css( 'marginTop', 0 );
-			diff = $firstUpdate.offset().top - $firstUpdateContainer.offset().top;
-			$heightOfFirstUpdate = ( $firstUpdate.outerHeight() + 20 );
-			$firstUpdate.css( {
-				'margin-top': '-' + ( diff + $heightOfFirstUpdate ) + 'px',
-				'position': 'absolute',
-				'width' : ( $livepressBar.outerWidth() ) + 'px'
-			} );
-			$livepressBar.css( { 'margin-top': $heightOfFirstUpdate + 'px' } );
+            //$livepressBar = jQuery( '#livepress' );
+            //$livepressBar.find( '.pinned-first-live-update').remove();
+			//$firstUpdate.clone().prependTo( $livepressBar );
+			//$firstUpdateContainer = $lpcontent.parent();
+			//$firstUpdate.css( 'marginTop', 0 );
+			//$livepressBar.css( 'marginTop', 0 );
+			//diff = $firstUpdate.offset().top - $firstUpdateContainer.offset().top;
+			//$heightOfFirstUpdate = ( $firstUpdate.outerHeight() + 20 );
+			//$firstUpdate.css( {
+			//	'margin-top': '-' + ( diff + $heightOfFirstUpdate ) + 'px',
+			//	'position': 'absolute',
+			//	'width' : ( $livepressBar.outerWidth() ) + 'px'
+			//} );
+		//	$livepressBar.css( { 'margin-top': $heightOfFirstUpdate + 'px' } );
 		};
 
-		adjustTopPostPositioning();
+	//	adjustTopPostPositioning();
 
 		// Adjust the top position whenever the post is updated so it fits properly
-		jQuery( document ).on( 'live_post_update', function(){
-			setTimeout( adjustTopPostPositioning, 50 );
-			// Rerun in 2 seconds to account fo resized embeds
-			//setTimeout( adjustTopPostPositioning, 2000 );
-		});
+	//	jQuery( document ).on( 'live_post_update', function(){
+	////		setTimeout( adjustTopPostPositioning, 50 );
+	//		// Rerun in 2 seconds to account fo resized embeds
+	//		//setTimeout( adjustTopPostPositioning, 2000 );
+	//	});
 
 		// Adjust the top positioning whenever the browser is resized to adjust sizing correctly
-		jQuery( window ).on( 'resize', throttle ( function() {
-			adjustTopPostPositioning();
-		}, 500 ) );
+		//jQuery( window ).on( 'resize', throttle ( function() {
+		//	adjustTopPostPositioning();
+		//}, 500 ) );
 	}
 	return new Livepress.Ui.Controller(LivepressConfig, hooks);
 };

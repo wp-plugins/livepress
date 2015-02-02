@@ -222,7 +222,7 @@ class LivePress_Live_Update {
 		$metainfo = str_replace( '###TIME###', apply_filters('livepress_meta_info_template_time', $time_info, $timestring ), $metainfo );
 
 		$header = '';
-		if ($update_header) {
+		if ( $update_header ) {
 			$metainfo .= '<span class="livepress-update-header">' . wptexturize( urldecode( $update_header ) ) . "</span> ";
 		}
 
@@ -337,7 +337,6 @@ class LivePress_Live_Update {
 
 
 		$new_shortcode .= "]";
-
 		// Replace empty livepress_metainfo with calculated one
 		$content = preg_replace('/\[livepress_metainfo[^\]]*]/s', $new_shortcode,  $content . PHP_EOL);
 

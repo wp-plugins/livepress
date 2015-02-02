@@ -4755,6 +4755,7 @@ jQuery(function () {
 				inittedOnce,
 				username,
 				Helper,
+                draft = false,
 				livePressChatStarted = false,
 				placementOrder = config.placement_of_updates,
 
@@ -5017,12 +5018,18 @@ jQuery(function () {
 					if ( jQuery( this ).hasClass( 'active' ) ){
 						return;
 					}
-					var currentEditorId = jQuery( this).attr('data-editor');
+                    console.log('a.switch-livepress 1023');
+                    var current_content = '';
 					if ( 'undefined' === typeof editor ) {
+                        current_content = tinyMCE.activeEditor.getContent();
 						switchEditors.go( 'content', 'toggle');
+                        tinyMCE.activeEditor.setContent( current_content );
 					} else {
-						e = tinymce.get( currentEditorId ) ;
+                        var currentEditorId = jQuery(this).attr('data-editor');
+                        current_content = tinyMCE.get(currentEditorId).getContent();
+                        e = tinyMCE.get( currentEditorId );
 						e.show();
+                        e.setContent( current_content );
 					}
 					window.eeTextActive = false;
 					var parent_div = jQuery( this ).parent('.livepress-inline-editor-tabs');
@@ -5035,6 +5042,7 @@ jQuery(function () {
 						return;
 					}
 					var currentEditorId = jQuery( this).attr('data-editor');
+                    console.log( currentEditorId );
 					switchEditors.go( currentEditorId, 'html');
 
 					window.eeTextActive = true;
@@ -5089,7 +5097,7 @@ jQuery(function () {
 				 * @param {Object} additional Additional parameters to send with the request
 				 * @return {Object} jQuery.
 				 */
-				SELF.ajaxAction = function (action, content, callback, additional) {
+				SELF.ajaxAction = function( action, content, callback, additional ) {
 					return jQuery.ajax({
 						type:     "POST",
 						url:      LivepressConfig.ajax_url,
@@ -5100,8 +5108,8 @@ jQuery(function () {
 						}, additional || {}),
 						dataType: "json",
 						success:  callback,
-						error:    function (jqXHR, textStatus, errorThrown) {
-							callback.apply(jqXHR, [undefined, textStatus, errorThrown]);
+						error:    function( jqXHR, textStatus, errorThrown ) {
+							callback.apply( jqXHR, [undefined, textStatus, errorThrown] );
 						}
 					});
 				};
@@ -5138,6 +5146,27 @@ jQuery(function () {
 					return SELF.ajaxAction( 'lp_append_post_update', content, callback, args);
 				};
 
+                /**
+                 * Append a new post update.
+                 *
+                 * @param {String} content Content to append.
+                 * @param {Function} callback Function to invoke after processing.
+                 * @param {String} title Title of the update.
+                 * @returns {Object} jQuery
+                 */
+                SELF.appendPostDraft = function (content, callback, title) {
+                    var args = (title === undefined) ? {} : {title: title};
+                    args.liveTags    = this.getCurrentLiveTags();
+                    args.authors    = this.getCurrentAuthors();
+                    args._ajax_nonce = NONCES.data('append-nonce');
+
+                    jQuery('.peeklink span, .peekmessage').removeClass('hidden');
+                    jQuery('.peek').addClass('live');
+                    jQuery( window ).trigger( 'livepress.post_update' );
+                    window.setTimeout( update_embeds, 3000 );
+                    return SELF.ajaxAction( 'lp_append_post_draft', content, callback, args);
+                };
+
 				/**
 				 * Modify a specific post update.
 				 *
@@ -5150,6 +5179,19 @@ jQuery(function () {
 					var nonce = NONCES.data('change-nonce');
 					return SELF.ajaxAction('lp_change_post_update', content, callback, {update_id: updateId, _ajax_nonce: nonce});
 				};
+
+                /**
+                 * Modify a specific post update.
+                 *
+                 * @param {string} updateId ID of the update to change.
+                 * @param {String} content Content with which to modify the update.
+                 * @param {Function} callback Function to invoke after processing.
+                 * @returns {Object} jQuery
+                 */
+                SELF.changePostDraft = function (updateId, content, callback) {
+                    var nonce = NONCES.data('change-nonce');
+                    return SELF.ajaxAction('lp_change_post_draft', content, callback, {update_id: updateId, _ajax_nonce: nonce});
+                };
 
 				/**
 				 * Remove a post update.
@@ -5165,6 +5207,7 @@ jQuery(function () {
 
 				/**
 				 * Get text from the editor, but preprocess it the same way WordPress does first.
+                 * ready to be sent to server
 				 *
 				 * @param {Object} editor TinyMCE editor instance.
 				 * @returns {String} Preprocessed text from editor.
@@ -5270,7 +5313,6 @@ jQuery(function () {
 							}
 						}
 					}
-
 
 					return processed;
 				};
@@ -5386,7 +5428,6 @@ jQuery(function () {
 					var show_timestmp =  $liveUpdateHeader.data( 'show_timestmp' );
 
 
-
 					if ( '1' === show_timestmp ) {
 						var time      = $liveUpdateHeader.data( 'time' ),
 							timestamp = $liveUpdateHeader.data( 'timestamp' );
@@ -5400,7 +5441,6 @@ jQuery(function () {
 						if ( 'undefined' !== typeof timestamp ) {
 							metainfo += ' timestamp="' + timestamp + '"';
 						}
-
 
 
 					} else {
@@ -5449,8 +5489,6 @@ jQuery(function () {
 					}
 
 
-
-
 					return metainfo;
 				};
 
@@ -5496,6 +5534,8 @@ jQuery(function () {
 				SELF.handle = namespace + '-tiny' + (+new Date());
 
 				SELF.mode = mode;
+
+                SELF.draft = jQuery(el).hasClass( 'livepress-draft');
 
 				if (SELF.mode === 'new') {
 					SELF.originalContent = "";
@@ -5557,7 +5597,6 @@ jQuery(function () {
 					.end()
 					// running it this way is required since we don't have Function.bind
 					.on( 'submit', function () {
-						SELF.te.show();
 						SELF.onSave();
 						SELF.resetFormFieldStates( SELF );
 						return false;
@@ -5565,8 +5604,8 @@ jQuery(function () {
 				SELF.$form.attr('id', SELF.originalUpdateId);
 				SELF.$form.data('originalId', SELF.originalId);
 				SELF.$form.addClass('livepress-update-form');
-				if (mode === 'new') {
-					SELF.$form.find('input.button:not(.primary)').remove();
+				if ( mode === 'new' ) {
+					SELF.$form.find('input.button.save').remove();
 					SELF.$form.find('a.livepress-delete').remove();
 					SELF.$form.addClass(namespace + '-newform');
 					if ($j('#post input[name=original_post_status]').val() !== 'publish') {
@@ -5576,7 +5615,16 @@ jQuery(function () {
 						SELF.$form.find('input.notpublished').remove();
 					}
 				} else {
-					SELF.$form.find('.primary.button-primary').remove();
+
+                    if(SELF.draft){
+                        SELF.$form.find('input.save').remove();
+                        SELF.$form.find('.primary.published').remove();
+                        SELF.$form.addClass('livepress-draft');
+                    }else{
+                        SELF.$form.find('.primary.button-primary').remove();
+                        SELF.$form.find('.button-secondary.livepress-draft').remove();
+                    }
+
 					SELF.$form.find('.livepress-timestamp-option').remove();
 					if (mode === 'deleting') {
 						SELF.$form.addClass(namespace + '-delform');
@@ -5613,6 +5661,7 @@ jQuery(function () {
 				 */
 				mode:        null,
 
+
 				/*
 				 * variable: formLayout
 				 */
@@ -5629,12 +5678,13 @@ jQuery(function () {
 					'</div>',
 					'<div class="livepress-byline">' + lp_strings.live_update_byline + ' <input type="text" data-name="' + LivepressConfig.author_display_name + '" data-id="' + LivepressConfig.author_id + '" autocomplete="off" style="width: 70%; float: right; margin-left: 5px;" class="liveupdate-byline" name="liveupdate-byline" id="liveupdate-byline" /></div>',
 					'<div class="livepress-timestamp-option"><input type="checkbox" checked="checked" /> ' + lp_strings.include_timestamp + '</div>',
-					'<br /><a href="#" class="livepress-delete" data-action="delete">' + lp_strings.delete_perm + '</a>',
-					'<span class="quick-publish">' + lp_strings.ctrl_enter + '</span>',
+					'<div class="livepress-actions"><a href="#" class="livepress-delete" data-action="delete">' + lp_strings.delete_perm + '</a>',
+                    '<input class="livepress-draft button button-secondary" type="button" value="' + lp_strings.draft + '" data-action="draft" />',
 					'<input class="livepress-cancel button button-secondary" type="button" value="' + lp_strings.cancel + '" data-action="cancel" />',
-					'<input class="livepress-update button button-primary" type="submit" value="' + lp_strings.save + '" data-action="update" />',
+					'<input class="livepress-update button button-primary save" type="submit" value="' + lp_strings.save + '" data-action="update" />',
 					'<input class="livepress-submit published primary button-primary" type="submit" value="' + lp_strings.push_update + '" data-action="update" />',
-					'<input class="livepress-submit notpublished primary button-primary" type="submit" value="' + lp_strings.add_update + '" data-action="update" />',
+					'<input class="livepress-submit notpublished primary button-primary" type="submit" value="' + lp_strings.add_update + '" data-action="publish-draft" />',
+                    '<br /><span class="quick-publish">' + lp_strings.ctrl_enter + '</span></div>',
 					'</div>',
 					'<div class="clear"></div>',
 					'</form>'
@@ -5764,7 +5814,6 @@ jQuery(function () {
 					}
 
 
-
 					/**
 					 * Authors
 					 */
@@ -5805,7 +5854,6 @@ jQuery(function () {
 
 					$activeForm.find( '.liveupdate-byline' ).select2( 'data', theAuthors );
 					var $content = jQuery( jQuery.parseHTML( sourceContent ) );
-
 					/**
 					 * Livetags
 					 */
@@ -5823,55 +5871,25 @@ jQuery(function () {
 
 					if( 0 < content.indexOf( '[/livepress_metainfo' ) ){
 						var bits = content.split('[/');
-						content = bits[0].replace(/<p>/g,'').replace(/<\/p>/g,'').replace(/<div.*hidden">/g,'');
+                        content = bits[0].replace(/<div.*hidden">/g, '');
 					}else{
 						content = $domcontent.find( '.livepress-update-inner-wrapper' ).html();
 					}
 
-					// Reset the editor with the cleaned content
-					$domcontent.html( content );
-                    // flip the editor to make sure is loads and renders
-                    switchEditors.go( 'content', 'toggle');
-                    switchEditors.go( 'content', 'toggle');
+                    if( undefined !== content ){
+                        // Reset the editor with the cleaned content
+                        $domcontent.html( content );
+                    }
+
 					/**
 					 * Add onchange and ctrl-click event handlers for the editor
 					 */
 					SELF.setupEditorEventHandlers( te, selection );
 					SELF.te = te;
-					//SELF.setupEditorTabs( te, $activeForm, mceAddCommand );
+
 					return te;
 				},
 
-				/**
-				 * Set up the editor tab interactions
-				 */
-				setupEditorTabs: function( te, $activeForm, mceAddCommand ) {
-
-					var $editorTabs = $activeForm.find( '.wp-editor-tabs' );
-					$editorTabs.find( 'a.switch-livepress' ).off( 'click' ).on( 'click', function( e ) {
-						if ( jQuery( this ).hasClass( 'active' ) ){
-							return;
-						}
-						switchEditors.go( te.id, 'toggle');
-						window.eeTextActive = false;
-						$editorTabs.find( 'a' ).toggleClass( 'active' );
-						return false;
-					});
-
-					$editorTabs.find( 'a.switch-livepress-html' ).off( 'click' ).on( 'click', function( e ) {
-						if ( jQuery( this ).hasClass( 'active' ) ){
-							return;
-						}
-
-						switchEditors.go( te.id, 'toggle');
-						window.eeTextActive = true;
-
-						$editorTabs.find( 'a' ).toggleClass( 'active' );
-						return false;
-					});
-
-
-				},
 
 
 				/**
@@ -5929,52 +5947,6 @@ jQuery(function () {
 					this.$form.remove();
 				},
 
-				/**
-				 * Synchronize content from Real-Time Editor to hidden normal editor.
-				 * Copies full state of currently open editor, including open and not saved yet.
-				 */
-				syncData:       function () { if(false) {
-					var newContent = "",
-						addCnt,
-						t;
-
-					$liveCanvas.find('div.inside:first').children().each(function () {
-						var $this = $j(this),
-							cnt = $this.data('nonExpandedContent'),
-							handle,
-							te;
-
-						if (!cnt) {
-							handle = $this.find("textarea").attr('id');
-							te = tinyMCE.editors[handle];
-							if (handle) {
-								if (te.dom.hasClass(te.dom.getRoot(), 'livepress-del_editor')) {
-									cnt = "";
-								} else {
-									cnt = Helper.getProcessedContent(te);
-								}
-							}
-							if (cnt !== "" && cnt.substr(-1) !== ">" && cnt.substr(-1) !== "\n") {
-								cnt += "\n";
-							}
-						}
-						newContent += cnt;
-					});
-
-					// Handle non-saved update
-					addCnt = Helper.getProcessedContent( tinyMCE.editors[ microPostForm.handle ] );
-					if ( undefined !== addCnt && ! Helper.hasMetainfoShortcodeOnly( addCnt ) ) {
-						if (placementOrder === 'bottom') {
-							newContent = newContent + "\n" + addCnt;
-						} else {
-							newContent = addCnt + "\n" + newContent;
-						}
-					}
-
-					// We take over tinyMCE.editors.content namespace due to wordpress's hardcoding
-					t = tinyMCE.editors.originalContent || tinyMCE.editors.content;
-					t.setContent( switchEditors.wpautop( newContent ), {format: 'raw'} );
-				}},
 
 				/*
 				 * function: mergeData
@@ -6114,6 +6086,15 @@ jQuery(function () {
 						e.preventDefault();
 						this.onDelete();
 						return false;
+					} else if (val === 'draft') {
+                        e.preventDefault();
+                        this.onDraft();
+                        return false;
+                    }
+					else if (val === 'publish-draft') {
+						e.preventDefault();
+						this.onPublishDraft();
+						return false;
 					}
 					// skipped (must be a save)...
 				},
@@ -6126,28 +6107,45 @@ jQuery(function () {
 
                     var originalHtmlContent = ( 'string' === typeof( this.originalHtmlContent ) )? this.originalHtmlContent : this.originalHtmlContent.outerHTML  || new XMLSerializer().serializeToString( this.originalHtmlContent ) ;
 
-					var $newPost = $j(originalHtmlContent);
-					$newPost.data("nonExpandedContent", this.originalContent );
-					$newPost.data("originalContent", this.originalContent );
-                    $newPost.data("originalHtmlContent", originalHtmlContent );
-                    $newPost.data("originalId", this.originalId);
-					$newPost.attr('editStyle', ''); // on cancel, disable delete mode
+					var $newPost = $j( originalHtmlContent );
+					$newPost.data( 'nonExpandedContent', this.originalContent );
+					$newPost.data( 'originalContent', this.originalContent );
+                    $newPost.data( 'originalHtmlContent', originalHtmlContent );
+                    $newPost.data( 'originalId', this.originalId );
+                    $newPost.data( 'draft', this.isDraft );
+					$newPost.attr( 'editStyle', ''); // on cancel, disable delete mode
+                   if( this.isDraft ){
+                        $newPost.addClass( 'livepress-draft' );
+                    }
 
 					try { window.twttr.widgets.load( $newPost[0] ); } catch ( e ) {}
 
 					$newPost.insertAfter(el);
 					el.remove();
-					this.addListeners($newPost);
+					this.addListeners( $newPost );
 					$liveCanvas.data('mode', '');
 					jQuery("abbr.livepress-timestamp").timeago().attr( 'title', '' );
 					return false;
 				},
+                /*
+                 * function: onDraft
+                 * Modifies livepress-tiny.
+                 */
+                onDraft:         function () {
+                    this.onSave( true );
+                },
 
+				/*
+				 * function: onPublishDraft
+				 */
+				onPublishDraft:         function () {
+					this.onSave( 'publish' );
+				},
 				/*
 				 * function: onSave
 				 * Modifies livepress-tiny.
 				 */
-				onSave:         function () {
+				onSave:         function ( isDraft ) {
 					// First, we need to be sure we're toggling the update indicator if they're disabled
 					var $bar = jQuery('#lp-pub-status-bar');
 
@@ -6184,8 +6182,8 @@ jQuery(function () {
 					} else {
 						var $spinner = $j("<div class='lp-spinner'></div>");
 						var $spin = $spinner;
-						var afterUpdate = (function (self) {
-							return function (region) {
+						var afterUpdate = ( function ( self ) {
+							return function ( region ) {
                                 var $target = $liveCanvas.find('div#livepress-update-'+region.id);
                                 // Check, what faster: AJAX answer or oortle publish
                                 if ($target.length > 0) {
@@ -6194,18 +6192,25 @@ jQuery(function () {
                                     self.originalHtmlContent = region.prefix + region.proceed + region.suffix;
                                     self.originalContent = region.content;
                                     self.originalId = region.id;
+
+                                    self.isDraft = ( true === region.update_meta.draft );
                                     self.displayContent($spin);
                                     Collaboration.Edit.update_live_posts_number();
                                 }
 							};
-						}(this));
+						}( this ) );
 						// Save of non-empty update can be:
 						// 1) append from new post form
 						if (this.mode === 'new' /*&& this.handle == microPostForm.handle*/) {
 							var action = placementOrder === 'bottom' ? 'appendTo' : 'prependTo';
 							$spinner[action]($liveCanvas.find('div.inside:first'));
 							tinyMCE.editors[this.handle].setContent("");
-							Helper.appendPostUpdate(newContent, afterUpdate, $j('#title').val());
+                            if( true === isDraft ){
+                                Helper.appendPostDraft(newContent, afterUpdate, $j('#title').val());
+                            }else{
+                                Helper.appendPostUpdate(newContent, afterUpdate, $j('#title').val());
+                            }
+
 						} else
 						// 2) save of newly appended text somewhere [TODO]
 						/*if(this.mode === 'new') {
@@ -6216,7 +6221,14 @@ jQuery(function () {
 							$spinner.insertAfter(this.$form);
 							$spinner.data("nonExpandedContent", newContent); // Make sure syncData works even while spinner active
 							this.$form.remove();
-							Helper.changePostUpdate(this.originalId, newContent, afterUpdate);
+                            if( true === isDraft ){
+                                Helper.changePostDraft(this.originalId, newContent, afterUpdate);
+                            }else if( 'publish' === isDraft ){
+								Helper.appendPostUpdate(newContent, afterUpdate, $j('#title').val());
+							}else{
+								Helper.changePostUpdate(this.originalId, newContent, afterUpdate);
+							}
+
 						}
 					}
 
@@ -6274,8 +6286,8 @@ jQuery(function () {
 				 * function: addListeners
 				 * Adds hover and click events to new / edited posts.
 				 */
-				addListeners:   function ($el) {
-					$el.hover(LiveCanvas.onUpdateHoverIn, LiveCanvas.onUpdateHoverOut);
+				addListeners:   function ( $el ) {
+					$el.hover( LiveCanvas.onUpdateHoverIn, LiveCanvas.onUpdateHoverOut );
 					// Not trigger editing on mebedded elements.
 					$el.find('div').not('.livepress-meta').find('a').on( 'click', function (ev) {
 						ev.stopPropagation();
@@ -6388,7 +6400,6 @@ jQuery(function () {
 						initXhr = null;
 					} else {
 						$j('#post-body-content .livepress-newform,.secondary-editor-tools').hide();
-						microPostForm.syncData();
 						hideMicroPostForm();
 						$liveCanvas.hide();
 						$j('#postdivrich').show();
@@ -6620,8 +6631,14 @@ jQuery(function () {
 							orig[o].content = "";
 							regions[regions.length] = orig[o];
 						}
-						return {"prepend": prepend, "append": append, "changed": changed, "deleted": deleted, "regions": regions};
+                        return {
+                            "prepend": prepend,
+                            "append": append,
+                            "changed": changed,
+                            "deleted": deleted,
+                            "regions": regions
 					};
+                    };
 					var startError = function (error) {
 						var ps = new Livepress.Admin.PostStatus();
                         ps.error(error);
@@ -6738,12 +6755,13 @@ jQuery(function () {
 									var style = this.getAttribute( 'editStyle' );
 
 
-
 									var Sel = new Selection( 'del' === style ? 'deleting' : 'editing', this);
 									Sel.$form.insertAfter( this );
 
 									var editor = Sel.enableTiny( style );
 									editor.show();
+                                    // hack just reload the content to make WP embed hooks in tinyMCE  refesh content to render emeb's
+                                    tinyMCE.get(editor.id).setContent(tinyMCE.get(editor.id).getContent());
 
 									var tab_markup = '<div class="livepress-inline-editor-tabs wp-editor-tabs '+editor.id+'"><a id="content-livepress-html" data-editor="'+editor.id+'" class="hide-if-no-js wp-switch-editor switch-livepress-html"><span class="icon-livepress-logo"></span> ' + lp_strings.text_editor + '</a><a id="content-livepress"  data-editor="'+editor.id+'" class="hide-if-no-js wp-switch-editor switch-livepress active"><span class="icon-livepress-logo"></span> ' + lp_strings.visual_text_editor + '</a></div>';
 									jQuery( tab_markup ).prependTo( Sel.$form );

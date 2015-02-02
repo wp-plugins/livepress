@@ -126,7 +126,6 @@ function livepress_render_dashboard() {
 	if( ! in_array( $post_type, apply_filters( 'livepress_post_types', array( 'post' ) ) ) ) {
 		return;
 	}
-	error_log('add meta box');
 	add_meta_box(
 		'lp-dashboard',
 		esc_html__( 'LivePress Real-time Tools', 'livepress' ),

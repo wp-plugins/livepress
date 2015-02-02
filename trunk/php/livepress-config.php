@@ -157,8 +157,8 @@ class LivePress_Config {
 	 * @param string $option_name
 	 * @return mixed anything that can be saved
 	 */
-	public function get_host_option($option_name) {
-		return get_option($option_name);
+	public function get_host_option( $option_name ){
+		return (false !== get_option( $option_name ) ) ? get_option( $option_name ) : false;
 	}
 
 	/**
