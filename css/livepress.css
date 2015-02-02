@@ -164,8 +164,9 @@
 }
 
 
-.livepress-update.pinned-first-live-update .livepress-meta,
-.livepress-update.pinned-first-live-update .livepress-meta,
+.livepress-update.pinned-first-live-update .livepress-meta > strong,
+.livepress-update.pinned-first-live-update .livepress-update-header-timestamp,
+.livepress-update.pinned-first-live-update .livepress-update-author,
 .livepress-update.pinned-first-live-update .live-update-livetags,
 .livepress-update.pinned-first-live-update .live-update-authors {
 	display: none;
@@ -232,21 +233,19 @@ div.livepress-byline > input {
 	line-height: 18px;
 }
 
-div.livepress-live-tags,
-div.livepress-byline {
+div.livepress-live-tags {
 	float: left;
 	text-align: left;
+	width: 40%;
 }
 
 div.livepress-byline {
 	width: 50%;
 	text-align: right;
 	margin-bottom: 5px;
+	float: right;
 }
 
-div.livepress-live-tags {
-	width: 50%;
-}
 
 div.livepress-update-header > input {
 	width: 100%;

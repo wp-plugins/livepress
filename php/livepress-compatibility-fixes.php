@@ -39,9 +39,19 @@ class LivePress_Compatibility_Fixes {
 		add_filter( 'embed_oembed_html', array( $this, 'lp_embed_oembed_html' ), 1000, 4 );
 		}
 		add_filter( 'the_content', array( $this, 'lp_inject_twitter_script' ), 1000 );
+
+		add_filter( 'tm_coschedule_save_post_callback_filter', array( $this, 'tm_send_post_to_api_filter' ), 10, 2 );
 	}
 
 	// Remove twitter scripts embedded in live post
+	/**
+	 * @param $content
+	 * @param $url
+	 * @param $attr
+	 * @param $post_id
+	 *
+	 * @return mixed
+	 */
 	static function lp_embed_oembed_html($content, $url, $attr, $post_id) {
 		return preg_replace('!<script[^>]*twitter[^>]*></script>!i', '', $content);
 		return $content;
@@ -79,5 +89,28 @@ class LivePress_Compatibility_Fixes {
 			wp_enqueue_script( 'platform-twitter', "//platform.twitter.com/widgets.js", array() );
 		}
 		return $content;
+	}
+
+
+	/**
+	 * Called by filter in the CoSchedule Plugin
+	 * Returns false to stop an update from being posted to the CoSchedule system
+	 * as only parent post needs to be scheduled
+	 *
+	 * @param $state
+	 * @param $post_id
+	 *
+	 * @return bool
+	 */
+	static function tm_send_post_to_api_filter( $state, $post_id ){
+		error_log(' fliter runing' );
+		error_log($post_id);
+		$parent_id = wp_get_post_parent_id( abs( $post_id ) );
+
+		if( LivePress_Updater::instance()->blogging_tools->get_post_live_status( $parent_id ) ){
+			$state = false;
+		}
+		// really make sure that we return a bool
+		return ( false === $state ) ? false : true ;
 	}
 }

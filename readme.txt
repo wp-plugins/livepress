@@ -119,6 +119,12 @@ apply_filters( 'livepress_the_content_filter_disabled', '__return_true' );
 
 == Changelog ==
 
+= 1.2.4 =
+* Added the ability to have drafts for updates
+* Added filter to suppress live updates from showing in the CoSchedule by Todaymade plugin needs Version 2.3.0 of the CoSchedule plugin
+* moved the pinned update about the status bar
+* bug fixes around linefeeds being stripped when changing editor modes
+
 = 1.2.3 =
 * removed comment block that was creating and install error
 * Added text domain detail to plugin Comment block

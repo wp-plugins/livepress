@@ -89,6 +89,10 @@ class LivePress_PF_Updates {
 		add_action( 'wp_ajax_start_ee',              array( $this, 'start_editor' ) );
 		add_action( 'wp_ajax_lp_append_post_update', array( $this, 'append_update' ) );
 		add_action( 'wp_ajax_lp_change_post_update', array( $this, 'change_update' ) );
+
+		add_action( 'wp_ajax_lp_append_post_draft', array( $this, 'append_draft' ) );
+		add_action( 'wp_ajax_lp_change_post_draft', array( $this, 'change_draft' ) );
+
 		add_action( 'wp_ajax_lp_delete_post_update', array( $this, 'delete_update' ) );
 		add_action( 'before_delete_post',            array( $this, 'delete_children' ) );
 		add_action( 'pre_get_posts',                 array( $this, 'filter_children_from_query' ) );
@@ -273,9 +277,12 @@ class LivePress_PF_Updates {
 
 		$response = array();
 		foreach( $this->pieces as $piece ) {
-			$response[] = $piece['prefix'];
-			$response[] = $piece['proceed'];
-			$response[] = $piece['suffix'];
+			$update_meta = $piece['meta'];
+			if( ! is_array( $update_meta ) || ! array_key_exists( 'draft', $update_meta ) || true !== $update_meta['draft'] ){
+				$response[] = $piece['prefix'];
+				$response[] = $piece['proceed'];
+				$response[] = $piece['suffix'];
+			}
 		}
 
 		// Clear the original content if we have live updates
@@ -452,7 +459,7 @@ class LivePress_PF_Updates {
 	 *
 	 * @uses LivePress_PF_Updates::add_update
 	 */
-	public function append_update() {
+	public function append_update( $is_draft = false ) {
 		global $post;
 		check_ajax_referer( 'livepress-append_post_update-' . intval( $_POST['post_id'] ) );
 
@@ -460,30 +467,50 @@ class LivePress_PF_Updates {
 		$user_content = wp_kses_post( wp_unslash( trim( $_POST['content'] ) ) );
 		// grab and escape the live update tags
 		$livetags = isset( $_POST['liveTags'] ) ? array_map( 'esc_attr', $_POST['liveTags'] ) : array();
+
+		if( array_key_exists( 'update_meta', $_POST ) ){
+			$update_meta =  $_POST['update_meta'];
+		}
+		$update_meta['draft'] = ( $is_draft ) ? true : false;
         // $response = $this::add_update($post, $user_content);
         // PHP 5.2 compat static call
-        $response = call_user_func_array( array( $this, 'add_update'), array( $post, $user_content, $livetags ) );
+        $response = call_user_func_array( array( $this, 'add_update'), array( $post, $user_content, $livetags , $update_meta ) );
 
 		header( "Content-type: application/javascript" );
 		echo json_encode( $response );
 		die;
 	}
 
+
+	/**
+	 * Insert a new child post to the current post via AJAX.
+	 *
+	 * @uses LivePress_PF_Updates::add_update
+	 */
+	public function append_draft() {
+		$this->append_update( true );
+	}
 	/**
 	 * Modify an existing update. Basically, replace the content of a child post with some other content.
 	 *
 	 * @uses wp_update_post() Uses the WordPress API to update post content.
 	 */
-	public function change_update() {
+	public function change_update( $is_draft = false ) {
 		global $post;
 		check_ajax_referer( 'livepress-change_post_update-' . intval( $_POST['post_id'] ) );
 
 		$post = get_post( intval( $_POST['post_id'] ) );
 
+		if( array_key_exists( 'update_meta', $_POST ) ){
+			$update_meta = $_POST['update_meta'];
+		}
+		$update_meta['draft'] = $is_draft;
+
+	// 	TODO: allow contrib / authors to save drafts controlled from options
 		if ( ! current_user_can( 'edit_post', $post->ID ) ) {
 			die;
 		}
-
+		$region = false;
 		$update_id = intval( $_POST['update_id'] );
 		$update = $this->get_update( $post->ID, $update_id );
 		if( null == $update ) {
@@ -503,13 +530,24 @@ class LivePress_PF_Updates {
                 $update->post_content = $user_content;
 
                 wp_update_post( $update );
-                $region = $this::send_to_livepress_incremental_post_update('replace', $post, $update);
+	            $region = $this::send_to_livepress_incremental_post_update( 'replace', $post, $update, $update_meta );
+
+
             }
         }
 
 		header("Content-type: application/javascript");
 		echo json_encode( $region );
 		die;
+	}
+
+	/**
+	 * Modify an existing update. Basically, replace the content of a child post with some other content.
+	 *
+	 * @uses wp_update_post() Uses the WordPress API to update post content.
+	 */
+	public function change_draft() {
+		$this->change_update( true );
 	}
 
 	/**
@@ -559,7 +597,7 @@ class LivePress_PF_Updates {
 	 *
 	 * @uses wp_insert_post() Uses the WordPress API to create a new child post.
 	 */
-	public function add_update( $parent, $content, $livetags ) {
+	public function add_update( $parent, $content, $livetags, $update_meta ) {
 		global $current_user, $post;
 		get_currentuserinfo();
 
@@ -602,7 +640,7 @@ class LivePress_PF_Updates {
 			    if ( ! empty( $livetags ) ) {
 			    	wp_add_object_terms( $update, $livetags, 'livetags' );
 			    }
-                $response = $this::send_to_livepress_incremental_post_update($append, $post, $update);
+				$response = $this::send_to_livepress_incremental_post_update( $append, $post, $update, $update_meta );
             }
 		}
 
@@ -661,6 +699,18 @@ class LivePress_PF_Updates {
 		$response = array();
 		// Wrap each child for display
 		foreach( $this->pieces as $piece ) {
+			// skip if draft
+			// this content will only have the current author's draft but we need to skip that
+			$update_meta = $piece['meta'];
+			if (
+				false !== $update_meta &&
+				is_array( $update_meta ) &&
+				array_key_exists( 'draft', $update_meta ) &&
+				true == $update_meta['draft']
+			) {
+				continue;
+			}
+
 			$prefix = sprintf( '<div id="livepress-old-update-%s" class="livepress-old-update">', $piece[ 'id' ] );
 			$response[] = $prefix;
 			$response[] = do_shortcode( $piece[ 'proceed' ] );
@@ -755,7 +805,7 @@ class LivePress_PF_Updates {
      *
      * @return array[] $region Object to send to editor
 	 */
-	protected function send_to_livepress_incremental_post_update( $op, $post, $update ) {
+	protected function send_to_livepress_incremental_post_update( $op, $post, $update, $update_meta ) {
 		if ( ! is_object( $post ) ) {
 			$post = get_post( $post );
 		}
@@ -806,7 +856,7 @@ class LivePress_PF_Updates {
             'edit' => json_encode($region),
         );
 
-        if($op == 'replace') {
+        if( $op == 'replace' ) {
             $message['new_data'] = $region['prefix'].$region['proceed'].$region['suffix'];
         }
         elseif($op == 'delete') {
@@ -817,16 +867,24 @@ class LivePress_PF_Updates {
             $message['data'] = $region['prefix'].$region['proceed'].$region['suffix'];
         }
 
-		try {
-			$job_uuid = $this->lp_comm->send_to_livepress_incremental_post_update( $op, $message );
-			LivePress_WP_Utils::save_on_post( $post->ID, 'status_uuid', $job_uuid );
-		} catch( livepress_communication_exception $e ) {
-			$e->log( 'incremental post update' );
+		if( true !== $update_meta['draft'] ){
+			try {
+				$job_uuid = $this->lp_comm->send_to_livepress_incremental_post_update( $op, $message );
+				LivePress_WP_Utils::save_on_post( $post->ID, 'status_uuid', $job_uuid );
+			} catch( livepress_communication_exception $e ) {
+				$e->log( 'incremental post update' );
+			}
 		}
 
-		// Set the post as having been updated
+
+		// Set the parent post as having been updated
 		$status = array( 'automatic' => 1, 'live' => 1 );
 		update_post_meta( $post->ID, '_livepress_live_status', $status );
+		$region['status'] = $status;
+
+		// add meta to the child update
+		update_post_meta( $update->ID, '_livepress_update_meta', $update_meta );
+		$region['update_meta'] = $update_meta;
 
         return $region;
 	}
@@ -885,8 +943,23 @@ class LivePress_PF_Updates {
 		$live_tags    = array();
 		$update_count = 0;
 		$child_count  = count( $children );
+		$user_id = get_current_user_id();
 		if ( $child_count > 0 ) {
 			foreach( $children as $child ) {
+
+				$update_meta = get_post_meta( $child->ID, '_livepress_update_meta', true );
+				$is_draft = (
+					false !== $update_meta &&
+					is_array( $update_meta ) &&
+					array_key_exists( 'draft', $update_meta ) &&
+					true == $update_meta['draft']
+				) ? true : false;
+
+				// if this is a draft only include the current authors posts
+				if( $is_draft && $user_id !== absint( $child->post_author ) ){
+					continue;
+				}
+
 				$update_count++;
 				$post = $child;
                 list($_, $piece_id, $piece_gen) = explode("__", $child->post_title, 3);
@@ -900,7 +973,7 @@ class LivePress_PF_Updates {
                 }
 				// Grab and integrate any live update tags
 				$update_tags = get_the_terms( $child->ID, 'livetags' );
-				$update_tag_classes = '';
+				$update_tag_classes = ( $is_draft ) ? ' livepress-draft ' : '';
 				if ( ! empty( $update_tags ) ) {
 					foreach( $update_tags as $a_tag ) {
 						$live_tag_name = $a_tag->name;
@@ -909,6 +982,7 @@ class LivePress_PF_Updates {
 							array_push( $live_tags, $live_tag_name );
 						}
 					}
+					$update_tag_classes .= ' livepress-has-tags ';
 				}
 				$pin_header = LivePress_Updater::instance()->blogging_tools->is_post_header_enabled( $parent->ID );
 				$piece = array(
@@ -922,7 +996,8 @@ class LivePress_PF_Updates {
 								$piece_gen,
 								$update_tag_classes,
 								( $child_count == $update_count && $pin_header ) ? 'pinned-first-live-update' : '' ),
-							'suffix'  => '</div>'
+							'suffix'  => '</div>',
+					'meta'	=> $update_meta
 				);
 
 				$child_pieces[] = $piece;

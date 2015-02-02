@@ -84,6 +84,9 @@ class LivePress_Updater {
 				add_action( 'admin_enqueue_scripts', array( &$this, 'add_css_and_js_on_header' ), 10 );
 				add_action( 'wp_enqueue_scripts', array( &$this, 'add_css_and_js_on_header' ), 10 );
 
+				add_action( 'admin_head', array( $this, 'remove_auto_save' ), 10 );
+
+
 				// Adds the modified tinyMCE
 				if ( get_user_option( 'rich_editing' ) == 'true' ) {
 					add_filter("mce_external_plugins", array( &$this, 'add_modified_tinymce' ) );
@@ -124,6 +127,21 @@ class LivePress_Updater {
 		);
 		// We only want the taxonomy to show in the menu, not on the post edit page
 		add_action( 'admin_menu' , array( &$this, 'remove_livetag_metabox' ) );
+
+	}
+
+	/**
+	 * for the current post remove its auto save
+	 * we don't use the default drafts / autosaves in livepress mode so remove any to stop messages etc.
+	 */
+	function remove_auto_save(){
+		global $post;
+		if( null !== $post ){
+			$autosave = wp_get_post_autosave( $post->ID );
+			if( false !== $autosave ){
+				wp_delete_post_revision( $autosave->ID );
+			}
+		}
 
 	}
 
@@ -473,8 +491,9 @@ class LivePress_Updater {
 				'ctrl_enter'                   => esc_html__( 'Ctrl+Enter', 'livepress' ),
 				'cancel'                       => esc_html__( 'Cancel', 'livepress' ),
 				'save'                         => esc_html__( 'Save', 'livepress' ),
+				'draft'                        => esc_html__( 'Save as draft', 'livepress' ),
 				'push_update'                  => esc_html__( 'Push Update', 'livepress' ),
-				'add_update'                   => esc_html__( 'Add update', 'livepress' ),
+				'add_update'                   => esc_html__( 'Publish Draft', 'livepress' ),
 				'confirm_delete'               => esc_html__( 'Are you sure you want to delete this update? This action cannot be undone.', 'livepress' ),
 				'updates'                      => esc_html__( 'Updates', 'livepress' ),
 				'discard_unsaved'              => esc_html__( 'You have unsaved editors open. Discard them?', 'livepress' ),
