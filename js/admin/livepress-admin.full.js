@@ -1,4 +1,4 @@
-/*! livepress -v1.2.2
+/*! livepress -v1.3
  * http://livepress.com/
  * Copyright (c) 2015 LivePress, Inc.
  */
@@ -111,6 +111,15 @@ if ( 'undefined' === typeof window.twttr ) {
 					}(document, "script", "twitter-wjs"));
 }
 
+// Hack for when a user loads a post from a permalink to an update and
+// twitter embeds manipulate the DOM and generate a "jump"
+if( window.location.hash ){
+    twttr.ready( function ( twttr ) {
+        twttr.events.bind( 'loaded', function (event) {
+            jQuery.scrollTo( jQuery(window.location.hash) );
+        });
+    });
+}
 jQuery.fn.getBg = function () {
 	var $this = jQuery(this),
 		actual_bg, newBackground, color;
@@ -4016,7 +4025,6 @@ ImIntegration.send_test_message = function (source, protocol) {
  * @type {Object}
  */
 var OORTLE = OORTLE || {};
-
 /**
  * Container for Livepress administration functionality.
  *
@@ -5018,15 +5026,16 @@ jQuery(function () {
 					if ( jQuery( this ).hasClass( 'active' ) ){
 						return;
 					}
-                    console.log('a.switch-livepress 1023');
                     var current_content = '';
 					if ( 'undefined' === typeof editor ) {
-                        current_content = tinyMCE.activeEditor.getContent();
+
+                        current_content = tinyMCE.activeEditor.targetElm.value;
 						switchEditors.go( 'content', 'toggle');
                         tinyMCE.activeEditor.setContent( current_content );
 					} else {
                         var currentEditorId = jQuery(this).attr('data-editor');
-                        current_content = tinyMCE.get(currentEditorId).getContent();
+                        current_content = tinyMCE.get( currentEditorId ).targetElm.value;
+
                         e = tinyMCE.get( currentEditorId );
 						e.show();
                         e.setContent( current_content );
@@ -5041,8 +5050,13 @@ jQuery(function () {
 					if ( jQuery( this ).hasClass( 'active' ) ){
 						return;
 					}
+
 					var currentEditorId = jQuery( this).attr('data-editor');
-                    console.log( currentEditorId );
+                    currentEditorId = ( 'undefined' === typeof( currentEditorId ) ) ? 'content' : currentEditorId;
+
+                    e = tinyMCE.get( currentEditorId );
+                    var originalContent =  e.targetElm.value;
+
 					switchEditors.go( currentEditorId, 'html');
 
 					window.eeTextActive = true;
@@ -5133,6 +5147,7 @@ jQuery(function () {
 				 * @param {String} title Title of the update.
 				 * @returns {Object} jQuery
 				 */
+
 				SELF.appendPostUpdate = function (content, callback, title) {
 					var args = (title === undefined) ? {} : {title: title};
 					args.liveTags    = this.getCurrentLiveTags();
@@ -5217,12 +5232,14 @@ jQuery(function () {
 						return;
 					}
 
-					// Switch to the rich editor before saving
-					if ( window.eeTextActive ){
-						switchEditors.go('content', 'tmce');
-					}
+                    var html_editor_live = jQuery( 'textarea#'+editor.id ).is(':visible');
+                    var originalContent = editor.getContent();
 
-					var originalContent = editor.getContent();
+                    if( '' === originalContent || html_editor_live ){
+                        originalContent = editor.targetElm.value;
+                        editor.targetElm.value = '';
+                    }
+
 					originalContent = originalContent.replace( '<p><br data-mce-bogus="1"></p>', '' );
 					// Remove the toolbar/dashicons present on images/galleries since WordPress 3.9 and embeds since 4.0
 					originalContent = originalContent.replace( '<div class="toolbar"><div class="dashicons dashicons-edit edit"></div><div class="dashicons dashicons-no-alt remove"></div></div>', '' );
@@ -5249,7 +5266,7 @@ jQuery(function () {
 					/**
 					 * Update header
 					 */
-					var liveUpdateHeader = $activeForm.find( '.liveupdate-header' ),
+					var liveUpdateHeader = $activeForm.find( '.liveupdate-header'),
 						processed = switchEditors.pre_wpautop( originalContent ),
 
 						/**
@@ -5280,7 +5297,6 @@ jQuery(function () {
 								post_id:          LivepressConfig.post_id
 							},
 							success: function() {
-								//console.log( 'Added new tags to taxonomy' );
 							}
 						});
 					}
@@ -5294,7 +5310,7 @@ jQuery(function () {
 					if ( -1 === processed.search( 'livepress-update-inner-wrapper' ) ){ /* don't double add */
 
 						if( 'default' !== LivepressConfig.update_format )  {
-							processed = '<div class="livepress-update-inner-wrapper ' + avater_class + '">\n' + processed + '\n</div>';
+							processed = '<div class="livepress-update-inner-wrapper ' + avater_class + '">\n\n' + processed + '\n\n</div>';
 							if ( -1 !== jQuery.inArray( 'AVATAR', LivepressConfig.show ) ) {
 								processed = ( ( 0 !== authors.length ) ? SELF.getAuthorsHTML( authors ) : '' ) + processed;
 							}
@@ -5309,7 +5325,7 @@ jQuery(function () {
 								processed = ( ( 0 !== authors.length ) ? SELF.getAuthorsHTML( authors ) : '' ) + processed;
 							}
 							if ( -1 === processed.search( 'livepress-update-outer-wrapper' ) ) {
-								processed = '<div class="livepress-update-outer-wrapper ' + avater_class + '">' + processed + '</div>';
+								processed = '<div class="livepress-update-outer-wrapper ' + avater_class + '">\n\n' + processed + '\n\n</div>';
 							}
 						}
 					}
@@ -5334,7 +5350,9 @@ jQuery(function () {
 					if ( 'undefined' === typeof $activeForm ) {
 						$activeForm  = jQuery( '.livepress-update-form' );
 					}
-					return $activeForm.find( '.liveupdate-byline' ).select2( 'data' );
+                    var authors = $activeForm.find( '.liveupdate-byline' ).select2( 'data' );
+
+					return authors;
 				};
 
 				/**
@@ -5343,7 +5361,9 @@ jQuery(function () {
 				SELF.linkToAvatar = function( html, userid ) {
 					if ( 'undefined' !== typeof SELF.avatarLinks[ userid ] && '' !== SELF.avatarLinks[ userid ] ) {
 						return '<a href="' + SELF.avatarLinks[ userid ] + '" target="_blank">' + html + '</a>';
-					}
+					}else{
+                        return html;
+                    }
 				};
 
 				/**
@@ -5371,7 +5391,6 @@ jQuery(function () {
 						if ( 'undefined' !== typeof SELF.gravatars[ this.id ] && '' !== SELF.gravatars[ this.id ] ) {
 							toReturn += '<span class="live-author-gravatar">' + SELF.linkToAvatar( SELF.gravatars[ this.id ], this.id ) +  '</span>';
 						}
-
 						toReturn += '<span class="live-author-name">' + SELF.linkToAvatar( this.text, this.id ) + '</span></span>';
 					} );
 
@@ -5480,12 +5499,13 @@ jQuery(function () {
 					}
 
 					if ( 'undefined' !== typeof $liveUpdateHeader.val() && '' !== $liveUpdateHeader.val() ) {
-						metainfo += ' update_header="' + encodeURI( decodeURI( $liveUpdateHeader.val() ) ) + '"';
+                        var post_title = $liveUpdateHeader.val().replace(/#/g,'%23').replace(/%/g,'%25');
+						metainfo += ' update_header="' + encodeURI( decodeURI( post_title ) ) + '"';
 					}
-					metainfo += "]";
+					metainfo += "]\n\n";
 
 					if( 'default' === LivepressConfig.update_format ){
-						metainfo += ' ' + content + ' \n[/livepress_metainfo]';
+						metainfo += ' ' + content + ' \n[/livepress_metainfo]\n\n';
 					}
 
 
@@ -5630,6 +5650,7 @@ jQuery(function () {
 						SELF.$form.addClass(namespace + '-delform');
 					}
 				}
+
 				// Add tag support to the form
 				SELF.$form
 					.find( 'input.livepress-live-tag' )
@@ -5704,6 +5725,7 @@ jQuery(function () {
 					if ( "true" !== LivepressConfig.use_default_author ) {
 						// removed as we wish to keep the author
 				//		SELF.$form.find( '.liveupdate-byline' ).select2( 'val', '' );
+                   //     SELF.$form.find( '.liveupdate-byline' ).val(null).trigger("change"); // right way to clear
 					}
 
 				},
@@ -5821,13 +5843,17 @@ jQuery(function () {
 						authors = jQuery( content ).find( '.live-update-author' );
 
 					if(  0 !== metaAuthors.length  ) {
-						theAuthors = [];
-						jQuery(metaAuthors).each(function (i, a) {
-							var theAuthor = {
-								'id': i,
-								'text': a
-							};
-							theAuthors.push(theAuthor);
+						jQuery(metaAuthors).each(function (i, author_name) {
+                            jQuery(lp_strings.lp_authors).each(function (index, author) {
+                                if( author_name === author['text'] ){
+                                   var theAuthor = {
+                                        'id': author['id'],
+                                        'text': author_name
+                                    };
+                                    theAuthors.push( theAuthor );
+                                    return false;
+                                }
+                            });
 						});
 					}else{
 						// If no authors, use whats in the main author field
@@ -5851,8 +5877,8 @@ jQuery(function () {
 						}
 					}
 
+                    $activeForm.find( '.liveupdate-byline' ).select2( 'data', theAuthors );
 
-					$activeForm.find( '.liveupdate-byline' ).select2( 'data', theAuthors );
 					var $content = jQuery( jQuery.parseHTML( sourceContent ) );
 					/**
 					 * Livetags
@@ -5868,14 +5894,12 @@ jQuery(function () {
 
 					// Clear the tags and authors from the content
 					// if we have content in the short code get otherwise look for the div
-
 					if( 0 < content.indexOf( '[/livepress_metainfo' ) ){
 						var bits = content.split('[/');
                         content = bits[0].replace(/<div.*hidden">/g, '');
 					}else{
-						content = $domcontent.find( '.livepress-update-inner-wrapper' ).html();
+                        content = $domcontent.find( '.livepress-update-inner-wrapper' ).html();
 					}
-
                     if( undefined !== content ){
                         // Reset the editor with the cleaned content
                         $domcontent.html( content );
@@ -6238,7 +6262,7 @@ jQuery(function () {
 
 					// Switch back to the text editor if set
 					if ( window.eeTextActive ){
-						switchEditors.go( 'content', 'html' );
+                        switchEditors.go( 'content', 'html' );
 					}
 
 
@@ -6761,7 +6785,7 @@ jQuery(function () {
 									var editor = Sel.enableTiny( style );
 									editor.show();
                                     // hack just reload the content to make WP embed hooks in tinyMCE  refesh content to render emeb's
-                                    tinyMCE.get(editor.id).setContent(tinyMCE.get(editor.id).getContent());
+                                    tinyMCE.get(editor.id).setContent( tinyMCE.get(editor.id).getContent() );
 
 									var tab_markup = '<div class="livepress-inline-editor-tabs wp-editor-tabs '+editor.id+'"><a id="content-livepress-html" data-editor="'+editor.id+'" class="hide-if-no-js wp-switch-editor switch-livepress-html"><span class="icon-livepress-logo"></span> ' + lp_strings.text_editor + '</a><a id="content-livepress"  data-editor="'+editor.id+'" class="hide-if-no-js wp-switch-editor switch-livepress active"><span class="icon-livepress-logo"></span> ' + lp_strings.visual_text_editor + '</a></div>';
 									jQuery( tab_markup ).prependTo( Sel.$form );
@@ -6772,7 +6796,8 @@ jQuery(function () {
 										.prependTo( Sel.$form )
 										.css( 'margin-left', '10px' )
 										.find( 'a' )
-										.attr( 'data-editor', editor.id );
+										.attr( 'data-editor', editor.id )
+                                        .click( function(){window.wp.media.editor.id( editor.id );});
 
 									addEditorTabControlListeners( Sel.$form.parent().find( '.livepress-inline-editor-tabs' ), editor.id, '', editor );
 									jQuery( this ).remove();
