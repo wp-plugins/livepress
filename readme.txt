@@ -1,8 +1,8 @@
 === LivePress ===
 Requires at least: 3.5
-Tested up to: 4.2.2
+Tested up to: 4.3-beta2
 Tags: LivePress, live, live blogging, liveblogging, realtime, collaboration, Twitter
-Stable tag: 1.3
+Stable tag: 1.3.2
 
 LivePress is a hosted live blogging solution that integrates seamlessly with your WordPress blog.
 
@@ -118,6 +118,23 @@ apply_filters( 'livepress_the_content_filter_disabled', '__return_true' );
 2. New update sent -- it appears for all readers of this post at the same time.
 
 == Changelog ==
+
+= 1.3.2 =
+
+* replaced &$this with $this in hook calls
+* added the_title filter to the metatag og:title
+* added the_excerpt filter to the metatag og:description
+
+= 1.3.1 =
+
+* Fixed left margin in pinned post
+* Fixed draft and private posts not working as LivePress posts
+* Fixes to make sure the stored short code is correctly formatted
+* Added check to make sure LivePress dosen't load on non-live posts or outside the post loop
+* Added code to generate avatar and shortcode for the existing content when converting to a live post
+* Renamed CSS class "status-title" to "lp-status-title" to avoided CSS override
+* Fixed a problem with converting to a live post by changing which filter we use
+* Fixed the CSS to show draft LivePress updates in green in the main listing
 
 = 1.3 =
 * sync with WordPress VIP Version
