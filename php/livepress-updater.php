@@ -73,7 +73,7 @@ class LivePress_Updater {
 		add_filter( 'update_post_metadata', array( $this, 'livepress_filter_post_locks' ), 10, 5 );
 		add_filter( 'add_post_metadata',    array( $this, 'livepress_filter_post_locks' ), 10, 5 );
 
-		$this->lp_comment->do_wp_binds( isset($_POST['livepress_update']) );
+		$this->lp_comment->do_wp_binds( isset( $_POST['livepress_update'] ) );
 
 
 		if ( ! isset( $_POST['livepress_update'] ) ) {
@@ -895,6 +895,9 @@ class LivePress_Updater {
 		$ljsc->new_value( 'site_url', site_url() );
 		$ljsc->new_value( 'ajax_url', site_url().'/wp-admin/admin-ajax.php' );
 		$ljsc->new_value( 'locale', get_locale() );
+
+		// filter to set if the share icons are added top or bottom
+		$ljsc->new_value( 'share_top', apply_filters( 'lp_share_top' , 'true' ) );
 
 		if ( function_exists( 'wpcom_vip_noncdn_uri' ) ){
 			$ljsc->new_value( 'noncdn_url', wpcom_vip_noncdn_uri( dirname( dirname( __FILE__ ) ) ) );

@@ -1,4 +1,4 @@
-/*! livepress -v1.3.4
+/*! livepress -v1.3.4.2
  * http://livepress.com/
  * Copyright (c) 2015 LivePress, Inc.
  */
@@ -1926,7 +1926,7 @@ function DHelpers() {
 	};
 
 	SELF.handleErrors = function ( errors ) {
-		console.log( errors );
+		//console.log( errors );
 		$pane_errors.html('');
 		$pane_errors.hide();
 		jQuery.each( errors, function ( field, error ) {
@@ -2343,7 +2343,7 @@ Collaboration.onError = function (key, arg) {
 	}
 	Dashboard.Helpers.handleErrors(errors);
 	Dashboard.Helpers.setSwitcherState('disconnected');
-	console.log("Collaboration.onError", arguments);
+	//console.log("Collaboration.onError", arguments);
 };
 
 Collaboration.initialize = function () {
